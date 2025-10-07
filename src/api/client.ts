@@ -1,15 +1,14 @@
 import axios from "axios";
 
 const client = axios.create({
-  baseURL: "https://api.example.com", // 🔥 replace with your backend
+  baseURL: "https://api.example.com", 
   timeout: 10000,
 });
 
 // Request interceptor (add auth token)
 client.interceptors.request.use(
   async (config) => {
-    // Example: attach token from async storage or secure store
-    const token = "your-auth-token"; // TODO: replace with real fetch
+    const token = "your-auth-token"; 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -18,7 +17,6 @@ client.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor (handle errors globally)
 client.interceptors.response.use(
   (response) => response,
   (error) => {

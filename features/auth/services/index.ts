@@ -1,4 +1,4 @@
-import { API, client } from "@/lib/api";
+import { API, client } from "@/src/api";
 
 export type LoginPayload = {
   email: string;
