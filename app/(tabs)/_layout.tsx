@@ -1,4 +1,4 @@
-import BottomTabsNavigator from "@/navigation/BottomTabNavigation";
+import BottomTabsNavigator from '@/src/navigation/BottomTabNavigation';
 import { View } from 'react-native';
 
 export default function TabLayout() {
