@@ -1,5 +1,5 @@
-import { persistor, store } from "@/lib/redux/store";
-import { queryClient } from "@/src/config/queryClient";
+import { queryClient } from "@/src/lib/react-query/queryClient";
+import { persistor, store } from "@/src/store/store";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
