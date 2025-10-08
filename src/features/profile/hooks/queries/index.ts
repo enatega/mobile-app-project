@@ -6,7 +6,7 @@ export const useFetchRiderProfile = () => {
     return useQuery<RiderProfile, Error>({
         queryKey: ["profile"],
         queryFn: fetchRiderProfile,
-        networkMode: 'offlineFirst',
         refetchOnWindowFocus: false,
+        staleTime: 5 * 60 * 1000,
     })
 }
