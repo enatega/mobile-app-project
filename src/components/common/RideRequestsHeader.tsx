@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef } from 'react';
 import { Animated, Platform, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export const RideRequestsHeader: React.FC = () => {
+const RideRequestsHeader: React.FC = () => {
   const { colors } = useTheme();
   const { driverStatus, toggleDriverStatus } = useDriverStatus();
   
