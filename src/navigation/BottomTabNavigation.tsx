@@ -23,6 +23,11 @@ const TAB_CONFIG = [
     title: 'Wallet',
     icon: 'wallet-sharp',
   },
+  {
+    name: '(profile)',
+    title: 'Profile',
+    icon: 'person',
+  },
 ];
 
 function TabBarIcon({ 
@@ -39,6 +44,7 @@ function TabBarIcon({
     'list-circle': { focused: 'list-circle', unfocused: 'list-circle-outline' },
     'calendar-sharp': { focused: 'calendar', unfocused: 'calendar-outline' },
     'wallet-sharp': { focused: 'wallet', unfocused: 'wallet-outline' },
+    'person': { focused: 'person', unfocused: 'person-outline' },
   };
 
   const iconName = iconMap[name] 
@@ -57,7 +63,7 @@ function TabBarIcon({
 export default function BottomTabsNavigator() {
   return (
     <Tabs
-      initialRouteName="(rideRequests)"
+      initialRouteName="(profile)"
       screenOptions={{
         tabBarActiveTintColor: ACTIVE_TINT_COLOR,
         tabBarInactiveTintColor: INACTIVE_TINT_COLOR,
