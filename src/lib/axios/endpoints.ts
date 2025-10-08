@@ -10,5 +10,8 @@ export const API = {
     inventory: {
       list: "/inventory",
     },
+    profile: {
+      user: "/api/v1/users",
+    }
   };
   
