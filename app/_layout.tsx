@@ -1,3 +1,4 @@
+import { ThemeProvider } from "@/src/context/ThemeContext";
 import { queryClient } from "@/src/lib/react-query/queryClient";
 import { persistor, store } from "@/src/store/store";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -30,10 +31,12 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
-          <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="+not-found" />
-          </Stack>
+          <ThemeProvider>
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="+not-found" />
+            </Stack>
+          </ThemeProvider>
         </PersistGate>
       </Provider>
     </QueryClientProvider>
