@@ -1,1 +1,1 @@
-// to do
+export { default as ProfileScreen } from './profile';
