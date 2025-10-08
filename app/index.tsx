@@ -6,6 +6,6 @@ export default function RootPage() {
   // return <Redirect href="/(tabs)/(discovery)/discovery" />;
 
   // redirect to zone-selection
-  return <Redirect href="/(tabs)/(rideRequests)/rideRequest" />;
+  return <Redirect href="/(tabs)/(profile)/personal-info" />;
 }
 
