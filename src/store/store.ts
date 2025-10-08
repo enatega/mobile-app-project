@@ -4,10 +4,12 @@ import { persistReducer, persistStore } from 'redux-persist';
 import { PersistConfig } from 'redux-persist/es/types';
 
 // Slices
+import driverStatusReducer from './slices/driverStatus.slice';
 import themeReducer from './slices/theme.slice';
 
 const rootReducer = combineReducers({
   theme: themeReducer,
+  driverStatus: driverStatusReducer,
 });
 
 type RootState = ReturnType<typeof rootReducer>;
@@ -15,7 +17,7 @@ type RootState = ReturnType<typeof rootReducer>;
 const persistConfig: PersistConfig<RootState> = {
   key: 'root',
   storage: AsyncStorage,
-  whitelist: ['theme'],
+  whitelist: ['theme', 'driverStatus'],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
