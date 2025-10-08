@@ -1,23 +1,27 @@
-// src/components/CustomHeader.tsx
+import { useTheme } from "@/src/context/ThemeContext";
 import { Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import CustomText from "../ui/Text";
 
 interface CustomHeaderProps {
   title: string;
   showBackButton?: boolean;
   onBackPress?: () => void;
+  isTitleVisible?: boolean;
 }
 
 const CustomHeader: React.FC<CustomHeaderProps> = ({
   title,
   showBackButton = true,
   onBackPress,
+  isTitleVisible = true,
 }) => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const theme = useTheme();
 
   const handleBack = () => {
     if (onBackPress) onBackPress();
@@ -25,19 +29,36 @@ const CustomHeader: React.FC<CustomHeaderProps> = ({
   };
 
   return (
-    <View style={[styles.headerContainer, { paddingTop: insets.top + 5 }]}>
+    <View
+      style={[
+        styles.headerContainer,
+        { paddingTop: insets.top + 5, paddingBottom: 16 },
+      ]}
+    >
       {showBackButton ? (
         <TouchableOpacity
           onPress={handleBack}
           activeOpacity={0.7}
-          style={{ backgroundColor: "#fff", padding: 5, borderRadius: "100%" }}
+          style={{
+            backgroundColor: theme.colors.colorBgTertiary,
+            padding: 5,
+            borderRadius: "100%",
+          }}
         >
-          <Feather name="arrow-left" size={24} color="black" />
+          <Feather name="arrow-left" size={24} color={theme.colors.colorIcon} />
         </TouchableOpacity>
       ) : (
         <View style={{ width: 22 }} />
       )}
-      <Text style={styles.title}>{title}</Text>
+      {isTitleVisible && (
+        <CustomText
+          variant="h4"
+          weight="semibold"
+          style={{ color: theme.colors.colorText }}
+        >
+          {title}
+        </CustomText>
+      )}
       <View style={{ width: 22 }} />
     </View>
   );
@@ -51,15 +72,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
+    paddingVertical: 12,
     backgroundColor: "transparent",
     zIndex: 1000,
   },
   title: {
     fontSize: 20,
     fontWeight: "600",
-    color: "#18181B",
     textAlign: "center",
     lineHeight: 28,
-    // letterSpacing: -0.5,
   },
 });
