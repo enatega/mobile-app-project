@@ -1,1 +1,1 @@
-// to do
+export { handleTruncate } from "./truncate";

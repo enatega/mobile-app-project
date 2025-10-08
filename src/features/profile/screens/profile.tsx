@@ -1,7 +1,11 @@
+import { CustomHeader } from "@/src/components/common";
 import GradientBackground from "@/src/components/common/GradientBackground";
+import Button from "@/src/components/ui/Button ";
+import CustomText from "@/src/components/ui/Text";
+import { globalStyles } from "@/src/constants";
+import { router } from "expo-router";
 import React from "react";
-import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
-import CustomHeader from "../../../../components/common/CustomHeader";
+import { ActivityIndicator, View } from "react-native";
 import { InfoCard, MiniPofileCard } from "../components";
 import { useFetchRiderProfile } from "../hooks/queries";
 
@@ -34,20 +38,14 @@ const profileScreen = () => {
           gap: 12,
         }}
       >
-        <Text>Something went wrong</Text>
-        <TouchableOpacity
-          style={{
-            backgroundColor: "#DAD5FB",
-            paddingHorizontal: 12,
-            paddingVertical: 6,
-            borderRadius: 8,
-          }}
+        <CustomText>Something went wrong</CustomText>
+        <Button
+          title="Retry"
+          variant="primary"
           onPress={() => {
             refetch();
           }}
-        >
-          <Text>Retry</Text>
-        </TouchableOpacity>
+        />
       </View>
     );
   }
@@ -55,23 +53,28 @@ const profileScreen = () => {
   return (
     <GradientBackground>
       <CustomHeader title="Your Profile" />
-      <MiniPofileCard userDetails={userObject} />
-      <InfoCard
-        title="Personal info"
-        description="Update your personal and contact details."
-      />
-      <InfoCard
-        title="Payment methods"
-        description="Add or Update your saved payment methods."
-      />
-      <InfoCard
-        title="Support and feedback"
-        description="Reach out for help or give feedback on your experience."
-      />
-      <InfoCard
-        title="Security and settings"
-        description="Update your password and change app preferences."
-      />
+      <View style={globalStyles.containerPadding}>
+        <MiniPofileCard userDetails={userObject} />
+        <InfoCard
+          title="Personal info"
+          description="Update your personal and contact details."
+          onPress={() => {
+            router.navigate("/(tabs)/(profile)/personal-info");
+          }}
+        />
+        <InfoCard
+          title="Payment methods"
+          description="Add or Update your saved payment methods."
+        />
+        <InfoCard
+          title="Support and feedback"
+          description="Reach out for help or give feedback on your experience."
+        />
+        <InfoCard
+          title="Security and settings"
+          description="Update your password and change app preferences."
+        />
+      </View>
     </GradientBackground>
   );
 };
