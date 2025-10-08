@@ -23,6 +23,7 @@ export const lightColors = {
     tint: '#AAC810',
     iconBackground: '#e5e7eb',
     greyShade: '#666666',
+    GRADIENT_COLORS:["#DAD5FB", "#fcfcfc"]
   };
   
   // --- Dark Theme Palette ---
@@ -50,6 +51,7 @@ export const lightColors = {
     tint: '#A5C616',
     iconBackground: '#434343',
     greyShade: '#bfbfbf',
+     GRADIENT_COLORS:["#DAD5FB", "#fcfcfc"]
   };
   
   // --- Common Colors Palette ---
