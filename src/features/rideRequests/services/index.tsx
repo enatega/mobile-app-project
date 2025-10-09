@@ -78,6 +78,7 @@ const MOCK_RIDE_REQUESTS: RideRequest[] = [
       name: 'Muhammad Ali',
       phoneNumber: '+1234567890',
       rating: 4.7,
+      totalRides: 312,
     },
     pickupLocation: {
       latitude: 40.7128,
@@ -90,15 +91,14 @@ const MOCK_RIDE_REQUESTS: RideRequest[] = [
       longitude: -73.9776,
       address: 'JFK Airport Terminal 2, Queens, NY',
     },
-    requestTime: new Date().toISOString(),
+    requestTime: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
     estimatedFare: 56.53,
     distance: 1.7,
     estimatedDuration: 25,
-    status: 'pending',
+    status: 'accepted',
     rideType: 'scheduled',
     paymentMethod: 'card',
-    specialInstructions: 'Scheduled for 2 hours',
-
+    specialInstructions: undefined,
   },
   {
     id: '2',
@@ -107,6 +107,7 @@ const MOCK_RIDE_REQUESTS: RideRequest[] = [
       name: 'Sarah Johnson',
       phoneNumber: '+1234567891',
       rating: 4.7,
+      totalRides: 128,
     },
     pickupLocation: {
       latitude: 40.7489,
@@ -125,7 +126,7 @@ const MOCK_RIDE_REQUESTS: RideRequest[] = [
     status: 'pending',
     rideType: 'standard',
     paymentMethod: 'cash',
-    specialInstructions: 'Scheduled for 2 hours',
+    specialInstructions: undefined,
   },
   {
     id: '3',
@@ -134,6 +135,7 @@ const MOCK_RIDE_REQUESTS: RideRequest[] = [
       name: 'Mike Wilson',
       phoneNumber: '+1234567892',
       rating: 4.7,
+      totalRides: 528,
     },
     pickupLocation: {
       latitude: 40.7580,
@@ -145,16 +147,15 @@ const MOCK_RIDE_REQUESTS: RideRequest[] = [
       longitude: -74.0776,
       address: 'Beach Resort, Staten Island, NY',
     },
-    requestTime: new Date(Date.now() - 600000).toISOString(),
+    requestTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
     estimatedFare: 56.53,
     distance: 1.7,
     estimatedDuration: 35,
     status: 'pending',
     rideType: 'hourly',
     paymentMethod: 'wallet',
-    specialInstructions: 'Scheduled for 2 hours',
+    specialInstructions: 'Business charter • 3-hour block',
   },
 ];
 
 export default rideRequestsService;
-

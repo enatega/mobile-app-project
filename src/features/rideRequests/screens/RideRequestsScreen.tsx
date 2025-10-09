@@ -2,27 +2,44 @@ import { GradientBackground, RideRequestsHeader } from '@/src/components/common'
 import { useTheme } from '@/src/context/ThemeContext';
 import { useDriverStatus } from '@/src/hooks/useDriverStatus';
 import { Ionicons } from '@expo/vector-icons';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
-  FlatList,
   RefreshControl,
   SafeAreaView,
   StyleSheet,
   Text,
+  TouchableOpacity,
+  useWindowDimensions,
   View
 } from 'react-native';
+import { SwipeListView, SwipeRow } from 'react-native-swipe-list-view';
 import { OfflineScreen, RideCard } from '../components';
 import { useActiveRideRequests } from '../hooks/queries';
+import { RideRequest } from '../types';
 
+type RideRowMap = Record<string, SwipeRow<RideRequest>>;
+const LIST_HORIZONTAL_PADDING = 16;
+const ACTION_RAIL_MAX_WIDTH = 320;
+const ACTION_GAP = 8;
 
 export const RideRequestsScreen: React.FC = () => {
   const { colors } = useTheme();
   const { driverStatus } = useDriverStatus();
   const [countdown, setCountdown] = useState({ hours: 0, minutes: 27, seconds: 48 });
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const { width: windowWidth } = useWindowDimensions();
+  const cardRailWidth = useMemo(
+    () => Math.max(0, windowWidth - LIST_HORIZONTAL_PADDING * 2),
+    [windowWidth]
+  );
+  const actionWidth = useMemo(
+    () => Math.min(ACTION_RAIL_MAX_WIDTH, Math.max(120, cardRailWidth * 0.2)),
+    [cardRailWidth]
+  );
+  const rightOpenValue = -actionWidth;
   
   // Fetch ride requests from API
-  const { data: rideRequests = [], isLoading, isRefetching, refetch } = useActiveRideRequests();
+  const { data: rideRequests = [], isRefetching, refetch } = useActiveRideRequests();
 
   // Countdown timer for upcoming ride
   useEffect(() => {
@@ -55,6 +72,105 @@ export const RideRequestsScreen: React.FC = () => {
   };
 
   const activeRequests = driverStatus === 'online' ? rideRequests : [];
+
+  const closeRow = (rowMap: RideRowMap, rowKey: string) => {
+    if (rowMap[rowKey]) {
+      rowMap[rowKey].closeRow();
+    }
+  };
+
+  const handleComplain = (rowMap: RideRowMap, rowKey: string) => {
+    closeRow(rowMap, rowKey);
+    console.log('Complain about ride:', rowKey);
+  };
+
+  const handleHide = (rowMap: RideRowMap, rowKey: string) => {
+    closeRow(rowMap, rowKey);
+    console.log('Hide ride:', rowKey);
+  };
+
+  const handleChooseOnMap = (rowMap: RideRowMap, rowKey: string) => {
+    closeRow(rowMap, rowKey);
+    console.log('Choose on map for ride:', rowKey);
+  };
+
+  const renderHiddenItem = (
+    { item }: { item: RideRequest },
+    rowMap: RideRowMap
+  ) => {
+    const actions = [
+      {
+        key: 'complain',
+        label: 'Complain',
+        icon: 'warning-outline' as const,
+        accent: colors.danger,
+        handler: () => handleComplain(rowMap, item.id),
+      },
+      {
+        key: 'hide',
+        label: 'Hide Ride',
+        icon: 'eye-off-outline' as const,
+        accent: colors.textSecondary,
+        handler: () => handleHide(rowMap, item.id),
+      },
+      {
+        key: 'map',
+        label: 'Choose on Map',
+        icon: 'location-outline' as const,
+        accent: colors.primary,
+        handler: () => handleChooseOnMap(rowMap, item.id),
+      },
+    ];
+    const effectiveRailWidth = actionWidth - 16;
+    const actionButtonWidth = Math.max(
+      (effectiveRailWidth - ACTION_GAP * (actions.length - 1)) / actions.length,
+      68
+    );
+
+    return (
+      <View
+        style={[
+          styles.hiddenRow,
+          {
+            backgroundColor: colors.backgroundSecondary,
+            shadowColor: colors.shadow,
+            width: cardRailWidth,
+          },
+        ]}
+      >
+        <View
+          style={[
+            styles.hiddenActions,
+            {
+              width: actionWidth,
+            },
+          ]}
+        >
+          {actions.map((action) => (
+            <TouchableOpacity
+              key={action.key}
+              style={[
+                styles.actionButton,
+                {
+                  width: actionButtonWidth,
+                  height: 52,
+                  borderColor: action.accent,
+                  marginHorizontal: ACTION_GAP / 2,
+                  marginRight: 25,
+                },
+              ]}
+              onPress={action.handler}
+              activeOpacity={0.7}
+              hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+            >
+              <Ionicons name={action.icon} size={12} color={action.accent} />
+              <Text style={[styles.actionText, { color: action.accent }]}>{action.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+    );
+  };
 
   return (
     <GradientBackground style={{ flex: 1 }}>
@@ -93,26 +209,34 @@ export const RideRequestsScreen: React.FC = () => {
        )}
 
       {/* Ride Requests List */}
-      <FlatList
+      <SwipeListView
         data={activeRequests}
         keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <RideCard
+            rideRequest={item}
+            onMenuPress={(rideRequest) => console.log('Menu pressed for ride:', rideRequest.id)}
+          />
+        )}
+        renderHiddenItem={renderHiddenItem}
+        rightOpenValue={rightOpenValue}
+        stopRightSwipe={rightOpenValue}
+        leftOpenValue={0}
+        stopLeftSwipe={0}
+        disableLeftSwipe={false}
+        disableRightSwipe
+        closeOnRowPress
+        swipeToOpenPercent={35}
+        swipeToClosePercent={20}
+        recalculateHiddenLayout
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
         refreshControl={
-          <RefreshControl 
-            refreshing={isRefreshing || isRefetching} 
-            onRefresh={handleRefresh} 
+          <RefreshControl
+            refreshing={isRefreshing || isRefetching}
+            onRefresh={handleRefresh}
           />
         }
-        renderItem={({ item }) => (
-          <RideCard 
-            rideRequest={item} 
-            onMenuPress={(rideRequest) => {
-              // Handle menu press - you can add actions here
-              console.log('Menu pressed for ride:', rideRequest.id);
-            }}
-          />
-        )}
         ListEmptyComponent={<OfflineScreen isOnline={driverStatus === 'online'} />}
       />
       </SafeAreaView>
@@ -125,6 +249,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   upcomingRideCard: {
+    minHeight: 194,
     marginHorizontal: 16,
     marginBottom: 16,
     borderRadius: 16,
@@ -162,7 +287,7 @@ const styles = StyleSheet.create({
   carIconContainer: {
     width: 60,
     height: 60,
-    borderRadius: 12,
+    borderRadius: 14,
     backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
     alignItems: 'center',
@@ -193,8 +318,44 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   listContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 20,
+    paddingHorizontal: LIST_HORIZONTAL_PADDING,
+    paddingBottom: 24,
+    paddingTop: 8,
+  },
+  hiddenRow: {
+    minHeight: 194,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginBottom: 12,
+    borderRadius: 16,
+    paddingVertical: 6,
+    overflow: 'hidden',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    
+  },
+  hiddenActions: {
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    paddingVertical: 22,
+    gap: 4,
+  },
+  actionButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  actionText: {
+    fontSize: 9,
+    fontWeight: '500',
+    textAlign: 'center',
+    marginTop: 2,
   },
   emptyContainer: {
     flex: 1,
@@ -215,4 +376,3 @@ const styles = StyleSheet.create({
 });
 
 export default RideRequestsScreen;
-

@@ -17,6 +17,8 @@ export interface Passenger {
   phoneNumber: string;
   rating: number;
   profileImage?: string;
+  totalRides?: number;
+  totalRatings?: number;
 }
 
 export interface RideRequest {
@@ -57,4 +59,3 @@ export interface RideRequestResponse {
   message: string;
   data?: RideRequest;
 }
-
