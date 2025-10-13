@@ -1,11 +1,15 @@
+import { selectIsLoggedIn } from '@/src/store/selectors/authSelectors';
 import { Redirect } from 'expo-router';
+import { useSelector } from 'react-redux';
 
 export default function RootPage() {
-  console.log("app index page")
-  // redirect to discovery
-  // return <Redirect href="/(tabs)/(discovery)/discovery" />;
 
-  // redirect to zone-selection
-  return <Redirect href="/(tabs)/(rideRequests)/rideRequest" />;
+  const isLoggedIn = useSelector(selectIsLoggedIn);
+
+  console.log("app index page - isLoggedIn:", isLoggedIn);
+
+  if (isLoggedIn) {
+    return <Redirect href="/(tabs)/(rideRequests)/rideRequest" />;
+  }
+  return <Redirect href="/(auth)/welcome" />;
 }
-
