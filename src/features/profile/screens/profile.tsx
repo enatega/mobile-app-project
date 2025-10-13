@@ -1,7 +1,7 @@
 import GradientBackground from "@/src/components/common/GradientBackground";
 import React from "react";
 import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
-import CustomHeader from "../../../../components/common/CustomHeader";
+import CustomHeader from "../../../components/common/CustomHeader";
 import { InfoCard, MiniPofileCard } from "../components";
 import { useFetchRiderProfile } from "../hooks/queries";
 
