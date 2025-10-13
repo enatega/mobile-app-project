@@ -28,32 +28,7 @@ const RideRequestsHeader: React.FC = () => {
     }).start();
   };
 
-  const getRideTypeColor = (rideType: string) => {
-    switch (rideType) {
-      case 'scheduled':
-        return { background: '#FEF3C7', text: '#92400E' }; // Amber
-      case 'standard':
-        return { background: '#D1FAE5', text: '#065F46' }; // Green
-      case 'hourly':
-        return { background: '#DBEAFE', text: '#1E40AF' }; // Blue
-      default:
-        return { background: '#D1FAE5', text: '#065F46' }; // Default to Standard
-    }
-  };
-
-  const getRideTypeLabel = (rideType: string) => {
-    switch (rideType) {
-      case 'scheduled':
-        return 'Scheduled';
-      case 'standard':
-        return 'Standard';
-      case 'hourly':
-        return 'Hourly';
-      default:
-        return 'Standard';
-    }
-  };
-
+  
   return (
     <View style={[styles.container, { backgroundColor: 'transparent' }]}>
       <StatusBar
