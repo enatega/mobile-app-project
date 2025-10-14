@@ -13,7 +13,7 @@ import {
   View
 } from 'react-native';
 import { SwipeListView, SwipeRow } from 'react-native-swipe-list-view';
-import { OfflineScreen, RideCard } from '../components';
+import { FareInputModal, OfflineScreen, RideCard, RideDetailsModal } from '../components';
 import { useActiveRideRequests } from '../hooks/queries';
 import { RideRequest } from '../types';
 
@@ -27,6 +27,9 @@ export const RideRequestsScreen: React.FC = () => {
   const { driverStatus } = useDriverStatus();
   const [countdown, setCountdown] = useState({ hours: 0, minutes: 27, seconds: 48 });
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedRide, setSelectedRide] = useState<RideRequest | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [fareInputVisible, setFareInputVisible] = useState(false);
   const { width: windowWidth } = useWindowDimensions();
   const cardRailWidth = useMemo(
     () => Math.max(0, windowWidth - LIST_HORIZONTAL_PADDING * 2),
@@ -92,6 +95,32 @@ export const RideRequestsScreen: React.FC = () => {
   const handleChooseOnMap = (rowMap: RideRowMap, rowKey: string) => {
     closeRow(rowMap, rowKey);
     console.log('Choose on map for ride:', rowKey);
+  };
+
+  const handleRideCardPress = (rideRequest: RideRequest) => {
+    setSelectedRide(rideRequest);
+    setModalVisible(true);
+  };
+
+  const handleAcceptRide = (fare: number) => {
+    console.log('Accept ride with fare:', fare);
+    // Handle ride acceptance logic
+  };
+
+  const handleOfferFare = (fare: number) => {
+    console.log('Offer fare:', fare);
+    // Handle fare offer logic
+  };
+
+  const handleEditFare = () => {
+    setModalVisible(false);
+    setTimeout(() => setFareInputVisible(true), 100);
+  };
+
+  const handleCustomFareOffer = (fare: number) => {
+    console.log('Custom fare offer:', fare);
+    setFareInputVisible(false);
+    setTimeout(() => setModalVisible(true), 100);
   };
 
   const renderHiddenItem = (
@@ -180,7 +209,7 @@ export const RideRequestsScreen: React.FC = () => {
 
        {/* Upcoming Ride Card */}
        {driverStatus === 'online' && (
-         <View style={[styles.upcomingRideCard, { backgroundColor: colors.primary }]}>
+         <View style={[styles.upcomingRideCard, { backgroundColor: colors.primaryGradient }]}>
            <View style={styles.upcomingRideHeader}>
              <Text style={styles.upcomingRideTitle}>Upcoming ride</Text>
              <View style={styles.timerContainer}>
@@ -216,6 +245,7 @@ export const RideRequestsScreen: React.FC = () => {
           <RideCard
             rideRequest={item}
             onMenuPress={(rideRequest) => console.log('Menu pressed for ride:', rideRequest.id)}
+            onPress={handleRideCardPress}
           />
         )}
         renderHiddenItem={renderHiddenItem}
@@ -239,6 +269,25 @@ export const RideRequestsScreen: React.FC = () => {
         }
         ListEmptyComponent={<OfflineScreen isOnline={driverStatus === 'online'} />}
       />
+      
+      <RideDetailsModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        rideRequest={selectedRide}
+        onAccept={handleAcceptRide}
+        onOfferFare={handleOfferFare}
+        onEditFare={handleEditFare}
+      />
+      
+      <FareInputModal
+        visible={fareInputVisible}
+        onClose={() => {
+          setFareInputVisible(false);
+          setTimeout(() => setModalVisible(true), 100);
+        }}
+        onOffer={handleCustomFareOffer}
+        passengerOffer={selectedRide?.estimatedFare}
+      />
       </SafeAreaView>
     </GradientBackground>
   );
@@ -249,7 +298,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   upcomingRideCard: {
-    minHeight: 194,
+    minHeight: 140,
     marginHorizontal: 16,
     marginBottom: 16,
     borderRadius: 16,
@@ -264,7 +313,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.3)',
   },
   upcomingRideTitle: {
     color: '#FFF',
@@ -319,7 +371,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: LIST_HORIZONTAL_PADDING,
-    paddingBottom: 24,
+    paddingBottom: 64,
     paddingTop: 8,
   },
   hiddenRow: {
