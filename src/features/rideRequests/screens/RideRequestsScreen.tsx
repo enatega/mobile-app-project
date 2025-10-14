@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   upcomingRideCard: {
-    minHeight: 194,
+    minHeight: 140,
     marginHorizontal: 16,
     marginBottom: 16,
     borderRadius: 16,
@@ -264,7 +264,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.3)',
   },
   upcomingRideTitle: {
     color: '#FFF',
@@ -319,7 +322,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: LIST_HORIZONTAL_PADDING,
-    paddingBottom: 24,
+    paddingBottom: 64,
     paddingTop: 8,
   },
   hiddenRow: {
