@@ -1,12 +1,13 @@
 import { useTheme } from '@/src/context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useMemo } from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { RideRequest } from '../types';
 
 interface RideCardProps {
   rideRequest: RideRequest;
   onMenuPress?: (rideRequest: RideRequest) => void;
+  onPress?: (rideRequest: RideRequest) => void;
 }
 
 const paymentMethodCopy: Record<RideRequest['paymentMethod'], string> = {
@@ -128,7 +129,7 @@ const getTravelTimeLabel = (rideRequest: RideRequest) => {
   return `Requested for ${scheduleText}`;
 };
 
-export const RideCard: React.FC<RideCardProps> = ({ rideRequest, onMenuPress }) => {
+export const RideCard: React.FC<RideCardProps> = ({ rideRequest, onMenuPress, onPress }) => {
   const { colors } = useTheme();
   const badge = useMemo(() => getBadgeColors(rideRequest.rideType), [rideRequest.rideType]);
   const avatarSource = useMemo(() => getAvatarSource(rideRequest), [rideRequest]);
@@ -140,7 +141,11 @@ export const RideCard: React.FC<RideCardProps> = ({ rideRequest, onMenuPress }) 
   const travelTimeLabel = useMemo(() => getTravelTimeLabel(rideRequest), [rideRequest]);
 
   return (
-    <View style={[styles.card, { backgroundColor: colors.card }]}> 
+    <TouchableOpacity 
+      style={[styles.card, { backgroundColor: colors.card }]}
+      onPress={() => onPress?.(rideRequest)}
+      activeOpacity={1.0}
+    > 
       <View style={styles.headerRow}>
         <View style={styles.profileContainer}>
           <Image source={avatarSource} style={styles.avatar} />
@@ -231,7 +236,7 @@ export const RideCard: React.FC<RideCardProps> = ({ rideRequest, onMenuPress }) 
         </View>
         <Text style={[styles.fare, { color: colors.text }]}>QAR {rideRequest.estimatedFare.toFixed(2)}</Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
