@@ -49,7 +49,7 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
 
   const handleAccept = () => {
     onAccept?.(defaultFare);
-    router.navigate("/(tabs)/(rideRequests)/tripDetail");
+    router.push("/tripDetail");
     onClose();
   };
 
