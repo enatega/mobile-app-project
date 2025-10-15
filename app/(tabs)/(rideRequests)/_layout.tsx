@@ -6,9 +6,11 @@ export default function RideRequestsLayout() {
       screenOptions={{
         headerShown: false,
       }}
+      initialRouteName='rideRequest'
     >
       <Stack.Screen name="index" />
       <Stack.Screen name="rideRequest"/>
+      <Stack.Screen name="tripDetail"/>
     </Stack>
   );
 }

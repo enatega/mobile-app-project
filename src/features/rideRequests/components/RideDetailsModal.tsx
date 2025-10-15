@@ -1,6 +1,7 @@
 import Button from '@/src/components/ui/Button /index';
 import { useTheme } from '@/src/context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
   Dimensions,
@@ -48,6 +49,7 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
 
   const handleAccept = () => {
     onAccept?.(defaultFare);
+    router.navigate("/(tabs)/(rideRequests)/tripDetail");
     onClose();
   };
 
