@@ -17,7 +17,9 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.ninjascode.lumidrive",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSPhotoLibraryUsageDescription": "Allow $(PRODUCT_NAME) to access your photos to update your profile picture.",
+        "NSCameraUsageDescription": "Allow $(PRODUCT_NAME) to access your camera to take profile pictures."
       }
     },
     "android": {
@@ -26,17 +28,15 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.ninjascode.lumidrive"
     },
     "web": {
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
-    "plugins": [
-      "expo-router",
-      "expo-web-browser"
-    ],
+    "plugins": ["expo-router", "expo-web-browser"],
     "experiments": {
       "typedRoutes": true
     },
