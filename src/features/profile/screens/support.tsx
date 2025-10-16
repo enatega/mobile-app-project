@@ -1,10 +1,17 @@
 import { CustomHeader } from "@/src/components/common";
 import GradientBackground from "@/src/components/common/GradientBackground";
 import Button from "@/src/components/ui/Button ";
+import CustomText from "@/src/components/ui/Text";
 import React from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
-const starter = () => {
+const support = () => {
   let isLoading;
   let error;
 
@@ -34,11 +41,16 @@ const starter = () => {
 
   return (
     <GradientBackground>
-      <CustomHeader title="Your Profile" />
+      <CustomHeader title="Support" />
+      <ScrollView>
+        <View style={{ padding: 16 }}>
+          <CustomText>support screen</CustomText>
+        </View>
+      </ScrollView>
     </GradientBackground>
   );
 };
 
-export default starter;
+export default support;
 
 const styles = StyleSheet.create({});
