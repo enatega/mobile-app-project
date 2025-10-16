@@ -12,6 +12,7 @@ export const API = {
     },
     profile: {
       user: "/api/v1/users",
+      updatePassword: "/api/v1/users/password",
     }
   };
   

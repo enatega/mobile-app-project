@@ -5,7 +5,7 @@ import { StyleSheet } from 'react-native';
 // Base styles
 const baseStyles = StyleSheet.create({
   container: {
-    marginVertical: 8,
+    marginVertical: 8
   },
   inputContainer: {
     flexDirection: 'row',
