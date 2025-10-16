@@ -1,54 +1,95 @@
 // --- Light Theme Palette ---
 export const lightColors = {
-  GRADIENT_COLORS: ["#DAD5FB", "#fcfcfc"],
+  GRADIENT_COLORS:["#DAD5FB", "#fcfcfc"],
   colorText: "#18181B",
-  colorBgTertiary: "#F4F4F5",
+  colorBgTertiary:"#F4F4F5",
   colorIcon: "#27272A",
-  colorTextMuted: "#71717A",
-  yellow: "#FBC02D",
-  gray800: "#1F2937",
-  colorBg: "#FFFFFF",
-  colorBorder: "#E4E4E7",
-  primaryPurple: "#3853A4",
-  colorBgSecondary: "#D3F2FA",
-  colorTextError: "#DC2626",
-  white: "#FFFFFF",
-  colorTextPrimary: "#1677A4",
-  colorIconPrimary: "#1691BF",
-};
+  colorTextMuted: '#71717A',
+  yellow: '#FBC02D',
+  gray800: '#1F2937',
+  background: '#FFFFFF',
+  backgroundSecondary: '#F9FAFB',
+  text: '#111827',
+  textSecondary: '#6B7280',
+  textTertiary: '#9CA3AF',
+  primaryGradient: '#1691BF',
+  primary: '#3853A4',
+  primaryDark: '#0E7A9F',
+  primaryLight: '#3DA9D1',
+  success: '#10B981',
+  successLight: '#D1FAE5',
+  danger: '#EF4444',
+  dangerLight: '#FEE2E2',
+  warning: '#F59E0B',
+  warningLight: '#FEF3C7',
+  border: '#E5E7EB',
+  borderLight: '#F3F4F6',
+  card: '#FFFFFF',
+  cardBorder: '#E5E7EB',
+  shadow: '#000000',
+  };
+  
+  // --- Dark Theme Palette ---
+  export const darkColors = {
 
-// --- Dark Theme Palette ---
-export const darkColors = {
-  GRADIENT_COLORS: ["#DAD5FB", "#fcfcfc"],
-  colorText: "#18181B",
-  colorBgTertiary: "#F4F4F5",
-  colorIcon: "#27272A",
-  colorTextMuted: "#71717A",
-  yellow: "#FBC02D",
-  gray800: "#1F2937",
-  colorBg: "#FFFFFF",
-  colorBorder: "#E4E4E7",
-  primaryPurple: "#3853A4",
-  colorBgSecondary: "#D3F2FA",
-  colorTextError: "#DC2626",
-  white: "#FFFFFF",
-  colorTextPrimary: "#1677A4",
-  colorIconPrimary: "#1691BF",
-};
-
-// --- Common Colors Palette ---
-export const commonColors = {
-  transparent: "transparent",
-  grey: "#888888",
-  lightGrey: "#D3D3D3",
-  darkGrey: "#555555",
-};
-
-// --- Export ---
-const Colors = {
-  light: lightColors,
-  dark: darkColors,
-  common: commonColors,
-};
-
-export default Colors;
+    GRADIENT_COLORS:["#DAD5FB", "#fcfcfc"],
+    colorText: "#18181B",
+    colorBgTertiary:"#F4F4F5",
+    colorIcon: "#27272A",
+    colorTextMuted: '#71717A',
+    yellow: '#FBC02D',
+    gray800: '#1F2937',
+    background: '#111827',
+    backgroundSecondary: '#1F2937',
+    text: '#F9FAFB',
+    textSecondary: '#D1D5DB',
+    textTertiary: '#9CA3AF',
+    primaryGradient: '#1691BF',
+    primary: '#3853A4',
+    primaryDark: '#0E7A9F',
+    primaryLight: '#3DA9D1',
+    success: '#10B981',
+    successLight: '#065F46',
+    danger: '#EF4444',
+    dangerLight: '#7F1D1D',
+    warning: '#F59E0B',
+    warningLight: '#78350F',
+    border: '#374151',
+    borderLight: '#4B5563',
+    card: '#1F2937',
+    cardBorder: '#374151',
+    shadow: '#000000',
+  };
+  
+  // --- Common Colors Palette ---
+  export const commonColors = {
+    GRADIENT_COLORS:["#DAD5FB", "#fcfcfc"],
+    colorText: "#18181B",
+    colorBgTertiary:"#F4F4F5",
+    colorIcon: "#27272A",
+    colorTextMuted: '#71717A',
+    yellow: '#FBC02D',
+    gray800: '#1F2937',
+    transparent: 'transparent',
+    white: '#FFFFFF',
+    black: '#000000',
+    grey: '#888888',
+    lightGrey: '#D3D3D3',
+    darkGrey: '#555555',
+    // Status colors
+    online: '#10B981',
+    offline: '#6B7280',
+    pending: '#F59E0B',
+    accepted: '#1691BF',
+    completed: '#10B981',
+    cancelled: '#EF4444',
+  };
+  
+  // --- Export ---
+  const Colors = {
+    light: lightColors,
+    dark: darkColors,
+    common: commonColors,
+  };
+  
+  export default Colors;
