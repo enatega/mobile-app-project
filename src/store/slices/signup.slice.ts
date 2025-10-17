@@ -1,6 +1,14 @@
 // src/store/slices/signup.slice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
+// UploadedFile interface (matching FileUploadInput)
+export interface UploadedFile {
+  uri: string;
+  name: string;
+  type: string;
+  size?: number;
+}
+
 // Define the complete signup state interface for all 3 stages
 interface SignupState {
   // Stage 1: Personal Information
@@ -11,21 +19,25 @@ interface SignupState {
     vehicleType: string;
   };
   
-  // Stage 2: Document Submission (add fields as needed)
+  // Stage 2: Document Submission
   documentSubmission: {
-    drivingLicense?: string;
-    identityCard?: string;
-    vehicleRegistration?: string;
-    // Add more document fields here
+    profilePicture: UploadedFile[];
+    driverLicenseFront: UploadedFile[];
+    driverLicenseBack: UploadedFile[];
+    nationalIdFront: UploadedFile[];
+    nationalIdBack: UploadedFile[];
+    vehicleRegistrationFront: UploadedFile[];
+    vehicleRegistrationBack: UploadedFile[];
+    companyRegistration: UploadedFile[];
   };
   
-  // Stage 3: Vehicle Requirements (add fields as needed)
+  // Stage 3: Vehicle Requirements
   vehicleRequirements: {
-    vehicleModel?: string;
-    vehicleYear?: string;
-    vehiclePlateNumber?: string;
-    vehicleColor?: string;
-    // Add more vehicle fields here
+    modelYearLimit: string;
+    fourDoorCar: string;
+    airConditioning: string;
+    noCosmeticDamage: string;
+    agreedToTerms: boolean;
   };
   
   // Track completion only
@@ -40,8 +52,23 @@ const initialState: SignupState = {
     city: '',
     vehicleType: '',
   },
-  documentSubmission: {},
-  vehicleRequirements: {},
+  documentSubmission: {
+    profilePicture: [],
+    driverLicenseFront: [],
+    driverLicenseBack: [],
+    nationalIdFront: [],
+    nationalIdBack: [],
+    vehicleRegistrationFront: [],
+    vehicleRegistrationBack: [],
+    companyRegistration: [],
+  },
+  vehicleRequirements: {
+    modelYearLimit: '',
+    fourDoorCar: '',
+    airConditioning: '',
+    noCosmeticDamage: '',
+    agreedToTerms: false,
+  },
   isComplete: false,
 };
 

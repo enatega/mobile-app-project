@@ -1,31 +1,61 @@
-// src/screens/auth/LoginScreen.tsx
+// src/screens/auth/SignupSecondScreen.tsx
 import BackButton from "@/src/components/common/BackButton";
 import GradientBackground from "@/src/components/common/GradientBackground";
+import { useAppDispatch } from "@/src/store/hooks";
+import { setDocumentSubmission } from "@/src/store/slices/signup.slice";
+import { router } from "expo-router";
 import React from "react";
 import { SafeAreaView, StyleSheet, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Title from "../components/common/TitleHeader";
 import Stepper from "../components/common/stepper";
+import DocumentSubmissionForm, {
+    DocumentSubmissionFormValues,
+} from "../components/forms/documentSubmissionForm";
 
 const SignupSecondScreen: React.FC = () => {
-  const insets = useSafeAreaInsets();
+  const dispatch = useAppDispatch();
+
+  const handleDocumentSubmit = (values: DocumentSubmissionFormValues) => {
+    console.log("📄 Document Submission Values:", values);
+
+    // Save to Redux store
+    dispatch(setDocumentSubmission(values));
+
+    // Navigate to next screen (Vehicle Requirements - Step 3)
+    router.push("/(auth)/signupThirdStage");
+
+    // You can also call API here to upload documents to backend
+  };
 
   return (
     <GradientBackground>
-      <SafeAreaView style={[styles.safeArea, { paddingTop: insets.top }]}>
-        {/* Top-left back button */}
-        <View style={[styles.backButtonWrapper, { top: insets.top + 10 }]}>
-          <BackButton
-            size={48}
-            iconSize={20}
-            borderColor="#D1D5DB"
-            iconColor="#000000"
-            backgroundColor="rgba(255,255,255,0.1)"
-          />
+      <SafeAreaView style={styles.safeArea}>
+        {/* Fixed Header Section */}
+        <View style={styles.fixedHeader}>
+          {/* Top-left back button */}
+          <View style={styles.backButtonWrapper}>
+            <BackButton
+              size={48}
+              iconSize={20}
+              borderColor="#D1D5DB"
+              iconColor="#000000"
+              backgroundColor="rgba(255,255,255,0.1)"
+            />
+          </View>
+
+          {/* Title Section */}
+          <View style={styles.titleWrapper}>
+            <Title
+              heading="Sign up"
+              subheading="Upload your documents for verification."
+              containerStyle={styles.titleContainer}
+            />
+          </View>
         </View>
 
-        {/* Title Section - Below Back Button */}
-        <View style={styles.titleWrapper}>
-        <Stepper
+        {/* Fixed Stepper - Showing step 2 */}
+        <View style={styles.stepperWrapper}>
+          <Stepper
             steps={[
               { number: "01", title: "Personal Info" },
               { number: "02", title: "Document Submission" },
@@ -33,13 +63,10 @@ const SignupSecondScreen: React.FC = () => {
             ]}
             currentStep={2}
           />
-
         </View>
 
-        {/* Main Content */}
-        <View style={styles.content}>
-          {/* Add your login UI here later */}
-        </View>
+        {/* Document Submission Form */}
+        <DocumentSubmissionForm onSubmit={handleDocumentSubmit} />
       </SafeAreaView>
     </GradientBackground>
   );
@@ -50,24 +77,20 @@ export default SignupSecondScreen;
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    position: "relative",
+  },
+  fixedHeader: {
+    paddingTop: 10,
+    paddingHorizontal: 20,
   },
   backButtonWrapper: {
-    position: "absolute",
-    left: 20,
-    zIndex: 10,
+    marginBottom: 20,
   },
   titleWrapper: {
-    marginTop: 80, // Space for back button (48px button + margins)
-    paddingHorizontal: 20,
+    marginBottom: 10,
   },
-  titleContainer: {
-    // Additional custom styling for Title component if needed
-  },
-  content: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 20,
+  titleContainer: {},
+  stepperWrapper: {
+    paddingHorizontal: 0,
+    paddingVertical: 8,
   },
 });

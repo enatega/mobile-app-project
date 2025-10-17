@@ -13,6 +13,9 @@ export default function AuthLayout() {
       <Stack.Screen name="verificationmethod"/>
       <Stack.Screen name="verifyOtpSignup"/>
       <Stack.Screen name= "signupSecondStage"/>
+      <Stack.Screen name = "signupThirdStage"/>
+      <Stack.Screen name="terms&service"/>
+      <Stack.Screen name="verifyOtpLogin"/>
     </Stack>
   );
 }

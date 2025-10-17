@@ -1,3 +1,4 @@
+// personalInfoForm.tsx - FINAL FIXED VERSION
 import Button from "@/src/components/ui/Button ";
 import CustomInput from "@/src/components/ui/Input";
 import CustomDropdown from "@/src/components/ui/dropdown";
@@ -6,10 +7,10 @@ import { selectPersonalInfo } from "@/src/store/selectors/signup.selectors";
 import { Formik, FormikHelpers } from "formik";
 import React, { useState } from "react";
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 import PhoneInput, { ICountry } from "react-native-international-phone-number";
 import { PersonalInfoFormValues } from "../../types";
@@ -20,20 +21,42 @@ interface PersonalInfoFormProps {
   initialValues?: PersonalInfoFormValues;
 }
 
+// ============================================
+// ✅ FIXED: Cities with proper case
+// ============================================
 const cities = [
-  { label: "Berlin", value: "berlin" },
-  { label: "Munich", value: "munich" },
-  { label: "Hamburg", value: "hamburg" },
-  { label: "Frankfurt", value: "frankfurt" },
-  { label: "Cologne", value: "cologne" },
+  { label: "Berlin", value: "Berlin" },
+  { label: "Munich", value: "Munich" },
+  { label: "Hamburg", value: "Hamburg" },
+  { label: "Frankfurt", value: "Frankfurt" },
+  { label: "Cologne", value: "Cologne" },
 ];
 
 const vehicleTypes = [
-  { label: "Sedan", value: "sedan" },
-  { label: "SUV", value: "suv" },
-  { label: "Hatchback", value: "hatchback" },
-  { label: "Truck", value: "truck" },
-  { label: "Van", value: "van" },
+  { 
+    label: "4W Mini (Bike/Scooter)", 
+    value: "e0a81b6a-81b1-4d4a-ad81-5b54fff3f26a" 
+  },
+  { 
+    label: "Lumi Go (4-wheeler AC)", 
+    value: "baccc594-a5c7-490d-8c9b-e96ca1227395" 
+  },
+  { 
+    label: "Lumi Plus (4-wheeler AC)", 
+    value: "38f16813-2929-4daf-9a21-c1a2dd4bad8d	" 
+  },
+  { 
+    label: "Lumi Max (4-wheeler AC)", 
+    value: "c0959bb1-bdfc-4e35-a826-a115b6649b4a" 
+  },
+  { 
+    label: "Lumi Platinum (4-wheeler AC)", 
+    value: "e155d4ad-82b9-452c-be8b-16474213f457" 
+  },
+  { 
+    label: "Courier (Parcels)", 
+    value: "dc68049e-cb49-44a4-9b9a-b4e294ffa7cf" 
+  },
 ];
 
 const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
@@ -58,8 +81,19 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
     values: PersonalInfoFormValues,
     formikHelpers: FormikHelpers<PersonalInfoFormValues>
   ) => {
-    console.log("🚀 Form submitted with values:", values);
-    onSubmit(values);
+    // ✅ Format phone number with country code
+    const formattedPhoneNumber = selectedCountry
+      ? `${selectedCountry.callingCode.startsWith("+") 
+          ? selectedCountry.callingCode 
+          : `+${selectedCountry.callingCode}`}${values.phoneNumber.replace(/\s+/g, "")}`
+      : values.phoneNumber;
+
+    const submissionValues = {
+      ...values,
+      phoneNumber: formattedPhoneNumber,
+    };
+    
+    onSubmit(submissionValues);
     formikHelpers.setSubmitting(false);
   };
 
@@ -69,8 +103,6 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
       validationSchema={PersonalInfoSchema}
       onSubmit={handleSubmit}
       enableReinitialize={true}
-      validateOnChange={true}
-      validateOnBlur={true}
     >
       {({
         values,
@@ -81,132 +113,120 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
         setFieldTouched,
         handleSubmit: formikSubmit,
         isSubmitting,
-        isValid,
-      }) => {
-        // Debug log
-        console.log("📝 Form values:", values);
-        console.log("❌ Form errors:", errors);
-        console.log("✅ Form is valid:", isValid);
-        
-        return (
-          <ScrollView
-            style={styles.scrollView}
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-          >
-            <View style={styles.formContainer}>
-              <Text style={styles.sectionTitle}>Personal Information</Text>
+      }) => (
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.formContainer}>
+            <Text style={styles.sectionTitle}>Personal Information</Text>
 
-              {/* Full Name Input */}
-              <CustomInput
-                label="Full Name"
-                placeholder="Muhammad Umair"
-                value={values.fullName}
-                onChangeText={handleChange("fullName")}
-                onBlur={() => setFieldTouched("fullName")}
-                error={touched.fullName ? errors.fullName : undefined}
+            {/* Full Name Input */}
+            <CustomInput
+              label="Full Name"
+              placeholder="Muhammad Umair"
+              value={values.fullName}
+              onChangeText={handleChange("fullName")}
+              onBlur={() => setFieldTouched("fullName")}
+              error={touched.fullName ? errors.fullName : undefined}
+              variant="outline"
+              size="large"
+              containerStyle={styles.inputContainer}
+            />
+
+            {/* Phone Number Input */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Phone Number</Text>
+              <PhoneInput
+                value={values.phoneNumber}
+                onChangePhoneNumber={(phoneNumber) => {
+                  setFieldValue("phoneNumber", phoneNumber);
+                }}
+                selectedCountry={selectedCountry}
+                onChangeSelectedCountry={(country) => {
+                  setSelectedCountry(country);
+                  // Log the country code for debugging
+                  console.log("📍 Country Code:", country?.callingCode);
+                }}
+                placeholder="Phone number"
+                defaultCountry="PK"
+                phoneInputStyles={{
+                  container: styles.phoneContainer,
+                  flagContainer: styles.flagContainer,
+                  flag: {},
+                  caret: styles.caret,
+                  divider: styles.divider,
+                  callingCode: styles.callingCode,
+                  input: styles.phoneInput,
+                }}
+                modalStyles={{
+                  backdrop: {},
+                  countryName: styles.countryName,
+                  searchInput: styles.searchInput,
+                }}
+              />
+              {touched.phoneNumber && errors.phoneNumber && (
+                <Text style={styles.errorText}>{errors.phoneNumber}</Text>
+              )}
+            </View>
+
+            {/* City Dropdown */}
+            <View style={[styles.dropdownWrapper, { zIndex: openDropdown === 'city' ? 2000 : 1 }]}>
+              <CustomDropdown
+                label="City"
+                placeholder="Select City"
+                value={values.city}
+                items={cities}
+                onChange={(value) => {
+                  console.log("🏙️ City Selected:", value);
+                  setFieldValue("city", value);
+                }}
+                onBlur={() => setFieldTouched("city")}
+                error={touched.city ? errors.city : undefined}
                 variant="outline"
                 size="large"
-                containerStyle={styles.inputContainer}
+                open={openDropdown === 'city'}
+                setOpen={(isOpen) => setOpenDropdown(isOpen ? 'city' : null)}
               />
-
-              {/* Phone Number Input */}
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Phone Number</Text>
-                <PhoneInput
-                  value={values.phoneNumber}
-                  onChangePhoneNumber={(phoneNumber) => {
-                    console.log("📞 Phone changed:", phoneNumber);
-                    setFieldValue("phoneNumber", phoneNumber);
-                  }}
-                  selectedCountry={selectedCountry}
-                  onChangeSelectedCountry={(country) => {
-                    setSelectedCountry(country);
-                  }}
-                  placeholder="Phone number"
-                  defaultCountry="DE"
-                  phoneInputStyles={{
-                    container: styles.phoneContainer,
-                    flagContainer: styles.flagContainer,
-                    flag: {},
-                    caret: styles.caret,
-                    divider: styles.divider,
-                    callingCode: styles.callingCode,
-                    input: styles.phoneInput,
-                  }}
-                  modalStyles={{
-                    backdrop: {},
-                    countryName: styles.countryName,
-                    searchInput: styles.searchInput,
-                  }}
-                />
-                {touched.phoneNumber && errors.phoneNumber && (
-                  <Text style={styles.errorText}>{errors.phoneNumber}</Text>
-                )}
-              </View>
-
-              {/* City Dropdown */}
-              <View style={[styles.dropdownWrapper, { zIndex: openDropdown === 'city' ? 2000 : 1 }]}>
-                <CustomDropdown
-                  label="City"
-                  placeholder="City"
-                  value={values.city}
-                  items={cities}
-                  onChange={(value) => {
-                    console.log("🏙️ City changed:", value);
-                    setFieldValue("city", value);
-                  }}
-                  onBlur={() => setFieldTouched("city")}
-                  error={touched.city ? errors.city : undefined}
-                  variant="outline"
-                  size="large"
-                  open={openDropdown === 'city'}
-                  setOpen={(isOpen) => setOpenDropdown(isOpen ? 'city' : null)}
-                />
-              </View>
-
-              {/* Vehicle Type Dropdown */}
-              <View style={[styles.dropdownWrapper, { zIndex: openDropdown === 'vehicleType' ? 2000 : 1 }]}>
-                <CustomDropdown
-                  label="Vehicle Type"
-                  placeholder="Vehicle Type"
-                  value={values.vehicleType}
-                  items={vehicleTypes}
-                  onChange={(value) => {
-                    console.log("🚗 Vehicle changed:", value);
-                    setFieldValue("vehicleType", value);
-                  }}
-                  onBlur={() => setFieldTouched("vehicleType")}
-                  error={touched.vehicleType ? errors.vehicleType : undefined}
-                  variant="outline"
-                  size="large"
-                  open={openDropdown === 'vehicleType'}
-                  setOpen={(isOpen) => setOpenDropdown(isOpen ? 'vehicleType' : null)}
-                />
-              </View>
-
-              {/* Submit Button */}
-              <View style={styles.buttonContainer}>
-                <Button
-                  title="Save & Next"
-                  onPress={() => {
-                    console.log("🔘 Button clicked!");
-                    console.log("Form is valid?", isValid);
-                    console.log("Current errors:", errors);
-                    formikSubmit();
-                  }}
-                  variant="primary"
-                  size="large"
-                  disabled={isSubmitting}
-                  loading={isSubmitting}
-                  fullWidth
-                  style={styles.submitButton}
-                />
-              </View>
             </View>
-          </ScrollView>
-        );
-      }}
+
+            {/* Vehicle Type Dropdown - NOW WITH REAL UUIDs */}
+            <View style={[styles.dropdownWrapper, { zIndex: openDropdown === 'vehicleType' ? 2000 : 1 }]}>
+              <CustomDropdown
+                label="Vehicle Type"
+                placeholder="Select Vehicle Type"
+                value={values.vehicleType}
+                items={vehicleTypes}
+                onChange={(value) => {
+                  console.log("🚗 Vehicle Type Selected (UUID):", value);
+                  setFieldValue("vehicleType", value);
+                }}
+                onBlur={() => setFieldTouched("vehicleType")}
+                error={touched.vehicleType ? errors.vehicleType : undefined}
+                variant="outline"
+                size="large"
+                open={openDropdown === 'vehicleType'}
+                setOpen={(isOpen) => setOpenDropdown(isOpen ? 'vehicleType' : null)}
+              />
+            </View>
+
+            {/* Submit Button */}
+            <View style={styles.buttonContainer}>
+              <Button
+                title="Save & Next"
+                onPress={() => formikSubmit()}
+                variant="primary"
+                size="large"
+                disabled={isSubmitting}
+                loading={isSubmitting}
+                fullWidth
+                style={styles.submitButton}
+              />
+            </View>
+          </View>
+        </ScrollView>
+      )}
     </Formik>
   );
 };

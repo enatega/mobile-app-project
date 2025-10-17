@@ -1,21 +1,18 @@
-
 import BackButton from "@/src/components/common/BackButton";
 import GradientBackground from "@/src/components/common/GradientBackground";
 import Button from "@/src/components/ui/Button ";
-import { useSendSignupOtp } from '@/src/features/auth/hooks';
-import { useAppSelector } from '@/src/store/hooks';
-import { selectPersonalInfo } from '@/src/store/selectors/signup.selectors';
 import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams } from "expo-router";
 import React from "react";
 import { Image, SafeAreaView, StyleSheet, Text, View } from "react-native";
 import Title from "../components/common/TitleHeader";
+import { useSendLoginOtp } from "../hooks";
 
-const VerificationMethodScreen: React.FC = () => {
+const VerificationMethodLoginScreen: React.FC = () => {
 
-  const personalInfo = useAppSelector(selectPersonalInfo);
-  const phone = personalInfo.phoneNumber;
+  const { phoneNumber: phone } = useLocalSearchParams<{ phoneNumber: string }>();
 
-  const sendOtpMutation = useSendSignupOtp();
+  const sendOtpMutation = useSendLoginOtp();
 
   const handleSendSMS = () => {
     console.log('📤 Sending OTP via SMS to:', phone);
@@ -123,7 +120,7 @@ const VerificationMethodScreen: React.FC = () => {
   );
 };
 
-export default VerificationMethodScreen;
+export default VerificationMethodLoginScreen;
 
 const styles = StyleSheet.create({
   safeArea: {

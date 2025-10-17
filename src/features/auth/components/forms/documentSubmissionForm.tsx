@@ -1,9 +1,11 @@
-// src/components/forms/DocumentSubmissionForm.tsx
+
 import Button from "@/src/components/ui/Button ";
+import { useAppSelector } from "@/src/store/hooks";
+import { selectDocumentSubmission } from "@/src/store/selectors/signup.selectors";
 import React, { useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 import DocumentPicker from "react-native-document-picker";
-import { launchImageLibrary } from "react-native-image-picker";
+import ImagePicker from "react-native-image-crop-picker";
 import FileUploadInput, { UploadedFile } from "../common/FileUploadInput";
 
 export interface DocumentSubmissionFormValues {
@@ -26,29 +28,33 @@ const DocumentSubmissionForm: React.FC<DocumentSubmissionFormProps> = ({
   onSubmit,
   initialValues,
 }) => {
+  // Get saved data from Redux store
+  const savedDocuments = useAppSelector(selectDocumentSubmission);
+  
+  // Use saved data from Redux if available, otherwise use prop initialValues or empty defaults
   const [profilePicture, setProfilePicture] = useState<UploadedFile[]>(
-    initialValues?.profilePicture || []
+    initialValues?.profilePicture || savedDocuments.profilePicture || []
   );
   const [driverLicenseFront, setDriverLicenseFront] = useState<UploadedFile[]>(
-    initialValues?.driverLicenseFront || []
+    initialValues?.driverLicenseFront || savedDocuments.driverLicenseFront || []
   );
   const [driverLicenseBack, setDriverLicenseBack] = useState<UploadedFile[]>(
-    initialValues?.driverLicenseBack || []
+    initialValues?.driverLicenseBack || savedDocuments.driverLicenseBack || []
   );
   const [nationalIdFront, setNationalIdFront] = useState<UploadedFile[]>(
-    initialValues?.nationalIdFront || []
+    initialValues?.nationalIdFront || savedDocuments.nationalIdFront || []
   );
   const [nationalIdBack, setNationalIdBack] = useState<UploadedFile[]>(
-    initialValues?.nationalIdBack || []
+    initialValues?.nationalIdBack || savedDocuments.nationalIdBack || []
   );
   const [vehicleRegistrationFront, setVehicleRegistrationFront] = useState<
     UploadedFile[]
-  >(initialValues?.vehicleRegistrationFront || []);
+  >(initialValues?.vehicleRegistrationFront || savedDocuments.vehicleRegistrationFront || []);
   const [vehicleRegistrationBack, setVehicleRegistrationBack] = useState<
     UploadedFile[]
-  >(initialValues?.vehicleRegistrationBack || []);
+  >(initialValues?.vehicleRegistrationBack || savedDocuments.vehicleRegistrationBack || []);
   const [companyRegistration, setCompanyRegistration] = useState<UploadedFile[]>(
-    initialValues?.companyRegistration || []
+    initialValues?.companyRegistration || savedDocuments.companyRegistration || []
   );
 
   const [uploading, setUploading] = useState<string | null>(null);
@@ -57,20 +63,30 @@ const DocumentSubmissionForm: React.FC<DocumentSubmissionFormProps> = ({
 
   // Helper function to create file object from image picker
   const makeImageObj = (image: any): UploadedFile => {
-    return {
-      uri: image?.uri || image?.path || image?.sourceURL,
-      name:
-        image?.fileName ||
-        image?.filename ||
-        image?.uri?.split("/").pop() ||
-        "image.jpg",
-      type: image?.type || image?.mime || "image/jpeg",
-      size: image?.fileSize || image?.size,
+    console.log("Image object:", image);
+    let obj: UploadedFile = {
+      uri: "",
+      name: "",
+      type: "",
     };
+    
+    if (image) {
+      obj.uri = image?.sourceURL ? image?.sourceURL : image?.path;
+      obj.name = image?.filename
+        ? image?.filename
+        : image?.path
+        ? image?.path?.split('/')[image?.path?.split('/')?.length - 1]
+        : image?.sourceURL?.split('/')[image?.sourceURL?.split('/')?.length - 1];
+      obj.type = image?.mime || "image/jpeg";
+      obj.size = image?.size;
+    }
+    
+    return obj;
   };
 
   // Helper function to create file object from document picker
   const makeDocumentObj = (doc: any): UploadedFile => {
+    console.log("Document object:", doc);
     return {
       uri: doc?.uri,
       name: doc?.name || "document.pdf",
@@ -98,70 +114,71 @@ const DocumentSubmissionForm: React.FC<DocumentSubmissionFormProps> = ({
     }, 100);
   };
 
-  // Image Picker Handler
+  // Image Picker Handler (for Profile Picture)
   const handleImagePick = async (
     setter: React.Dispatch<React.SetStateAction<UploadedFile[]>>,
     field: string
   ) => {
     try {
+      console.log("Opening image picker...");
       setUploading(field);
 
-      const result = await launchImageLibrary({
+      const image = await ImagePicker.openPicker({
+        width: 400,
+        height: 400,
+        cropping: true,
+        cropperCircleOverlay: true,
+        compressImageQuality: 0.8,
         mediaType: "photo",
-        quality: 0.8,
-        selectionLimit: 1,
       });
 
-      if (result.didCancel) {
-        setUploading(null);
-        return;
-      }
+      console.log("Image picked:", image);
 
-      if (result.errorCode) {
-        Alert.alert("Error", result.errorMessage || "Failed to pick image");
-        setUploading(null);
-        return;
-      }
-
-      if (result.assets && result.assets.length > 0) {
+      if (image) {
         simulateProgress(() => {
-          const file = makeImageObj(result.assets![0]);
+          const file = makeImageObj(image);
+          console.log("File object created:", file);
           setter([file]);
           setErrors((prev) => ({ ...prev, [field]: undefined }));
         });
-      } else {
-        setUploading(null);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Image picker error:", error);
       setUploading(null);
-      Alert.alert("Error", "Failed to pick image");
+      if (error.code !== "E_PICKER_CANCELLED") {
+        Alert.alert("Error", "Failed to pick image. Please try again.");
+      }
     }
   };
 
-  // Document Picker Handler
+  // Document Picker Handler (for PDFs and Images)
   const handleDocumentPick = async (
     setter: React.Dispatch<React.SetStateAction<UploadedFile[]>>,
     field: string
   ) => {
     try {
+      console.log("Opening document picker...");
       setUploading(field);
 
-      const result = await DocumentPicker.pick({
+      const res = await DocumentPicker.pick({
         type: [DocumentPicker.types.pdf, DocumentPicker.types.images],
-        allowMultiSelection: false,
       });
 
+      console.log("Document picked:", res);
+
       simulateProgress(() => {
-        const file = makeDocumentObj(result[0]);
+        const file = makeDocumentObj(res[0]);
+        console.log("File object created:", file);
         setter([file]);
         setErrors((prev) => ({ ...prev, [field]: undefined }));
       });
-    } catch (err) {
+    } catch (err: any) {
+      console.error("Document picker error:", err);
       setUploading(null);
-      if (!DocumentPicker.isCancel(err)) {
-        console.error("Document picker error:", err);
-        Alert.alert("Error", "Failed to pick document");
+      if (DocumentPicker.isCancel(err)) {
+        console.log("User canceled the picker");
+      } else {
+        Alert.alert("Error", "Failed to pick document. Please try again.");
       }
     }
   };
