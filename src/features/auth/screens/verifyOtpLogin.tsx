@@ -1,7 +1,8 @@
-// src/features/auth/screens/verifyOtpSignUpScreen.tsx
+// src/app/(auth)/verifyOtpLogin.tsx
 import BackButton from "@/src/components/common/BackButton";
 import GradientBackground from "@/src/components/common/GradientBackground";
 import { Ionicons } from "@expo/vector-icons";
+import { router, useLocalSearchParams } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -18,48 +19,60 @@ import {
 import Title from "../components/common/TitleHeader";
 import OTPInput from "../components/verifyScreens/OTPInput";
 
-import { useVerifySignupOtp } from '@/src/features/auth/hooks';
-import { useAppSelector } from '@/src/store/hooks';
-import { selectPersonalInfo } from '@/src/store/selectors/signup.selectors';
+import { useSendLoginOtp, useVerifyLoginOtp } from '@/src/features/auth/hooks';
 
-const VerifyOtpSignUpScreen: React.FC = () => {
+const VerifyOTPLoginScreen: React.FC = () => {
+  const params = useLocalSearchParams();
+  const userId = params.userId as string;
+  const phone = params.phone as string;
+
   const otpInputRef = useRef<any>(null);
   const [otp, setOtp] = useState("");
   const [hasError, setHasError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const personalInfo = useAppSelector(selectPersonalInfo);
 
-  const verifyOtpMutation = useVerifySignupOtp();
+  const verifyLoginOtpMutation = useVerifyLoginOtp();
+  const sendLoginOtpMutation = useSendLoginOtp();
 
+  const isVerifying = verifyLoginOtpMutation.isPending;
+  const isResending = sendLoginOtpMutation.isPending;
 
-  const isVerifying = verifyOtpMutation.isPending;
+  const handleVerifyWithOtp = (otpValue: string) => {
 
-  const handleVerify = () => {
-    // Reset error state
-    setHasError(false);
-    setErrorMessage("");
-
-    // Validate OTP length
-    if (otp.length !== 4) {
+  
+    if (!userId) {
       setHasError(true);
-      setErrorMessage("Please enter a valid 4-digit OTP");
+      setErrorMessage("User ID not found. Please try again.");
       return;
     }
+  
+    verifyLoginOtpMutation.mutate(
+      {
+        sentOtp: otpValue,
+        userId: userId,
+        login_as: "Rider"
+      },
+      {
+        onSuccess: (data) => {
+          const riderData = data.mainTablesData.find((item) => item.key === 'Rider');
+          const rider = riderData?.data;
+          console.log(rider);
+  
+          if (rider?.is_onboarding_completed) {
+            router.replace('/(tabs)/(rideRequests)/rideRequest');
+          } else {
 
-    console.log('📤 Verifying OTP:', '****');
-    console.log('📱 Phone:', personalInfo.phoneNumber);
-    console.log('👤 Name:', personalInfo.fullName);
-    console.log('🏙️ City:', personalInfo.city);
-
-    // Call mutation
-    verifyOtpMutation.mutate({
-      phone: personalInfo.phoneNumber,
-      sentOtp: otp,
-      name: personalInfo.fullName,
-      city: personalInfo.city,
-      ride_type_id: personalInfo.vehicleType, // This is the ride_type_id UUID
-    });
-
+            router.replace('/(auth)/signupSecondStage');
+          }
+        },
+        onError: (error: any) => {
+          console.error('❌ LOGIN FAILED:', error);
+          const errorMsg = error.response?.data?.message || "Invalid OTP. Please try again.";
+          setHasError(true);
+          setErrorMessage(errorMsg);
+        }
+      }
+    );
   };
 
   const handleOtpChange = (value: string) => {
@@ -78,19 +91,6 @@ const VerifyOtpSignUpScreen: React.FC = () => {
         handleVerifyWithOtp(value);
       }, 100);
     }
-  };
-
-
-  const handleVerifyWithOtp = (otpValue: string) => {
-    console.log('📤 Auto-verifying OTP:', '****');
-    
-    verifyOtpMutation.mutate({
-      phone: personalInfo.phoneNumber,
-      sentOtp: otpValue,
-      name: personalInfo.fullName,
-      city: personalInfo.city,
-      ride_type_id: personalInfo.vehicleType,
-    });
   };
 
   const [resendTimer, setResendTimer] = useState(30);
@@ -112,16 +112,35 @@ const VerifyOtpSignUpScreen: React.FC = () => {
   }, []);
 
   const handleResend = () => {
-    if (!canResend) return;
+    if (!canResend || !phone) return;
 
-    // TODO: Call useSendSignupOtp mutation again
-    console.log("🔄 Resend OTP requested");
-    setOtp("");
-    setHasError(false);
-    setErrorMessage("");
-    setCanResend(false);
-    setResendTimer(30);
-    otpInputRef.current?.reset();
+    console.log('📤 Resending OTP to:', phone);
+
+    sendLoginOtpMutation.mutate(
+      {
+        phone: phone,
+        otp_type: 'sms',
+      },
+      {
+        onSuccess: (data) => {
+          console.log('✅ OTP resent successfully');
+          console.log('📝 User ID:', userId);
+          
+          // Clear OTP and reset state 
+          setOtp("");
+          setHasError(false);
+          setErrorMessage("");
+          setCanResend(false);
+          setResendTimer(30);
+          otpInputRef.current?.reset();
+        },
+        onError: (error: any) => {
+          console.error('❌ Failed to resend OTP:', error);
+          setHasError(true);
+          setErrorMessage("Failed to resend OTP. Please try again.");
+        }
+      }
+    );
   };
 
   return (
@@ -150,8 +169,8 @@ const VerifyOtpSignUpScreen: React.FC = () => {
             {/* Title Section */}
             <View style={styles.titleWrapper}>
               <Title
-                heading="OTP"
-                subheading="We have sent OTP code verification to your mobile no"
+                heading="Verify OTP"
+                subheading={`Enter the 4-digit code sent to ${phone || "your phone"}`}
                 containerStyle={styles.titleContainer}
               />
             </View>
@@ -168,7 +187,7 @@ const VerifyOtpSignUpScreen: React.FC = () => {
             {/* OTP Section */}
             <View style={styles.otpSection}>
               {/* Error message */}
-              {(hasError || verifyOtpMutation.isError) && (
+              {(hasError || verifyLoginOtpMutation.isError) && (
                 <View style={styles.errorContainer}>
                   <Ionicons name="warning" size={16} color="#FF6B6B" />
                   <Text style={styles.errorText}>
@@ -181,7 +200,7 @@ const VerifyOtpSignUpScreen: React.FC = () => {
               <OTPInput
                 ref={otpInputRef}
                 onChangeText={handleOtpChange}
-                hasError={hasError || verifyOtpMutation.isError}
+                hasError={hasError || verifyLoginOtpMutation.isError}
                 numberOfDigits={4}
                 disabled={isVerifying}
               />
@@ -204,9 +223,14 @@ const VerifyOtpSignUpScreen: React.FC = () => {
               {canResend ? (
                 <TouchableOpacity
                   onPress={handleResend}
-                  disabled={isVerifying}
+                  disabled={isVerifying || isResending}
                 >
-                  <Text style={styles.resendButton}>Resend Code</Text>
+                  <Text style={[
+                    styles.resendButton,
+                    (isVerifying || isResending) && styles.resendButtonDisabled
+                  ]}>
+                    {isResending ? "Sending..." : "Resend Code"}
+                  </Text>
                 </TouchableOpacity>
               ) : (
                 <Text style={styles.resendTimer}>
@@ -221,7 +245,7 @@ const VerifyOtpSignUpScreen: React.FC = () => {
   );
 };
 
-export default VerifyOtpSignUpScreen;
+export default VerifyOTPLoginScreen;
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -296,6 +320,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#3853A4",
     fontWeight: "600",
+  },
+  resendButtonDisabled: {
+    color: "#9CA3AF",
   },
   resendTimer: {
     fontSize: 14,

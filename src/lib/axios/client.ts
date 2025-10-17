@@ -1,30 +1,242 @@
-import axios from "axios";
+// src/lib/axios/client.ts
+// Complete Axios Client with Token Management & Error Handling
 
-const client = axios.create({
-  baseURL: 'https://api-nestjs-enatega.up.railway.app', 
-  // baseURL: process.env.SERVER_URL,
-  timeout: 10000,
+import { logout } from '@/src/store/slices/auth.slice';
+import { store } from '@/src/store/store';
+import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import { router } from 'expo-router';
+import { Alert } from 'react-native';
+
+// ============================================
+// BASE URL CONFIGURATION
+// ============================================
+// Get base URL from environment variable
+// Make sure to create .env file with: EXPO_PUBLIC_API_URL=http://your-backend-url:3000
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+
+console.log('🌐 API Base URL:', BASE_URL);
+
+// ============================================
+// CREATE AXIOS INSTANCES
+// ============================================
+
+// Main API client (for JSON requests)
+export const apiClient = axios.create({
+  baseURL: BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  timeout: 30000, // 30 seconds
 });
 
-// Request interceptor (add auth token)
-client.interceptors.request.use(
-  async (config) => {
-    // Todo: added static token for now
-    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFkYzNkMjBjLWQyMGMtNDVhNy1hYTI4LWJkNjExZDQ1NzlkNiIsInRva2VuVmVyc2lvbiI6MCwiaWF0IjoxNzU5NTg3OTI5LCJleHAiOjE3NjIxNzk5Mjl9.n3PK9c5tWzbcmQJxmBw5J_GdDfMkkX-oKANFXDdchWE"; 
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
+// Multipart client (for file uploads)
+export const multipartClient = axios.create({
+  baseURL: BASE_URL,
+  headers: {
+    'Content-Type': 'multipart/form-data',
   },
-  (error) => Promise.reject(error)
-);
+  timeout: 60000, // 60 seconds for file uploads
+});
 
-client.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.error("API Error:", error?.response || error.message);
-    return Promise.reject(error);
+// ============================================
+// REQUEST INTERCEPTOR
+// ============================================
+// Automatically add JWT token to every request
+
+const requestInterceptor = (config: InternalAxiosRequestConfig) => {
+  // Get token from Redux store
+  const token = store.getState().auth.token;
+
+  // If token exists, add it to Authorization header
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+    console.log('🔐 Token added to request:', config.url);
+  } else {
+    console.log('⚠️ No token available for request:', config.url);
   }
+
+  // Log request details (helpful for debugging)
+  console.log('📤 API Request:', {
+    method: config.method?.toUpperCase(),
+    url: config.url,
+    hasToken: !!token,
+  });
+
+  return config;
+};
+
+// Add interceptor to both clients
+apiClient.interceptors.request.use(requestInterceptor);
+multipartClient.interceptors.request.use(requestInterceptor);
+
+// ============================================
+// RESPONSE INTERCEPTOR
+// ============================================
+// Handle errors globally
+
+const responseInterceptor = {
+  // On success, just return the response
+  onSuccess: (response: any) => {
+    console.log('✅ API Response:', {
+      url: response.config.url,
+      status: response.status,
+    });
+    return response;
+  },
+
+  // On error, handle different error types
+  onError: (error: AxiosError<any>) => {
+    console.error('❌ API Error:', {
+      url: error.config?.url,
+      status: error.response?.status,
+      message: error.message,
+    });
+
+    // Network error (no internet, server down)
+    if (!error.response) {
+      Alert.alert(
+        'Connection Error',
+        'Unable to connect to server. Please check your internet connection.',
+        [{ text: 'OK' }]
+      );
+      return Promise.reject(error);
+    }
+
+    const status = error.response.status;
+    const message = error.response.data?.message || error.message;
+
+    // Handle different HTTP status codes
+    switch (status) {
+      case 401:
+        // Unauthorized - Token expired or invalid
+        console.log('🔒 401 Unauthorized - Logging out user');
+        
+        // Clear Redux state
+        store.dispatch(logout());
+        
+        // Navigate to welcome screen
+        router.replace('/(auth)/welcome');
+        
+        Alert.alert(
+          'Session Expired',
+          'Your session has expired. Please login again.',
+          [{ text: 'OK' }]
+        );
+        break;
+
+      case 403:
+        // Forbidden - User doesn't have permission
+        Alert.alert(
+          'Access Denied',
+          'You do not have permission to perform this action.',
+          [{ text: 'OK' }]
+        );
+        break;
+
+      case 404:
+        // Not Found
+        Alert.alert(
+          'Not Found',
+          typeof message === 'string' ? message : 'The requested resource was not found.',
+          [{ text: 'OK' }]
+        );
+        break;
+
+      case 409:
+        // Conflict (e.g., phone already exists)
+        // Don't show alert, let the component handle it
+        console.log('⚠️ 409 Conflict:', message);
+        break;
+
+      case 422:
+        // Validation Error
+        const errors = Array.isArray(message) ? message.join('\n') : message;
+        Alert.alert('Validation Error', errors, [{ text: 'OK' }]);
+        break;
+
+      case 500:
+      case 502:
+      case 503:
+        // Server Error
+        Alert.alert(
+          'Server Error',
+          'Something went wrong on the server. Please try again later.',
+          [{ text: 'OK' }]
+        );
+        break;
+
+      default:
+        // Other errors
+        const errorMsg = Array.isArray(message) ? message.join('\n') : message;
+        Alert.alert('Error', errorMsg, [{ text: 'OK' }]);
+    }
+
+    return Promise.reject(error);
+  },
+};
+
+// Add interceptor to both clients
+apiClient.interceptors.response.use(
+  responseInterceptor.onSuccess,
+  responseInterceptor.onError
 );
 
-export { client };
+multipartClient.interceptors.response.use(
+  responseInterceptor.onSuccess,
+  responseInterceptor.onError
+);
+
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+
+// Get current token (useful for debugging)
+export const getCurrentToken = () => {
+  return store.getState().auth.token;
+};
+
+// Check if user is authenticated
+export const isAuthenticated = () => {
+  return !!store.getState().auth.token;
+};
+
+// ============================================
+// EXPORTS
+// ============================================
+export default apiClient;
+
+// ============================================
+// USAGE EXAMPLES
+// ============================================
+/*
+
+// 1. Simple GET request (token added automatically)
+const response = await apiClient.get('/api/v1/users/profile');
+
+// 2. POST request with data
+const response = await apiClient.post('/api/v1/auth/login', {
+  email: 'user@example.com',
+  password: 'password123'
+});
+
+// 3. File upload (use multipartClient)
+const formData = new FormData();
+formData.append('file', {
+  uri: fileUri,
+  name: 'photo.jpg',
+  type: 'image/jpeg'
+});
+
+const response = await multipartClient.post('/api/v1/upload', formData);
+
+// 4. Request with custom headers
+const response = await apiClient.get('/api/v1/data', {
+  headers: {
+    'X-Custom-Header': 'value'
+  }
+});
+
+// Token is AUTOMATICALLY added to all requests!
+// No need to manually add Authorization header!
+
+*/
