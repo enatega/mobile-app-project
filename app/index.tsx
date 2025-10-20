@@ -158,7 +158,7 @@ export default function RootIndex() {
   console.log('➡️  Redirecting to: /(tabs)/(rideRequests)/rideRequest');
   console.log('═══════════════════════════════════════════════════════════\n');
   
-  return <Redirect href="/(tabs)/(rideRequests)/rideRequest" />;
+  return <Redirect href="/(tabs)/(rideRequests)" />;
 }
 
 const styles = StyleSheet.create({
