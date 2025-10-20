@@ -27,9 +27,6 @@ export const API_ENDPOINTS = {
     REFRESH_TOKEN: '/api/v1/auth/refresh',
   },
 
-  // ============================================
-  // USER PROFILE
-  // ============================================
   USER: {
     // Get current user profile
     PROFILE: '/api/v1/users/profile',
@@ -41,9 +38,7 @@ export const API_ENDPOINTS = {
     GET_USER: (userId: string) => `/api/v1/users/${userId}`,
   },
 
-  // ============================================
-  // RIDER
-  // ============================================
+
   RIDER: {
     // Get rider profile
     PROFILE: '/api/v1/riders/profile',
@@ -58,9 +53,6 @@ export const API_ENDPOINTS = {
     UPDATE_LOCATION: '/api/v1/riders/location',
   },
 
-  // ============================================
-  // RIDE REQUESTS
-  // ============================================
   RIDE_REQUESTS: {
     // Get available ride requests
     AVAILABLE: '/api/v1/ride-requests/available',
@@ -84,9 +76,6 @@ export const API_ENDPOINTS = {
     HISTORY: '/api/v1/ride-requests/history',
   },
 
-  // ============================================
-  // RIDES (Active Rides)
-  // ============================================
   RIDES: {
     // Get active rides
     ACTIVE: '/api/v1/rides/active',
@@ -104,9 +93,6 @@ export const API_ENDPOINTS = {
     UPDATE_STATUS: (rideId: string) => `/api/v1/rides/${rideId}/status`,
   },
 
-  // ============================================
-  // ORDERS (if applicable)
-  // ============================================
   ORDERS: {
     // Get orders list
     LIST: '/api/v1/orders',
@@ -118,9 +104,6 @@ export const API_ENDPOINTS = {
     UPDATE_STATUS: (orderId: string) => `/api/v1/orders/${orderId}/status`,
   },
 
-  // ============================================
-  // INVENTORY (if applicable)
-  // ============================================
   INVENTORY: {
     // Get inventory list
     LIST: '/api/v1/inventory',
@@ -129,9 +112,6 @@ export const API_ENDPOINTS = {
     GET_BY_ID: (itemId: string) => `/api/v1/inventory/${itemId}`,
   },
 
-  // ============================================
-  // NOTIFICATIONS
-  // ============================================
   NOTIFICATIONS: {
     // Get notifications
     LIST: '/api/v1/notifications',
@@ -143,9 +123,6 @@ export const API_ENDPOINTS = {
     MARK_ALL_READ: '/api/v1/notifications/read-all',
   },
 
-  // ============================================
-  // RIDE TYPES
-  // ============================================
   RIDE_TYPES: {
     // Get all ride types
     LIST: '/api/v1/ride-types',
@@ -154,9 +131,6 @@ export const API_ENDPOINTS = {
     GET_BY_ID: (rideTypeId: string) => `/api/v1/ride-types/${rideTypeId}`,
   },
 
-  // ============================================
-  // FILE UPLOAD
-  // ============================================
   UPLOAD: {
     // Upload single file
     SINGLE: '/api/v1/upload/single',
@@ -165,30 +139,3 @@ export const API_ENDPOINTS = {
     MULTIPLE: '/api/v1/upload/multiple',
   },
 };
-
-// ============================================
-// USAGE EXAMPLES
-// ============================================
-/*
-
-// 1. Simple endpoint usage
-const response = await apiClient.post(API_ENDPOINTS.LUMI_RIDER_AUTH.SIGNUP_SEND_OTP, {
-  phone: "+966501234567",
-  otp_type: "sms"
-});
-
-// 2. Dynamic endpoint with parameter
-const rideId = "123-456-789";
-const response = await apiClient.get(API_ENDPOINTS.RIDES.GET_BY_ID(rideId));
-
-// 3. Login flow
-const loginResponse = await apiClient.post(API_ENDPOINTS.AUTH.LOGIN_SEND_OTP, {
-  phone: "+966501234567",
-  opt_type: "message",
-  login_as: "Rider"
-});
-
-// 4. Get rider profile (token added automatically)
-const profile = await apiClient.get(API_ENDPOINTS.RIDER.PROFILE);
-
-*/
