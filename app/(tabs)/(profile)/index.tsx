@@ -1,11 +1,7 @@
 import { ProfileScreen } from "@/src/features/profile/screens";
 
 const profile = () => {
-  return (
-    <>
-      <ProfileScreen />
-    </>
-  );
+  return <ProfileScreen />;
 };
 
 export default profile;

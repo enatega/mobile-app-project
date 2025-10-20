@@ -1,5 +1,10 @@
 export const API_ENDPOINTS = {
 
+  profile: {
+    user: "/api/v1/users",
+    updatePassword: "/api/v1/users/password",
+  },
+
   LUMI_RIDER_AUTH: {
     SIGNUP_SEND_OTP: '/api/v1/auth/lumi/rider/signup/first-step',
 
