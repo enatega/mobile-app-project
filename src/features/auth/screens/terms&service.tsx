@@ -77,7 +77,7 @@ export default function TermsAndServiceScreen() {
     // ============================================
     // Navigation will be handled by root index.tsx
     // which checks all three gates and redirects accordingly
-    router.replace("/(tabs)/(rideRequests)/rideRequest");
+    router.replace("/(tabs)/(rideRequests)");
   };
 
   return (
