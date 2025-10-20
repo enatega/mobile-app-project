@@ -17,9 +17,9 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.ninjascode.lumidrive",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false,
-        "NSPhotoLibraryUsageDescription": "Allow $(PRODUCT_NAME) to access your photos to update your profile picture.",
-        "NSCameraUsageDescription": "Allow $(PRODUCT_NAME) to access your camera to take profile pictures."
+       "NSPhotoLibraryUsageDescription": "Allow $(PRODUCT_NAME) to access your photos to upload documents.",
+       "NSCameraUsageDescription": "Allow $(PRODUCT_NAME) to access your camera to take photos.",
+       "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -27,6 +27,11 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ],
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.ninjascode.lumidrive"
