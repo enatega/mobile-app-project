@@ -1,21 +1,21 @@
 // Button/index.tsx
 
-import React from 'react';
-import { ActivityIndicator, Text, TouchableOpacity } from 'react-native';
-import { ButtonProps } from './interfaces';
-import { buttonStyles } from './styles';
+import React from "react";
+import { ActivityIndicator, Text, TouchableOpacity } from "react-native";
+import { ButtonProps } from "./interfaces";
+import { buttonStyles } from "./styles";
 
 const Button: React.FC<ButtonProps> = ({
   title,
   onPress,
-  variant = 'primary',
-  size = 'medium',
+  variant = "primary",
+  size = "medium",
   disabled = false,
   loading = false,
   fullWidth = false,
   icon,
   style,
-  textStyle,
+  textStyle
 }) => {
   // Combine button styles
   const buttonStyle = [
@@ -37,9 +37,8 @@ const Button: React.FC<ButtonProps> = ({
   ];
 
   // Determine loading indicator color
-  const loadingColor = variant === 'outline' || variant === 'ghost' 
-    ? '#007AFF' 
-    : '#FFFFFF';
+  const loadingColor =
+    variant === "outline" || variant === "ghost" ? "#3853A4" : "#FFFFFF";
 
   return (
     <TouchableOpacity

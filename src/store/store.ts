@@ -6,12 +6,15 @@ import { PersistConfig } from 'redux-persist/es/types';
 
 import authReducer from './slices/auth.slice';
 import signupReducer from './slices/signup.slice'; // Import signup reducer
+// Slices
+import driverStatusReducer from './slices/driverStatus.slice';
 import themeReducer from './slices/theme.slice';
 
 const rootReducer = combineReducers({
   theme: themeReducer,  
   auth: authReducer,
   signup: signupReducer, // Add signup reducer
+  driverStatus: driverStatusReducer,
 });
 
 type RootState = ReturnType<typeof rootReducer>;
@@ -19,7 +22,7 @@ type RootState = ReturnType<typeof rootReducer>;
 const persistConfig: PersistConfig<RootState> = {
   key: 'root', 
   storage: AsyncStorage, 
-  whitelist: ['theme', 'auth', 'signup'], // Add 'signup' to persist
+  whitelist: ['theme', 'driverStatus', 'auth', 'signup'], // Add 'signup' to persist
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

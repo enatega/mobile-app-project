@@ -1,5 +1,7 @@
+import CustomText from "@/src/components/ui/Text";
+import { useTheme } from "@/src/context/ThemeContext";
 import { AntDesign } from "@expo/vector-icons";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
 import { MiniProfileCardProps } from "../types";
 
 const MiniPofileCard = ({
@@ -7,28 +9,54 @@ const MiniPofileCard = ({
 }: {
   userDetails: MiniProfileCardProps;
 }) => {
+  const theme = useTheme();
   return (
     <View style={styles.card}>
       <View style={styles.userInfo}>
-        <Image
-          style={styles.image}
-          source={{ uri: userDetails.profile }}
-        />
+        <Image style={styles.image} source={{ uri: userDetails.profile }} />
         <View>
-          <Text style={styles.userName}>{userDetails.name}</Text>
-          <Text style={styles.userEmail}>{userDetails.email}</Text>
+          <CustomText
+            variant="bodyLarge"
+            weight="semibold"
+            style={{ color: theme.colors.colorText }}
+          >
+            {userDetails.name}
+          </CustomText>
+          <CustomText
+            variant="caption"
+            weight="medium"
+            style={{ color: theme.colors.colorTextMuted }}
+          >
+            {userDetails.email}
+          </CustomText>
         </View>
       </View>
       <View style={styles.ratingContainer}>
         <View style={styles.starComponent}>
-          <AntDesign name="star" size={20} color="#FBC02D" />
-          <Text style={styles.ratingText}>{userDetails.rating}</Text>
+          <AntDesign name="star" size={20} color={theme.colors.yellow} />
+          <CustomText
+            variant="bodyLarge"
+            weight="semibold"
+            style={{ color: theme.colors.colorText }}
+          >
+            {userDetails.rating}
+          </CustomText>
         </View>
-        <Text style={styles.reviewCount}>
-          {Number(userDetails.totalReviews) > 0
-            ? userDetails.totalReviews
-            : null}
-        </Text>
+        {Number(userDetails.totalReviews) > 0 && (
+          <CustomText
+            variant="caption"
+            weight="medium"
+            style={{ color: theme.colors.gray800 }}
+          >
+            <CustomText
+              variant="caption"
+              weight="medium"
+              style={{ color: theme.colors.gray800 }}
+            >
+              {userDetails.totalReviews}
+            </CustomText>
+          </CustomText>
+        )}
       </View>
     </View>
   );
@@ -38,9 +66,8 @@ export default MiniPofileCard;
 
 const styles = StyleSheet.create({
   card: {
-    flexDirection: "row",
-    paddingHorizontal: 20,
     paddingVertical: 12,
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
@@ -50,48 +77,17 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   image: {
-    resizeMode: "contain",
-    height: 64,
     width: 64,
+    height: 64,
     borderRadius: 32,
-  },
-  userName: {
-    fontWeight: "600",
-    fontSize: 18,
-    lineHeight: 28,
-    letterSpacing: 0,
-    color: "#18181B",
-  },
-  userEmail: {
-    fontWeight: "500",
-    fontSize: 12,
-    lineHeight: 18,
-    letterSpacing: 0,
-    color: "#71717A",
   },
   ratingContainer: {
     alignItems: "center",
-    justifyContent: "center",
     gap: 6,
   },
   starComponent: {
     flexDirection: "row",
-    justifyContent: "center",
     alignItems: "center",
     gap: 6,
-  },
-  ratingText: {
-    fontWeight: "600",
-    fontSize: 18,
-    lineHeight: 28,
-    letterSpacing: 0,
-    color: "#18181B",
-  },
-  reviewCount: {
-    fontWeight: "500",
-    fontSize: 12,
-    lineHeight: 18,
-    letterSpacing: 0,
-    color: "#1F2937",
   },
 });
