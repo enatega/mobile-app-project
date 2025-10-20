@@ -37,7 +37,7 @@ const baseStyles = StyleSheet.create({
 // Variant styles
 const variantStyles = StyleSheet.create({
   primary: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3853A4',
   },
   secondary: {
     backgroundColor: '#6C757D',
@@ -45,7 +45,7 @@ const variantStyles = StyleSheet.create({
   outline: {
     backgroundColor: 'transparent',
     borderWidth: 2,
-    borderColor: '#007AFF',
+    borderColor: '#3853A4',
     shadowOpacity: 0,
     elevation: 0,
   },
@@ -80,7 +80,7 @@ const variantTextStyles = StyleSheet.create({
     color: '#FFFFFF',
   },
   outline: {
-    color: '#007AFF',
+    color: '#3853A4',
   },
   danger: {
     color: '#FFFFFF',
@@ -92,7 +92,7 @@ const variantTextStyles = StyleSheet.create({
     color: '#FFFFFF',
   },
   ghost: {
-    color: '#007AFF',
+    color: '#3853A4',
   },
   gradient: {
     color: '#FFFFFF',

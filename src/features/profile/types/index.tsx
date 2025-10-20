@@ -28,11 +28,20 @@ export interface RiderProfile {
   reviewsData: ReviewsData;
 }
 
+export interface UpdateRiderProfile {
+  user: User;
+}
 
 export interface MiniProfileCardProps {
-    name: string;
-    email: string;
-    profile: string;
-    rating: string;
-    totalReviews: string;
+  name: string;
+  email: string;
+  profile: string;
+  rating: string;
+  totalReviews: string;
+}
+
+export interface updateRiderProfileParams {
+  name?: string;
+  phone?: string;
+  profile?: string;
 }

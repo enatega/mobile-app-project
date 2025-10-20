@@ -1,5 +1,17 @@
 // --- Light Theme Palette ---
 export const lightColors = {
+     // Backgrounds
+  BACKGROUND: '#FFFFFF',
+  
+  // Brand Colors
+  PRIMARY: '#3853A4', // Main brand blue
+  
+  // Text Colors
+  TEXT_PRIMARY: '#1F2937',
+  TEXT_SECONDARY: '#6B7280',
+  
+  // Gradients
+
   GRADIENT_COLORS:["#DAD5FB", "#fcfcfc"],
   colorText: "#18181B",
   colorBgTertiary:"#F4F4F5",
@@ -28,11 +40,19 @@ export const lightColors = {
   cardBorder: '#E5E7EB',
   shadow: '#000000',
   };
-  
-  // --- Dark Theme Palette ---
-  export const darkColors = {
 
-    GRADIENT_COLORS:["#DAD5FB", "#fcfcfc"],
+// --- Dark Theme Palette ---
+export const darkColors = {
+    
+  // Brand Colors
+  PRIMARY: '#3853A4', // Main brand blue
+  
+  // Text Colors
+  TEXT_PRIMARY: '#1F2937',
+  TEXT_SECONDARY: '#6B7280',
+  
+  // Gradients
+  GRADIENT_COLORS: ["#DAD5FB", "#fcfcfc"],
     colorText: "#18181B",
     colorBgTertiary:"#F4F4F5",
     colorIcon: "#27272A",
@@ -84,12 +104,11 @@ export const lightColors = {
     completed: '#10B981',
     cancelled: '#EF4444',
   };
-  
-  // --- Export ---
-  const Colors = {
-    light: lightColors,
-    dark: darkColors,
-    common: commonColors,
-  };
-  
-  export default Colors;
+// --- Export ---
+const Colors = {
+  light: lightColors,
+  dark: darkColors,
+  common: commonColors,
+};
+
+export default Colors;
