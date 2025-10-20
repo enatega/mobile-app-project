@@ -5,12 +5,18 @@ export default function RideRequestsLayout() {
     <Stack
       screenOptions={{
         headerShown: false,
+        gestureEnabled:false,
       }}
-      initialRouteName='rideRequest'
     >
       <Stack.Screen name="index" />
       <Stack.Screen name="rideRequest"/>
-      <Stack.Screen name="tripDetail"/>
+      <Stack.Screen name="tripDetail"  options={{
+          // presentation: "modal", 
+          headerShown: false,
+        }}/>
     </Stack>
   );
 }
+
+
+
