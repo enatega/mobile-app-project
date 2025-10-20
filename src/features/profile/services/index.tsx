@@ -1,8 +1,8 @@
-import { API, client } from "@/src/lib/axios";
+import { API_ENDPOINTS, client } from "@/src/lib/axios";
 import { RiderProfile, updateRiderProfileParams } from "../types";
 
 export const fetchRiderProfile = async (): Promise<RiderProfile> => {
-  const response = await client.get(API.profile.user);
+  const response = await client.get(API_ENDPOINTS.PROFILE.user);
   return response.data;
 };
 
@@ -42,7 +42,7 @@ export const updateRiderProfile = async (
       formData.append("profile", imageObj as any);
 
       // Send FormData request
-      const response = await client.patch(API.profile.user, formData, {
+      const response = await client.patch(API_ENDPOINTS.PROFILE.user, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -50,7 +50,7 @@ export const updateRiderProfile = async (
 
       return response.data;
     } else {
-      const response = await client.patch(API.profile.user, params);
+      const response = await client.patch(API_ENDPOINTS.PROFILE.user, params);
       return response.data;
     }
   } catch (error: any) {
@@ -63,7 +63,7 @@ export const updateRiderPassword = async (params: {
   newPassword: string;
 }): Promise<{ message: string }> => {
   try {
-    const response = await client.patch(API.profile.updatePassword, {
+    const response = await client.patch(API_ENDPOINTS.PROFILE.updatePassword, {
       previous_password: params.currentPassword,
       new_password: params.newPassword,
     });
