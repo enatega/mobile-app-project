@@ -1,3 +1,4 @@
+import { globalStyles } from "@/src/constants";
 import { useTheme } from "@/src/context/ThemeContext";
 import { Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -7,7 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CustomText from "../ui/Text";
 
 interface CustomHeaderProps {
-  title: string;
+  title?: string;
   showBackButton?: boolean;
   onBackPress?: () => void;
   isTitleVisible?: boolean;
@@ -32,6 +33,7 @@ const CustomHeader: React.FC<CustomHeaderProps> = ({
     <View
       style={[
         styles.headerContainer,
+        globalStyles.containerPadding,
         { paddingTop: insets.top + 5, paddingBottom: 16 },
       ]}
     >
@@ -64,17 +66,13 @@ const CustomHeader: React.FC<CustomHeaderProps> = ({
   );
 };
 
-export default CustomHeader;
+export default React.memo(CustomHeader);
 
 const styles = StyleSheet.create({
   headerContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    backgroundColor: "transparent",
-    zIndex: 1000,
   },
   title: {
     fontSize: 20,

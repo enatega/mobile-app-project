@@ -1,72 +1,235 @@
-import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+// app/(tabs)/(rideRequests)/index.tsx
+// UPDATED WITH FLOATING DEV MENU FOR TESTING AUTH FLOWS
 
-const DUMMY_SCHEDULED_RIDES = [
-  { id: '1', pickup: 'Home', dropoff: 'Office', date: 'Oct 7', time: '08:00 AM', fare: '$15.00', recurring: true },
-  { id: '2', pickup: 'Airport', dropoff: 'Hotel Downtown', date: 'Oct 8', time: '03:30 PM', fare: '$35.00', recurring: false },
-  { id: '3', pickup: 'Restaurant', dropoff: 'Theater District', date: 'Oct 9', time: '07:00 PM', fare: '$12.00', recurring: false },
-  { id: '4', pickup: 'Office', dropoff: 'Home', date: 'Oct 7', time: '06:00 PM', fare: '$15.00', recurring: true },
+import { useAppDispatch, useAppSelector } from '@/src/store/hooks';
+import { selectIsLoggedIn, selectUser } from '@/src/store/selectors/authSelectors';
+import { logout } from '@/src/store/slices/auth.slice';
+import { resetSignup } from '@/src/store/slices/signup.slice';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import {
+  Alert,
+  FlatList,
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
+
+const DUMMY_RIDES = [
+  { id: '1', pickup: 'Downtown Plaza', dropoff: 'Airport Terminal 2', time: '10:30 AM', fare: '$25.00', status: 'pending' },
+  { id: '2', pickup: 'City Mall', dropoff: 'Central Station', time: '11:15 AM', fare: '$18.50', status: 'pending' },
+  { id: '3', pickup: 'Hotel Grand', dropoff: 'Beach Resort', time: '02:00 PM', fare: '$45.00', status: 'pending' },
+  { id: '4', pickup: 'Office Tower', dropoff: 'Residential Area', time: '05:30 PM', fare: '$22.00', status: 'pending' },
 ];
 
-export default function ScheduledRidesScreen() {
-  const renderScheduledRide = ({ item }: any) => (
-    <TouchableOpacity style={styles.rideCard}>
-      <View style={styles.cardHeader}>
-        <View style={styles.dateContainer}>
-          <Text style={styles.dateText}>{item.date}</Text>
-          <Text style={styles.timeText}>{item.time}</Text>
-        </View>
-        {item.recurring && (
-          <View style={styles.recurringBadge}>
-            <Ionicons name="repeat" size={14} color="#1691BF" />
-            <Text style={styles.recurringText}>Recurring</Text>
-          </View>
-        )}
-      </View>
+export default function RideRequestsScreen() {
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const user = useAppSelector(selectUser);
+  const isLoggedIn = useAppSelector(selectIsLoggedIn);
+  
+  const [showDevMenu, setShowDevMenu] = useState(false);
 
-      <View style={styles.routeContainer}>
+  // ============================================
+  // DEV MENU ACTIONS
+  // ============================================
+  const handleLogout = () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: () => {
+            console.log('🔓 Logging out from dev menu...');
+            dispatch(logout());
+            dispatch(resetSignup());
+            setShowDevMenu(false);
+            router.replace('/(auth)/welcome');
+          }
+        }
+      ]
+    );
+  };
+
+  const handleTestSignup = () => {
+    dispatch(logout());
+    dispatch(resetSignup());
+    setShowDevMenu(false);
+    console.log('🧪 Testing signup flow...');
+    router.replace('/(auth)/signup');
+  };
+
+  const handleTestLogin = () => {
+    dispatch(logout());
+    dispatch(resetSignup());
+    setShowDevMenu(false);
+    console.log('🧪 Testing login flow...');
+    router.replace('/(auth)/login');
+  };
+
+  const handleGoToWelcome = () => {
+    setShowDevMenu(false);
+    console.log('🏠 Going to welcome screen...');
+    router.push('/(auth)/welcome');
+  };
+
+  // ============================================
+  // RENDER RIDE ITEM
+  // ============================================
+  const renderRideItem = ({ item }: any) => (
+    <TouchableOpacity style={styles.rideCard}>
+      <View style={styles.rideHeader}>
+        <Ionicons name="location" size={20} color="#1691BF" />
+        <Text style={styles.rideTime}>{item.time}</Text>
+      </View>
+      
+      <View style={styles.rideDetails}>
         <View style={styles.locationRow}>
-          <View style={styles.dotGreen} />
+          <Ionicons name="radio-button-on" size={16} color="#10B981" />
           <Text style={styles.locationText}>{item.pickup}</Text>
         </View>
-
-        <View style={styles.routeLine} />
-
+        
+        <View style={styles.divider} />
+        
         <View style={styles.locationRow}>
-          <View style={styles.dotRed} />
+          <Ionicons name="location" size={16} color="#EF4444" />
           <Text style={styles.locationText}>{item.dropoff}</Text>
         </View>
       </View>
-
-      <View style={styles.footer}>
+      
+      <View style={styles.rideFooter}>
         <Text style={styles.fareText}>{item.fare}</Text>
-        <TouchableOpacity style={styles.editButton}>
-          <Ionicons name="pencil" size={16} color="#1691BF" />
-          <Text style={styles.editText}>Edit</Text>
-        </TouchableOpacity>
+        <View style={styles.actionButtons}>
+          <TouchableOpacity style={styles.declineButton}>
+            <Text style={styles.declineText}>Decline</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.acceptButton}>
+            <Text style={styles.acceptText}>Accept</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Scheduled Rides</Text>
-        <Text style={styles.subtitle}>{DUMMY_SCHEDULED_RIDES.length} upcoming rides</Text>
+        <Text style={styles.title}>Ride Requests</Text>
+        <Text style={styles.subtitle}>{DUMMY_RIDES.length} active requests</Text>
       </View>
-
+      
+      {/* Ride List */}
       <FlatList
-        data={DUMMY_SCHEDULED_RIDES}
-        renderItem={renderScheduledRide}
+        data={DUMMY_RIDES}
+        renderItem={renderRideItem}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
       />
 
-      <TouchableOpacity style={styles.fab}>
-        <Ionicons name="add" size={24} color="#FFFFFF" />
-      </TouchableOpacity>
+      {/* ============================================ */}
+      {/* FLOATING DEV MENU BUTTON - ONLY IN DEV MODE */}
+      {/* ============================================ */}
+      {__DEV__ && (
+        <TouchableOpacity
+          onPress={() => setShowDevMenu(true)}
+          style={styles.devMenuButton}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="settings" size={24} color="white" />
+        </TouchableOpacity>
+      )}
+
+      {/* ============================================ */}
+      {/* DEV MENU MODAL */}
+      {/* ============================================ */}
+      <Modal
+        visible={showDevMenu}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowDevMenu(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay}
+          onPress={() => setShowDevMenu(false)}
+          activeOpacity={1}
+        >
+          <TouchableOpacity 
+            style={styles.modalContent}
+            activeOpacity={1}
+          >
+            {/* Modal Header */}
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>🛠️ Dev Menu</Text>
+              <TouchableOpacity onPress={() => setShowDevMenu(false)}>
+                <Ionicons name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Current User Info */}
+            {user && isLoggedIn && (
+              <View style={styles.userInfoBox}>
+                <Text style={styles.userInfoLabel}>Currently logged in as:</Text>
+                <Text style={styles.userInfoName}>{user.name}</Text>
+                <Text style={styles.userInfoPhone}>{user.phone}</Text>
+              </View>
+            )}
+
+            {/* Menu Options */}
+            <View style={styles.menuOptions}>
+              {/* Test Signup */}
+              <TouchableOpacity
+                onPress={handleTestSignup}
+                style={[styles.menuButton, { backgroundColor: '#4ECDC4' }]}
+              >
+                <Ionicons name="person-add" size={20} color="white" style={styles.menuIcon} />
+                <Text style={styles.menuButtonText}>Test Signup Flow</Text>
+              </TouchableOpacity>
+
+              {/* Test Login */}
+              <TouchableOpacity
+                onPress={handleTestLogin}
+                style={[styles.menuButton, { backgroundColor: '#45B7D1' }]}
+              >
+                <Ionicons name="log-in" size={20} color="white" style={styles.menuIcon} />
+                <Text style={styles.menuButtonText}>Test Login Flow</Text>
+              </TouchableOpacity>
+
+              {/* Go to Welcome */}
+              <TouchableOpacity
+                onPress={handleGoToWelcome}
+                style={[styles.menuButton, { backgroundColor: '#A8E6CF' }]}
+              >
+                <Ionicons name="home" size={20} color="white" style={styles.menuIcon} />
+                <Text style={styles.menuButtonText}>Go to Welcome</Text>
+              </TouchableOpacity>
+
+              {/* Logout */}
+              <TouchableOpacity
+                onPress={handleLogout}
+                style={[styles.menuButton, { backgroundColor: '#FF6B6B' }]}
+              >
+                <Ionicons name="log-out" size={20} color="white" style={styles.menuIcon} />
+                <Text style={styles.menuButtonText}>Logout</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Footer Note */}
+            <View style={styles.devNote}>
+              <Text style={styles.devNoteText}>
+                💡 This menu only appears in development mode
+              </Text>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -93,7 +256,6 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     padding: 16,
-    paddingBottom: 80,
   },
   rideCard: {
     backgroundColor: '#1F2937',
@@ -103,110 +265,165 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#374151',
   },
-  cardHeader: {
+  rideHeader: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
-  dateContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  dateText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#E5E7EB',
-  },
-  timeText: {
+  rideTime: {
     fontSize: 14,
     color: '#9CA3AF',
-  },
-  recurringBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1F2937',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#1691BF',
-    gap: 4,
-  },
-  recurringText: {
-    fontSize: 12,
-    color: '#1691BF',
     fontWeight: '500',
   },
-  routeContainer: {
+  rideDetails: {
     marginBottom: 16,
   },
   locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  dotGreen: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#10B981',
-  },
-  dotRed: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#EF4444',
+    marginVertical: 4,
   },
   locationText: {
     fontSize: 16,
     color: '#E5E7EB',
     marginLeft: 12,
+    flex: 1,
   },
-  routeLine: {
-    width: 2,
+  divider: {
     height: 20,
+    width: 2,
     backgroundColor: '#374151',
-    marginLeft: 5,
+    marginLeft: 7,
     marginVertical: 4,
   },
-  footer: {
+  rideFooter: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
   fareText: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#1691BF',
   },
-  editButton: {
+  actionButtons: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    gap: 8,
+  },
+  declineButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
     borderRadius: 8,
     backgroundColor: '#374151',
   },
-  editText: {
-    color: '#1691BF',
+  declineText: {
+    color: '#E5E7EB',
     fontWeight: '600',
   },
-  fab: {
-    position: 'absolute',
-    bottom: 90,
-    right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+  acceptButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 8,
     backgroundColor: '#1691BF',
+  },
+  acceptText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+
+  // ============================================
+  // DEV MENU STYLES
+  // ============================================
+  devMenuButton: {
+    position: 'absolute',
+    top: 60,
+    right: 20,
+    backgroundColor: '#FF6B6B',
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 4,
+    zIndex: 9999,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
-    shadowRadius: 4,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 20,
+    width: '85%',
+    maxWidth: 400,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  userInfoBox: {
+    backgroundColor: '#f0f0f0',
+    padding: 15,
+    borderRadius: 12,
+    marginBottom: 20,
+  },
+  userInfoLabel: {
+    fontSize: 13,
+    color: '#666',
+    marginBottom: 6,
+  },
+  userInfoName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 4,
+  },
+  userInfoPhone: {
+    fontSize: 14,
+    color: '#666',
+  },
+  menuOptions: {
+    gap: 12,
+  },
+  menuButton: {
+    padding: 16,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  menuIcon: {
+    marginRight: 12,
+  },
+  menuButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  devNote: {
+    marginTop: 20,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+  },
+  devNoteText: {
+    fontSize: 12,
+    color: '#999',
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
 });
