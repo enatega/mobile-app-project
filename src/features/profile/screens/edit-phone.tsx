@@ -12,7 +12,11 @@ import {
   Text,
   View,
 } from "react-native";
-import { Heading, ProfileFormTextField } from "../components";
+import PhoneInput, {
+  ICountry,
+  isValidPhoneNumber,
+} from "react-native-international-phone-number";
+import { Heading } from "../components";
 import { useUpdateRiderProfile } from "../hooks/mutations";
 import { useFetchRiderProfile } from "../hooks/queries";
 
@@ -22,31 +26,43 @@ const editPhone = () => {
   const { mutateAsync: updateProfile, isPending: isUpdating } =
     useUpdateRiderProfile();
 
-  const name = data?.user?.name || "";
-  const [userName, setuserName] = useState(name);
+  const phone = data?.user?.phone || "";
+  const [userPhone, setuserPhone] = useState(phone);
+  const [selectedCountry, setSelectedCountry] = useState<ICountry | null>(null);
+  console.log("🚀 ~ editPhone ~ userPhone:", userPhone)
 
   useEffect(() => {
-    if (data?.user?.name) {
-      setuserName(data.user.name);
+    if (data?.user?.phone) {
+      setuserPhone(data.user.phone);
     }
-  }, [data?.user?.name]);
+  }, [data?.user?.phone]);
 
   const isDisabled = () => {
-    if (userName === name || userName.length === 0 || isUpdating) {
+    if (userPhone === phone || userPhone.length === 0 || isUpdating) {
       return true;
     }
-    return false;
+
+    // Validate the number
+    const isValid = isValidPhoneNumber(userPhone, selectedCountry?.cca2);
+
+    console.log("📞 Valid phone number:", isValid, "for", userPhone);
+
+    // Disable if invalid
+    return !isValid;
+
+    // return false;
   };
+  console.log("🚀 ~ handleUpdateProfile ~ isDisabled():", isDisabled());
 
   const handleUpdateProfile = async () => {
     if (isDisabled() || isUpdating) {
       return;
     }
     try {
-      await updateProfile({ name: userName });
+      await updateProfile({ phone: userPhone });
       router.back();
     } catch (error) {
-      console.error("Failed to update name:", error);
+      console.error("Failed to update phone:", error);
     }
   };
 
@@ -90,16 +106,39 @@ const editPhone = () => {
         <View style={styles.content}>
           <View style={[globalStyles.containerPadding]}>
             <Heading
-              title="Name"
-              description="This is the name you would like other people to use when referring you you."
+              title="Phone"
+              description="This is the phone you would like other people to use when referring you you."
             />
             <View style={globalStyles.containerPadding}>
-              {/* Todo: need to add main phone number input field when talha will push the code. */}
-              <ProfileFormTextField
-                label="Phone number"
-                input={userName}
-                setinput={setuserName}
-              />
+              {/* Phone Number Input */}
+              <View style={styles.inputContainer}>
+                <PhoneInput
+                  value={userPhone}
+                  onChangePhoneNumber={(e) => {
+                    setuserPhone(e);
+                  }}
+                  selectedCountry={selectedCountry}
+                  onChangeSelectedCountry={(country) => {
+                    setSelectedCountry(country);
+                  }}
+                  placeholder="Phone number"
+                  defaultCountry="PK"
+                  phoneInputStyles={{
+                    container: styles.phoneContainer,
+                    flagContainer: styles.flagContainer,
+                    flag: {},
+                    caret: styles.caret,
+                    divider: styles.divider,
+                    callingCode: styles.callingCode,
+                    input: styles.phoneInput,
+                  }}
+                  modalStyles={{
+                    backdrop: {},
+                    countryName: styles.countryName,
+                    searchInput: styles.searchInput,
+                  }}
+                />
+              </View>
             </View>
           </View>
         </View>
@@ -123,27 +162,6 @@ const editPhone = () => {
 export default editPhone;
 
 const styles = StyleSheet.create({
-  image: {
-    borderRadius: 200,
-    width: 96,
-    height: 96,
-  },
-  imageContainer: {
-    display: "flex",
-    position: "relative",
-    alignItems: "flex-start",
-    justifyContent: "center",
-    width: 96,
-    height: 96,
-  },
-  icon: {
-    position: "absolute",
-    bottom: 0,
-    right: 0,
-    borderWidth: 1,
-    borderRadius: 100,
-    padding: 6,
-  },
   container: {
     flex: 1,
     paddingBottom: Platform.OS === "ios" ? 85 : 60,
@@ -153,5 +171,52 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     paddingBottom: 20,
+  },
+  inputContainer: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: "600",
+    marginBottom: 8,
+    color: "#374151",
+  },
+  // Phone Input Styles
+  phoneContainer: {
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    borderRadius: 200,
+    height: 52,
+    overflow: "hidden",
+  },
+  flagContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 8,
+  },
+  caret: {
+    color: "#6B7280",
+    fontSize: 16,
+  },
+  divider: {
+    backgroundColor: "#E5E7EB",
+  },
+  callingCode: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#111827",
+  },
+  phoneInput: {
+    fontSize: 16,
+    color: "#111827",
+    flex: 1,
+    borderRadius: 200
+  },
+  countryName: {
+    color: "#111827",
+  },
+  searchInput: {
+    borderColor: "#D1D5DB",
   },
 });

@@ -39,6 +39,14 @@ export const lightColors = {
   card: '#FFFFFF',
   cardBorder: '#E5E7EB',
   shadow: '#000000',
+  colorBg: "#FFFFFF",
+  colorBorder: "#E4E4E7",
+  colorBgSecondary: '#D3F2FA',
+  colorIconPrimary: '#1691BF',
+  colorTextPrimary: '#1677A4',
+  colorTextError: '#DC2626',
+  colorIconError: '#DC2626',
+  white: '#FFFFFF',
   };
 
 // --- Dark Theme Palette ---
@@ -79,6 +87,14 @@ export const darkColors = {
     card: '#1F2937',
     cardBorder: '#374151',
     shadow: '#000000',
+    colorBg: "#FFFFFF",
+    colorBorder: "#E4E4E7",
+    colorBgSecondary: '#D3F2FA',
+    colorIconPrimary: '#1691BF',
+    colorTextPrimary: '#1677A4',
+    colorTextError: '#DC2626',
+    colorIconError: '#DC2626',
+    white: '#FFFFFF',
   };
   
   // --- Common Colors Palette ---
