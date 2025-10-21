@@ -3,9 +3,9 @@
 
 import { useAppSelector } from "@/src/store/hooks";
 import {
-    selectIsLoggedIn,
-    selectIsOnboarded,
-    selectTermsAccepted,
+  selectIsLoggedIn,
+  selectIsOnboarded,
+  selectTermsAccepted,
 } from "@/src/store/selectors/authSelectors";
 import { Redirect } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -59,21 +59,21 @@ export default function RootIndex() {
     );
   }
 
-  if (!isLoggedIn) {
+  // if (!isLoggedIn) {
 
-    return <Redirect href="/(auth)/welcome" />;
-  }
+  //   return <Redirect href="/(auth)/welcome" />;
+  // }
 
-  if (!isOnboarded) {
+  // if (!isOnboarded) {
 
-    return <Redirect href="/(auth)/signupSecondStage" />;
-  }
+  //   return <Redirect href="/(auth)/signupSecondStage" />;
+  // }
 
 
-  if (!termsAccepted) {
+  // if (!termsAccepted) {
 
-    return <Redirect href="/(auth)/terms&service" />;
-  }
+  //   return <Redirect href="/(auth)/terms&service" />;
+  // }
 
 
   
