@@ -26,11 +26,12 @@ const getBadgeColors = (rideType: RideRequest['rideType']) =>
   rideTypeCopy[rideType] || rideTypeCopy.standard;
 
 const getAvatarSource = (rideRequest: RideRequest) =>
-  rideRequest.passenger.profileImage
-    ? { uri: rideRequest.passenger.profileImage }
+  rideRequest.profileImg
+    ? { uri: rideRequest?.profileImg }
     : { uri: 'https://avatar.iran.liara.run/public/48' };
 
 const getPassengerRides = (rideRequest: RideRequest) => {
+  
   const passenger = rideRequest.passenger as RideRequest['passenger'] & {
     totalRides?: number;
     totalRatings?: number;
