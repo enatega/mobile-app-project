@@ -1,7 +1,9 @@
 import Button from '@/src/components/ui/Button /index';
 import { useTheme } from '@/src/context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import React, { useState } from 'react';
+
 import {
   KeyboardAvoidingView,
   Platform,
@@ -11,6 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface FareInputModalProps {
   visible: boolean;
@@ -27,6 +30,8 @@ const FareInputModal: React.FC<FareInputModalProps> = ({
 }) => {
   const { colors } = useTheme();
   const [fareInput, setFareInput] = useState('');
+  const insets = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight()+ insets.bottom+10;
 
   const handleOffer = () => {
     const fare = parseInt(fareInput);
@@ -40,45 +45,45 @@ const FareInputModal: React.FC<FareInputModalProps> = ({
   return (
     visible ? (
       <View style={styles.overlay}>
-        <KeyboardAvoidingView 
+        <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.keyboardView}
+          style={[styles.keyboardView, { paddingBottom: tabBarHeight }]}
         >
           <View style={[styles.modal, { backgroundColor: colors.background }]}>
-          <View style={[styles.header, { borderBottomColor: colors.border }]}>
-            <Text style={[styles.headerTitle, { color: colors.text }]}>Offer your fare</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <Ionicons name="close" size={24} color={colors.text} />
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.content}>
-            <View style={styles.fareDisplay}>
-              <Text style={[styles.currency, { color: colors.textSecondary }]}>QAR</Text>
-              <TextInput
-                style={[styles.fareInput, { color: colors.text, borderBottomColor: colors.border }]}
-                value={fareInput}
-                onChangeText={setFareInput}
-                keyboardType="numeric"
-                placeholder="0"
-                placeholderTextColor={colors.textSecondary}
-                autoFocus
-              />
+            <View style={[styles.header, { borderBottomColor: colors.border }]}>
+              <Text style={[styles.headerTitle, { color: colors.text }]}>Offer your fare</Text>
+              <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                <Ionicons name="close" size={24} color={colors.text} />
+              </TouchableOpacity>
             </View>
 
-            <Text style={[styles.passengerOffer, { color: colors.textSecondary }]}>
-              Passenger's offer: QAR{passengerOffer}
-            </Text>
+            <View style={styles.content}>
+              <View style={styles.fareDisplay}>
+                <Text style={[styles.currency, { color: colors.textSecondary }]}>QAR</Text>
+                <TextInput
+                  style={[styles.fareInput, { color: colors.text, borderBottomColor: colors.border }]}
+                  value={fareInput}
+                  onChangeText={setFareInput}
+                  keyboardType="numeric"
+                  placeholder="0"
+                  placeholderTextColor={colors.textSecondary}
+                  autoFocus
+                />
+              </View>
 
-            <Button
-              title="Offer"
-              onPress={handleOffer}
-              variant="primary"
-              fullWidth
-              disabled={!fareInput}
-              style={[styles.offerButton, { backgroundColor: colors.primary }]}
-            />
-          </View>
+              <Text style={[styles.passengerOffer, { color: colors.textSecondary }]}>
+                Passenger's offer: QAR{passengerOffer}
+              </Text>
+
+              <Button
+                title="Offer"
+                onPress={handleOffer}
+                variant="primary"
+                fullWidth
+                disabled={!fareInput}
+                style={[styles.offerButton, { backgroundColor: colors.primary }]}
+              />
+            </View>
           </View>
         </KeyboardAvoidingView>
       </View>
@@ -157,7 +162,7 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   offerButton: {
-    marginBottom: 0,
+    marginBottom: 100,
   },
 });
 

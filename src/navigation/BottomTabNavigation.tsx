@@ -19,7 +19,7 @@ const TAB_CONFIG = [
     icon: 'calendar-sharp',
   },
   {
-    name: '(Wallet)',
+    name: '(wallet)',
     title: 'Wallet',
     icon: 'wallet-sharp',
   },
@@ -63,7 +63,7 @@ function TabBarIcon({
 export default function BottomTabsNavigator() {
   return (
     <Tabs
-      initialRouteName="(profile)"
+      initialRouteName="(rideRequests)"
       screenOptions={{
         tabBarActiveTintColor: ACTIVE_TINT_COLOR,
         tabBarInactiveTintColor: INACTIVE_TINT_COLOR,
