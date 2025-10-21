@@ -29,6 +29,7 @@ export default function RideRequestsScreen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const user = useAppSelector(selectUser);
+  console.log("My user is :", user)
   const isLoggedIn = useAppSelector(selectIsLoggedIn);
   
   const [showDevMenu, setShowDevMenu] = useState(false);

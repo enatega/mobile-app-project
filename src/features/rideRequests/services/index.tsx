@@ -1,3 +1,5 @@
+import { selectToken } from '@/src/store/selectors/authSelectors';
+import { store } from '@/src/store/store';
 import axios from 'axios';
 import { DriverStatus, RideRequest, RideRequestResponse } from '../types';
 
@@ -13,7 +15,9 @@ export const rideRequestsService = {
     radius: number = 5000,
     token?: string // optional auth token
   ): Promise<RideRequest[]> => {
-    const newtoken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFkYzNkMjBjLWQyMGMtNDVhNy1hYTI4LWJkNjExZDQ1NzlkNiIsInRva2VuVmVyc2lvbiI6MCwiaWF0IjoxNzU5NTg3OTI5LCJleHAiOjE3NjIxNzk5Mjl9.n3PK9c5tWzbcmQJxmBw5J_GdDfMkkX-oKANFXDdchWE"
+
+    const state = store.getState();
+    const newToken = selectToken(state);
     try {
       const latitude = 24.8607;
       const longitude = 67.0011;
@@ -22,7 +26,7 @@ export const rideRequestsService = {
         {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${newtoken}`,
+            Authorization: `Bearer ${newToken}`,
           },
         }
       );

@@ -59,21 +59,21 @@ export default function RootIndex() {
     );
   }
 
-  // if (!isLoggedIn) {
+  if (!isLoggedIn) {
 
-  //   return <Redirect href="/(auth)/welcome" />;
-  // }
+    return <Redirect href="/(auth)/welcome" />;
+  }
 
-  // if (!isOnboarded) {
+  if (!isOnboarded) {
 
-  //   return <Redirect href="/(auth)/signupSecondStage" />;
-  // }
+    return <Redirect href="/(auth)/signupSecondStage" />;
+  }
 
 
-  // if (!termsAccepted) {
+  if (!termsAccepted) {
 
-  //   return <Redirect href="/(auth)/terms&service" />;
-  // }
+    return <Redirect href="/(auth)/terms&service" />;
+  }
 
 
   
