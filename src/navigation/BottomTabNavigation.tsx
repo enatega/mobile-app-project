@@ -19,7 +19,7 @@ const TAB_CONFIG = [
     icon: 'calendar-sharp',
   },
   {
-    name: '(Wallet)',
+    name: '(wallet)',
     title: 'Wallet',
     icon: 'wallet-sharp',
   },
