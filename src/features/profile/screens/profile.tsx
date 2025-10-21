@@ -76,7 +76,7 @@ const profileScreen = () => {
   return (
     <GradientBackground>
       <View style={styles.container}>
-        <CustomHeader title="Your Profile" />
+        <CustomHeader title="Your Profile" showBackButton={false} />
         <ScrollView>
           <View style={globalStyles.containerPadding}>
             <MiniPofileCard userDetails={userObject} />
