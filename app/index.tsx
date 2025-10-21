@@ -3,9 +3,9 @@
 
 import { useAppSelector } from "@/src/store/hooks";
 import {
-    selectIsLoggedIn,
-    selectIsOnboarded,
-    selectTermsAccepted,
+  selectIsLoggedIn,
+  selectIsOnboarded,
+  selectTermsAccepted,
 } from "@/src/store/selectors/authSelectors";
 import { Redirect } from "expo-router";
 import React, { useEffect, useState } from "react";
