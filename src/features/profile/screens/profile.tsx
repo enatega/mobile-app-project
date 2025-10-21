@@ -120,8 +120,8 @@ const profileScreen = () => {
             variant="outline"
             size="medium"
             disabled={isUpdating}
-            style={{ borderRadius: 100, borderColor: theme.colors.colorTextError }}
-            textStyle={{color: theme.colors.colorTextError}}
+            // style={{ borderRadius: 100, borderColor: theme.colors.colorTextError }}
+            // textStyle={{color: theme.colors.colorTextError}}
             fullWidth={true}
             onPress={handleLogout}
           />
