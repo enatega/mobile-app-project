@@ -13,14 +13,14 @@ import {
   StyleSheet,
   View,
 } from "react-native";
+import { useLogout } from "../../auth/hooks";
 import { InfoCard, MiniPofileCard } from "../components";
 import { useFetchRiderProfile } from "../hooks/queries";
 
 const profileScreen = () => {
   const { data, isLoading, error, refetch } = useFetchRiderProfile();
+  const { mutate: logout, isPending, isError } = useLogout();
   const theme = useTheme();
-
-  let isUpdating = false;
 
   const userObject = {
     name: data?.user?.name || "",
@@ -31,14 +31,15 @@ const profileScreen = () => {
   };
 
   const handleLogout = async () => {
-    if (isUpdating) {
+    if (isPending) {
       return;
     }
     try {
-      // await logout();
-      router.navigate("/(tabs)/(rideRequests)");
+      logout();
     } catch (error) {
       console.error("Failed to logout:", error);
+    } finally {
+      router.navigate("/(tabs)/(rideRequests)");
     }
   };
 
@@ -75,7 +76,7 @@ const profileScreen = () => {
   return (
     <GradientBackground>
       <View style={styles.container}>
-        <CustomHeader title="Your Profile" />
+        <CustomHeader title="Your Profile" showBackButton={false} />
         <ScrollView>
           <View style={globalStyles.containerPadding}>
             <MiniPofileCard userDetails={userObject} />
@@ -116,10 +117,10 @@ const profileScreen = () => {
 
         <View style={[globalStyles.containerPadding, styles.buttonContainer]}>
           <Button
-            title={isUpdating ? "Logging out..." : "Logout"}
+            title={isPending ? "Logging out..." : "Logout"}
             variant="outline"
             size="medium"
-            disabled={isUpdating}
+            disabled={isPending}
             style={{ borderRadius: 100, borderColor: theme.colors.colorTextError }}
             textStyle={{color: theme.colors.colorTextError}}
             fullWidth={true}
