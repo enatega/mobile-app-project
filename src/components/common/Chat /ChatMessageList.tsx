@@ -1,12 +1,13 @@
 import React, { useEffect, useRef } from "react";
 import {
+    FlatList,
     Keyboard,
-    ScrollView,
     StyleSheet,
     TouchableWithoutFeedback,
     View,
 } from "react-native";
 import MessageBubble from "./MessageBubble";
+import QuickReplyButtons from "./QuickReplyButton";
 
 export interface ChatMessage {
   id: string;
@@ -16,53 +17,105 @@ export interface ChatMessage {
   showTimestamp?: boolean;
 }
 
+interface QuickReplyButton {
+  id: string;
+  text: string;
+}
+
 interface ChatMessageListProps {
   messages: ChatMessage[];
+  showQuickReplies?: boolean;
+  quickReplies?: QuickReplyButton[];
+  onQuickReply?: (button: QuickReplyButton) => void;
   onScroll?: () => void;
 }
 
 const ChatMessageList: React.FC<ChatMessageListProps> = ({
   messages,
+  showQuickReplies = false,
+  quickReplies = [],
+  onQuickReply,
   onScroll,
 }) => {
-  const scrollViewRef = useRef<ScrollView>(null);
+  const flatListRef = useRef<FlatList>(null);
 
   useEffect(() => {
     // Auto scroll to bottom when new messages arrive
     if (messages.length > 0) {
       setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
+        flatListRef.current?.scrollToEnd({ animated: true });
       }, 100);
     }
   }, [messages]);
+
+  useEffect(() => {
+    // Scroll to end when keyboard appears
+    const keyboardDidShow = Keyboard.addListener("keyboardDidShow", () => {
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    });
+
+    return () => {
+      keyboardDidShow.remove();
+    };
+  }, []);
 
   const dismissKeyboard = () => {
     Keyboard.dismiss();
   };
 
+  const renderMessage = ({ item }: { item: ChatMessage }) => (
+    <MessageBubble
+      message={item.message}
+      timestamp={item.timestamp}
+      isIncoming={item.isIncoming}
+      showTimestamp={item.showTimestamp ?? true}
+    />
+  );
+
+  const renderFooter = () => {
+    // Footer appears at the bottom (after all messages)
+    // Show quick replies when enabled
+    if (showQuickReplies && quickReplies.length > 0 && onQuickReply) {
+      return (
+        <View style={styles.footerContainer}>
+          <QuickReplyButtons buttons={quickReplies} onPress={onQuickReply} />
+        </View>
+      );
+    }
+    return null;
+  };
+
+  const renderEmpty = () => {
+    // This shows when messages array is empty
+    if (showQuickReplies && quickReplies.length > 0 && onQuickReply) {
+      return (
+        <View style={styles.emptyContainer}>
+          <QuickReplyButtons buttons={quickReplies} onPress={onQuickReply} />
+        </View>
+      );
+    }
+    return <View style={styles.emptyContainer} />;
+  };
+
   return (
     <TouchableWithoutFeedback onPress={dismissKeyboard}>
-      <ScrollView
-        ref={scrollViewRef}
-        style={styles.scrollView}
-        contentContainerStyle={styles.contentContainer}
-        onScroll={onScroll}
-        scrollEventThrottle={16}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.messagesContainer}>
-          {messages.map((message) => (
-            <MessageBubble
-              key={message.id}
-              message={message.message}
-              timestamp={message.timestamp}
-              isIncoming={message.isIncoming}
-              showTimestamp={message.showTimestamp ?? true}
-            />
-          ))}
-        </View>
-      </ScrollView>
+      <View style={styles.container}>
+        <FlatList
+          ref={flatListRef}
+          data={messages}
+          renderItem={renderMessage}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.contentContainer}
+          ListFooterComponent={renderFooter}
+          ListEmptyComponent={renderEmpty}
+          onScroll={onScroll}
+          scrollEventThrottle={16}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        />
+      </View>
     </TouchableWithoutFeedback>
   );
 };
@@ -70,14 +123,19 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({
 export default ChatMessageList;
 
 const styles = StyleSheet.create({
-  scrollView: {
+  container: {
     flex: 1,
   },
   contentContainer: {
-    flexGrow: 1,
     paddingVertical: 16,
+    flexGrow: 1,
   },
-  messagesContainer: {
-    gap: 8,
+  footerContainer: {
+    paddingTop: 8,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "flex-end",
+    paddingBottom: 8,
   },
 });
