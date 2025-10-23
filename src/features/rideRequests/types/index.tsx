@@ -22,6 +22,7 @@ export interface Passenger {
 }
 
 export interface RideRequest {
+  profileImg: any;
   id: string;
   passenger: Passenger;
   pickupLocation: Location;
