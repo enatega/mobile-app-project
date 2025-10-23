@@ -18,6 +18,7 @@ export const rideRequestsService = {
 
     const state = store.getState();
     const newToken = selectToken(state);
+ 
     try {
       const latitude = 24.8607;
       const longitude = 67.0011;
@@ -31,7 +32,7 @@ export const rideRequestsService = {
         }
       );
       const data = response.data;
-
+     
       const requests: RideRequest[] = data.map((item: any) => ({
         id: item.id,
         profileImg: item?.passenger?.profile,
@@ -42,6 +43,7 @@ export const rideRequestsService = {
           rating: item.reviews?.averageRating ?? 0,
           totalRides: item.reviews?.count ?? 0,
         },
+        passengerId:item?.passenger_id,
         pickupLocation: {
           latitude: item.locations?.pickup.lat,
           longitude: item.locations?.pickup.lng,
@@ -64,6 +66,7 @@ export const rideRequestsService = {
             : "standard",
         paymentMethod: item.payment_via.toLowerCase(),
         specialInstructions: null,
+        rideTypeId: item?.ride_type_id
       }));
 
       return requests;

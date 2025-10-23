@@ -16,7 +16,7 @@ interface IReceivedMessage {
 
 // WebSocket configuration
 const IS_DEV = __DEV__;
-const WEBSOCKET_URL = IS_DEV ? 'https://api-nestjs-enatega.up.railway.app' : 'https://api-nestjs-enatega.up.railway.app'; 
+const WEBSOCKET_URL = IS_DEV ? 'https://api-nestjs-enatega.up.railway.app' : 'https://api-nestjs-enatega.up.railway.app';
 
 
 class WebSocketService {
@@ -51,11 +51,11 @@ class WebSocketService {
           console.log('✅ WebSocket connected with ID:', this.socket?.id);
           this.isConnected = true;
           this.currentUserId = userId;
-          
+
           // Add user to backend connected users
           this.socket?.emit('add-user', userId);
           console.log('📤 Emitted add-user for:', userId);
-          
+
           // Notify connection listeners
           this.connectionListeners.forEach(listener => listener(true));
           resolve(true);
@@ -105,6 +105,22 @@ class WebSocketService {
     this.currentUserId = null;
     this.connectionListeners.forEach(listener => listener(false));
   }
+  // Emit a "place-bid" event
+  placeBid(payload: {
+    riderId: string;
+    rideRequestId: string;
+    price: number;
+    // userId: string;
+  }): void {
+    if (!this.socket || !this.isConnected) {
+      console.error('❌ Cannot place bid — WebSocket not connected');
+      return;
+    }
+
+    console.log('📤 Emitting place-bid event:', payload);
+    this.socket.emit('place-bid', payload);
+  }
+
 
   // Send message via WebSocket (matching backend interface)
   sendMessage(message: IsentMessage): void {
@@ -120,7 +136,7 @@ class WebSocketService {
   // Add listener for incoming messages
   onMessage(callback: (message: IReceivedMessage) => void): () => void {
     this.messageListeners.push(callback);
-    
+
     // Return unsubscribe function
     return () => {
       const index = this.messageListeners.indexOf(callback);
@@ -133,7 +149,7 @@ class WebSocketService {
   // Add listener for connection status changes
   onConnectionChange(callback: (connected: boolean) => void): () => void {
     this.connectionListeners.push(callback);
-    
+
     // Return unsubscribe function
     return () => {
       const index = this.connectionListeners.indexOf(callback);
