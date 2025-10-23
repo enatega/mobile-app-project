@@ -16,10 +16,28 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.ninjascode.lumidrive",
+      "config": {
+        "googleMapsApiKey": "AIzaSyCcm7_Wd7uvmC9YnYLu2JHGWPt6z1MaL1E"
+      },
       "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Allow $(PRODUCT_NAME) to use location to determine the delivery address for your orders.",
+        "NSMicrophoneUsageDescription": "Allow $(PRODUCT_NAME) to access your microphone for voice calls with restaurants and delivery partners",
        "NSPhotoLibraryUsageDescription": "Allow $(PRODUCT_NAME) to access your photos to upload documents.",
-       "NSCameraUsageDescription": "Allow $(PRODUCT_NAME) to access your camera to take photos.",
-       "ITSAppUsesNonExemptEncryption": false
+        "NSCameraUsageDescription": "Allow $(PRODUCT_NAME) to access your camera to take profile pictures.",
+        "UIBackgroundModes": [
+          "audio",
+          "voip",
+          "remote-notification"
+        ],
+        "NSUserTrackingUsageDescription": "Allow this app to collect app-related data that can be used for tracking you or your device.",
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": [
+              "com.googleusercontent.apps.967541328677-nf8h4ou7rhmq9fahs87p057rggo95eah"
+            ]
+          }
+        ],
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -28,12 +46,27 @@
         "backgroundColor": "#ffffff"
       },
       "permissions": [
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.FOREGROUND_SERVICE",
+        "com.google.android.gms.permission.AD_ID",
+        "android.permission.READ_PHONE_STATE",
+        "android.permission.CALL_PHONE",
+        "android.permission.USE_SIP",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE"
+        
       ],
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyCcm7_Wd7uvmC9YnYLu2JHGWPt6z1MaL1E"
+        }
+      },
       "package": "com.ninjascode.lumidrive"
     },
     "web": {
