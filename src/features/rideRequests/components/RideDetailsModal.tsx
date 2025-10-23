@@ -1,20 +1,25 @@
 import Button from '@/src/components/ui/Button /index';
+import { Colors } from '@/src/constants';
 import { useTheme } from '@/src/context/ThemeContext';
+import { webSocketService } from '@/src/services/socket/webSocketService';
+import { selectUser } from '@/src/store/selectors/authSelectors';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  Animated,
   Dimensions,
-  Image,
   Modal,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
-import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
+import MapView from "react-native-maps";
+import { useSelector } from 'react-redux';
 import { RideRequest } from '../types';
+import RideInfoCard from './RideInfoCard';
+import RideMap from './RideMap';
 
 interface RideDetailsModalProps {
   visible: boolean;
@@ -37,6 +42,12 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
 }) => {
   const { colors } = useTheme();
   const mapRef = useRef<MapView | null>(null);
+  const [isOffering, setIsOffering] = useState(false);
+  const progress = useRef(new Animated.Value(100)).current;
+  const user = useSelector(selectUser);
+
+
+
 
   const [region, setRegion] = useState({
     latitude: 33.6844,
@@ -55,19 +66,57 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
     { label: `QAR${Math.round(defaultFare * 1.3)}`, value: Math.round(defaultFare * 1.3) },
   ];
 
-  console.log("fareOptions:", rideRequest);
 
 
-  const handleAccept = () => {
+  const handleAccept = (rideRequest: any) => {
+    console.log('i am handling accept', user?.id)
+    if (!user?.id || !rideRequest?.id || !rideRequest?.passenger?.id) {
+      console.warn("🚫 Missing required IDs for placing bid");
+      return;
+    }
+    webSocketService.placeBid({
+      riderId: "1ba44a89-16d1-4280-820c-3f66262bb843",
+      rideRequestId: rideRequest?.id,
+      price: defaultFare,
+      // userId: rideRequest?.passenger?.id,
+    });
+
+
+
+
     onAccept?.(defaultFare);
-    router.push("/tripDetail");
-    onClose();
+    // router.push("/tripDetail"); 
+    // onClose(); setIsOffering(true);
+    setIsOffering(true);
+    Animated.timing(progress, {
+      toValue: 0,
+      duration: 10000,
+      useNativeDriver: false,
+    }).start(() => {
+      setIsOffering(false);
+      onClose();
+    });
   };
 
   const handleOfferFare = (fare: number) => {
     onOfferFare?.(fare);
+    console.log('i am handling accept', user?.id)
+    if (!user?.id || !rideRequest?.id || !rideRequest?.passenger?.id) {
+      console.warn("🚫 Missing required IDs for placing bid");
+      return;
+    }
+    webSocketService.placeBid({
+      riderId: "1ba44a89-16d1-4280-820c-3f66262bb843",
+
+      rideRequestId: rideRequest?.id,
+      price: fare,
+      // userId: rideRequest?.passenger?.id,
+    });
+
+
     onClose();
   };
+
 
   useEffect(() => {
     if (!rideRequest) return;
@@ -92,8 +141,15 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
 
 
 
-  const origin = { latitude: rideRequest?.pickupLocation?.latitude, longitude: rideRequest?.pickupLocation?.longitude } as any;
-  const destination = { latitude: rideRequest?.dropoffLocation?.latitude, longitude: rideRequest?.dropoffLocation?.longitude } as any;
+  const origin = {
+    latitude: rideRequest?.pickupLocation?.latitude ?? 0,
+    longitude: rideRequest?.pickupLocation?.longitude ?? 0,
+  };
+
+  const destination = {
+    latitude: rideRequest?.dropoffLocation?.latitude ?? 0,
+    longitude: rideRequest?.dropoffLocation?.longitude ?? 0,
+  };
 
 
   if (!rideRequest) return null;
@@ -117,36 +173,11 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
           {/* Map Container */}
           <View style={[styles.mapContainer, { backgroundColor: colors.backgroundSecondary }]}>
             <View style={styles.mapPlaceholder}>
-              <MapView
-                ref={mapRef}
-                style={styles.map}
-                provider={PROVIDER_GOOGLE}
-                initialRegion={{
-                  latitude: rideRequest?.pickupLocation?.latitude,
-                  longitude: rideRequest?.pickupLocation?.longitude,
-                  latitudeDelta: 0.05,
-                  longitudeDelta: 0.05,
-                }}
-              >
-                {/* Origin marker */}
-                <Marker coordinate={origin}>
-                  <View style={styles.iconContainer}>
-                    <Ionicons name="car" size={20} color="#FFF" />
-                  </View>
-                </Marker>
-
-                {/* Destination marker */}
-                <Marker coordinate={destination}>
-                  <View style={[styles.iconContainer, { backgroundColor: "red" }]} />
-                </Marker>
-
-                {/* Route polyline */}
-                <Polyline
-                  coordinates={[origin, destination]}
-                  strokeColor="blue"
-                  strokeWidth={4}
-                />
-              </MapView>
+              <RideMap
+                origin={origin}
+                destination={destination}
+                rideRequest={rideRequest}
+              />
               {/* Route visualization */}
               {/* <View style={styles.routeVisualization}>
               <View style={[styles.carIcon, { backgroundColor: colors.primary }]}>
@@ -172,64 +203,17 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
           </View>
 
           {/* Ride Info */}
-          <View style={styles.rideInfo}>
-            <View style={styles.fareSection}>
-              <Image
-                source={{ uri: rideRequest.profileImg || 'https://avatar.iran.liara.run/public/48' }}
-                style={styles.passengerAvatar}
-              />
-              <View style={styles.fareDetails}>
-                <Text style={[styles.fareAmount, { color: colors.text }]}>
-                  QAR {defaultFare.toFixed(2)}
-                </Text>
-                <Text style={[styles.passengerName, { color: colors.textSecondary }]}>
-                  {rideRequest.passenger.name}
-                </Text>
-                <View style={styles.ratingContainer}>
-                  <Ionicons name="star" size={12} color="#FACC15" />
-                  <Text style={[styles.rating, { color: colors.textSecondary }]}>
-                    {rideRequest.passenger.rating.toFixed(1)}
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            {/* Route Details */}
-            <View style={styles.routeDetails}>
-              <View style={styles.routeItem}>
-                <View style={[styles.routeDot, styles.routeDotWithHole, { borderColor: colors.success }]} />
-                <Text style={[styles.routeAddress, { color: colors.text }]} numberOfLines={1}>
-                  {rideRequest.pickupLocation.address}
-                </Text>
-              </View>
-              <View style={styles.routeItem}>
-                <View style={[styles.routeDot, styles.routeDotWithHole, { borderColor: colors.danger }]} />
-                <Text style={[styles.routeAddress, { color: colors.text }]} numberOfLines={1}>
-                  {rideRequest.dropoffLocation.address}
-                </Text>
-              </View>
-            </View>
-
-            {/* Time and Distance Info */}
-            <View style={styles.metaInfo}>
-              <View style={styles.metaItem}>
-                <Ionicons name="time-outline" size={16} color={colors.textSecondary} />
-                <Text style={[styles.metaText, { color: colors.textSecondary }]}>Just now</Text>
-              </View>
-              <View style={styles.metaItem}>
-                <Ionicons name="bicycle-outline" size={16} color={colors.textSecondary} />
-                <Text style={[styles.metaText, { color: colors.textSecondary }]}>
-                  {rideRequest.distance.toFixed(1)} Km
-                </Text>
-              </View>
-            </View>
-          </View>
+          <RideInfoCard
+            rideRequest={rideRequest}
+            defaultFare={defaultFare}
+            colors={colors}
+          />
 
           {/* Action Buttons */}
           <View style={styles.actionSection}>
             <Button
               title={`Accept for QAR${defaultFare.toFixed(0)}`}
-              onPress={handleAccept}
+              onPress={() => handleAccept(rideRequest)}
               variant="primary"
               fullWidth
               style={[styles.acceptButton, { backgroundColor: colors.primary }]}
@@ -251,8 +235,10 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
                     }
                   ]}
                   onPress={() => {
+                    console.log('first otp', option)
                     setSelectedFare(option.value);
-                    handleOfferFare(option.value);
+                    handleOfferFare(option.value, rideRequest);
+
                   }}
                 >
                   <Text style={[
@@ -277,6 +263,44 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
               </TouchableOpacity>
             </View>
           </View>
+
+
+          {isOffering && (
+            <View style={styles.offerOverlay}>
+              {/* Centered text */}
+              <View style={styles.overlayTextContainer}>
+                <Text style={styles.offerTitle}>Offering your fare</Text>
+                <Text style={styles.offerFare}>QAR {selectedFare || defaultFare}</Text>
+                <Text style={styles.offerSubtext}>Wait for the reply</Text>
+              </View>
+
+              {/* Bottom card */}
+              <Animated.View style={styles.bottomCard}>
+                <View >
+                  <RideInfoCard
+                    rideRequest={rideRequest}
+                    defaultFare={defaultFare}
+                    colors={colors}
+                  />
+                </View>
+
+                <View style={styles.progressBarBackground}>
+                  <Animated.View
+                    style={[
+                      styles.progressBarFill,
+                      {
+                        width: progress.interpolate({
+                          inputRange: [0, 100],
+                          outputRange: ['0%', '100%'],
+                        }),
+                      },
+                    ]}
+                  />
+                </View>
+              </Animated.View>
+            </View>
+          )}
+
 
           {/* Close Button */}
           <TouchableOpacity
@@ -316,7 +340,7 @@ const styles = StyleSheet.create({
   },
   map: {
     flex: 1,
-    width: screenWidth, // force full device width
+    width: screenWidth,
   },
   mapPlaceholder: {
     flex: 1,
@@ -498,10 +522,6 @@ const styles = StyleSheet.create({
   },
 
 
-  map: {
-    flex: 1,
-    width: '100%',
-  },
   iconContainer: {
     backgroundColor: "#007bff",
     borderRadius: 20,
@@ -522,6 +542,65 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 8,
   },
+
+
+
+  offerOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 999,
+  },
+
+  overlayTextContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  offerTitle: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 6,
+  },
+
+  offerFare: {
+    color: '#FFFFFF',
+    fontSize: 32,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+
+  offerSubtext: {
+    color: '#CCCCCC',
+    fontSize: 16,
+  },
+
+  bottomCard: {
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+    backgroundColor: '#FFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingVertical: 20,
+  },
+
+  progressBarBackground: {
+    width: '100%',
+    height: 10,
+    backgroundColor: '#E0E0E0',
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: Colors.common.progressFill,
+    borderRadius: 10,
+  },
+
 });
 
 export default RideDetailsModal;
