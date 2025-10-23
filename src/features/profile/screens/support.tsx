@@ -1,15 +1,15 @@
 import ChatHeader from "@/src/components/common/Chat /ChatHeader";
 import ChatInput from "@/src/components/common/Chat /ChatInput";
 import ChatMessageList, { ChatMessage } from "@/src/components/common/Chat /ChatMessageList";
-import QuickReplyButtons from "@/src/components/common/Chat /QuickReplyButton";
 import GradientBackground from "@/src/components/common/GradientBackground";
 import Button from "@/src/components/ui/Button ";
 import CustomText from "@/src/components/ui/Text";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Keyboard,
   KeyboardAvoidingView,
   Linking,
   Platform,
@@ -21,6 +21,7 @@ const support = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(false);
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -41,6 +42,22 @@ const support = () => {
     { id: "4", text: "Where are you?" },
     { id: "5", text: "How long will you take?" },
   ];
+
+  useEffect(() => {
+    const keyboardWillShow = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
+      () => setKeyboardVisible(true)
+    );
+    const keyboardWillHide = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
+      () => setKeyboardVisible(false)
+    );
+
+    return () => {
+      keyboardWillShow.remove();
+      keyboardWillHide.remove();
+    };
+  }, []);
 
   const handleBackPress = () => {
     router.back();
@@ -102,23 +119,32 @@ const support = () => {
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
         <ChatHeader
-          name="John Smith"
+          name="Support"
           showBackButton={true}
-          showPhoneButton={true}
+          showPhoneButton={false}
           onBackPress={handleBackPress}
           onPhonePress={handlePhonePress}
         />
 
-        <ChatMessageList messages={messages} />
+        <ChatMessageList
+          messages={messages}
+          showQuickReplies={showQuickReplies}
+          quickReplies={quickReplies}
+          onQuickReply={handleQuickReply}
+        />
 
-        {showQuickReplies && (
-          <QuickReplyButtons
-            buttons={quickReplies}
-            onPress={handleQuickReply}
-          />
-        )}
-
-        <View style={styles.inputWrapper}>
+        <View
+          style={[
+            styles.inputWrapper,
+            {
+              paddingBottom: isKeyboardVisible
+                ? 0 // No padding when keyboard is visible
+                : Platform.OS === "ios"
+                ? 85 // iOS tab bar height
+                : 60, // Android tab bar height
+            },
+          ]}
+        >
           <ChatInput
             onSend={handleSendMessage}
             onCameraPress={handleCameraPress}
@@ -148,6 +174,6 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   inputWrapper: {
-    paddingBottom: Platform.OS === "ios" ? 85 : 60,
+    // Dynamic paddingBottom based on keyboard visibility
   },
 });
