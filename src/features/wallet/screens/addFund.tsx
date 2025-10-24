@@ -1,5 +1,7 @@
+// src/features/wallet/screens/addFund.tsx
 import { GradientBackground } from "@/src/components/common";
 import BackButton from "@/src/components/common/BackButton";
+import { router } from "expo-router";
 import React, { useState } from "react";
 import {
     Keyboard,
@@ -20,6 +22,7 @@ import AmountOptionsList, {
 } from "../components/addFund/AmountOptionsList";
 import PaymentMethodModal from "../components/addFund/PaymentMethodModal";
 import SelectedPaymentCard, { PaymentCard } from "../components/addFund/SelectedPaymentCard";
+import { useAddFunds } from "../hooks/mutations/useAddFunds";
 
 const AMOUNT_OPTIONS: AmountOption[] = [
   { id: "1", value: 10.0, label: "QAR 10.00" },
@@ -41,6 +44,9 @@ const AddFundMain = () => {
   const [cardNumber, setCardNumber] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
   const [securityCode, setSecurityCode] = useState("");
+
+  // Use the add funds mutation hook
+  const { mutate: addFunds, isPending: isAddingFunds } = useAddFunds();
 
   const handleAmountSelect = (value: number) => {
     setAmount(value.toFixed(2));
@@ -65,9 +71,23 @@ const AddFundMain = () => {
   };
 
   const handleAddFunds = () => {
-    console.log("Adding funds:", amount);
-    // Handle add funds logic here
+    const numericAmount = parseFloat(amount);
+    
+    if (!amount || numericAmount < 10) {
+      return;
+    }
+
+    // Call the API to add funds
+    addFunds(numericAmount, {
+      onSuccess: () => {
+        // Reset amount and navigate back
+        setAmount("");
+        router.back();
+      },
+    });
   };
+
+  const isButtonDisabled = !amount || parseFloat(amount) < 10;
 
   return (
     <GradientBackground>
@@ -127,7 +147,8 @@ const AddFundMain = () => {
                 {/* Add Funds Button */}
                 <AddFundButton
                   onPress={handleAddFunds}
-                  disabled={!amount || parseFloat(amount) < 10}
+                  disabled={isButtonDisabled}
+                  isLoading={isAddingFunds}
                 />
               </View>
             </ScrollView>
@@ -190,15 +211,14 @@ const styles = StyleSheet.create({
       paddingHorizontal: 20,
     },
     content: {
-      // Remove flex: 1 from here
       paddingHorizontal: 20,
       paddingTop: 32,
     },
     bottomSection: {
       paddingHorizontal: 20,
-      paddingTop: 20,
-      paddingBottom: 32,
-      marginTop: 'auto', // This pushes it to the bottom
+      paddingTop: 5,
+      paddingBottom: 60,
+      marginTop: 'auto',
     },
   });
 

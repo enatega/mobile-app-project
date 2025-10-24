@@ -41,6 +41,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     gap: 10,
+    justifyContent: "flex-end", // Align to right side
   },
   button: {
     paddingVertical: 12,

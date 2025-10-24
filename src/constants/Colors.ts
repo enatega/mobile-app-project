@@ -47,6 +47,7 @@ export const lightColors = {
   colorTextError: '#DC2626',
   colorIconError: '#DC2626',
   white: '#FFFFFF',
+  progressFill:"#1691BF",
   };
 
 // --- Dark Theme Palette ---
@@ -119,6 +120,7 @@ export const darkColors = {
     accepted: '#1691BF',
     completed: '#10B981',
     cancelled: '#EF4444',
+    progressFill:"#1691BF",
   };
 // --- Export ---
 const Colors = {
