@@ -1,23 +1,29 @@
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity } from "react-native";
 
 interface AddFundButtonProps {
   onPress: () => void;
   disabled?: boolean;
+  isLoading?: boolean;
 }
 
 const AddFundButton: React.FC<AddFundButtonProps> = ({
   onPress,
   disabled = false,
+  isLoading = false,
 }) => {
   return (
     <TouchableOpacity
       style={[styles.button, disabled && styles.buttonDisabled]}
       onPress={onPress}
       activeOpacity={0.8}
-      disabled={disabled}
+      disabled={disabled || isLoading}
     >
-      <Text style={styles.buttonText}>Add funds</Text>
+      {isLoading ? (
+        <ActivityIndicator size="small" color="#fff" />
+      ) : (
+        <Text style={styles.buttonText}>Add funds</Text>
+      )}
     </TouchableOpacity>
   );
 };
@@ -28,6 +34,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     paddingVertical: 16,
     alignItems: "center",
+    justifyContent: "center",
   },
   buttonDisabled: {
     backgroundColor: "#D1D5DB",

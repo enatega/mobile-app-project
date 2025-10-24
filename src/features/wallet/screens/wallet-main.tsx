@@ -1,72 +1,63 @@
+// src/features/wallet/screens/wallet-main.tsx
 import { GradientBackground } from "@/src/components/common";
+import { TransactionFilterType } from "@/src/services/wallet.service";
 import { router } from "expo-router";
 import React, { useState } from "react";
-import { SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+    ActivityIndicator,
+    RefreshControl,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
+} from "react-native";
 import Title from "../../auth/components/common/TitleHeader";
-import TransactionFilterTabs, {
-    FilterType,
-} from "../components/wallet-main/TransactionFilterTabs";
+import TransactionFilterTabs from "../components/wallet-main/TransactionFilterTabs";
 import TransactionsList from "../components/wallet-main/TransactionList";
 import WalletBalanceCard from "../components/wallet-main/WalletBalanceCard";
+import { useTransactionHistory } from "../hooks/queries/useTransactionHistory";
+import { useWalletBalance } from "../hooks/queries/useWalletBalance";
 
 
-const DUMMY_TRANSACTIONS = [
-  {
-    id: "1",
-    type: "top-up",
-    title: "Wallet Top up",
-    date: "Oct 5. 4:12 PM",
-    amount: 120.0,
-    isPositive: true,
-    icon: "💳",
-  },
-  {
-    id: "2",
-    type: "ride",
-    title: "Ride",
-    date: "Oct 5. 4:12 PM",
-    amount: 48.75,
-    isPositive: false,
-    icon: "🚗",
-  },
-  {
-    id: "3",
-    type: "women-ride",
-    title: "Women ride",
-    date: "Oct 1. 1:42 AM",
-    amount: 62.4,
-    isPositive: false,
-    icon: "🚙",
-  },
-  {
-    id: "4",
-    type: "ride",
-    title: "Ride",
-    date: "Sep 24. 8:19 PM",
-    amount: 53.2,
-    isPositive: false,
-    icon: "🚗",
-  },
-  {
-    id: "5",
-    type: "top-up",
-    title: "Wallet Top up",
-    date: "Oct 5. 4:12 PM",
-    amount: 120.0,
-    isPositive: true,
-    icon: "💳",
-  },
-];
+// Map backend filter types to frontend filter types
+const mapFilterToBackend = (filter: 'all' | 'money-in' | 'money-out'): TransactionFilterType => {
+  switch (filter) {
+    case 'money-in':
+      return 'deposit';
+    case 'money-out':
+      return 'withdrawal';
+    default:
+      return 'all';
+  }
+};
 
 const WalletMain = () => {
-  const [activeFilter, setActiveFilter] = useState<FilterType>("all");
+  const [activeFilter, setActiveFilter] = useState<'all' | 'money-in' | 'money-out'>('all');
 
-  const filteredTransactions = DUMMY_TRANSACTIONS.filter((transaction) => {
-    if (activeFilter === "all") return true;
-    if (activeFilter === "money-in") return transaction.isPositive;
-    if (activeFilter === "money-out") return !transaction.isPositive;
-    return true;
-  });
+  // Fetch wallet balance
+  const { 
+    data: balanceData, 
+    isLoading: isLoadingBalance,
+    refetch: refetchBalance,
+    isRefetching: isRefetchingBalance,
+  } = useWalletBalance();
+
+  // Fetch transaction history based on active filter
+  const backendFilter = mapFilterToBackend(activeFilter);
+  const { 
+    data: historyData, 
+    isLoading: isLoadingHistory,
+    refetch: refetchHistory,
+    isRefetching: isRefetchingHistory,
+  } = useTransactionHistory(backendFilter, 0, 20);
+
+  // Handle pull-to-refresh
+  const handleRefresh = async () => {
+    await Promise.all([refetchBalance(), refetchHistory()]);
+  };
+
+  const isRefreshing = isRefetchingBalance || isRefetchingHistory;
 
   const handleAddFunds = () => {
     router.push("/(tabs)/(wallet)/addFund");
@@ -76,6 +67,48 @@ const WalletMain = () => {
     console.log("Transaction pressed:", transaction);
     // Navigate to transaction detail screen if needed
   };
+
+  // Format transactions for the UI
+  const formattedTransactions = historyData?.transactions.map((tx) => {
+    // Determine icon and isPositive based on transaction type
+    let icon = "💳";
+    let isPositive = false;
+    let title: string = tx.type; // Explicitly type as string
+
+    if (tx.type === "Deposit") {
+      icon = "💳";
+      isPositive = true;
+      title = "Wallet Top up";
+    } else if (tx.type === "Withdrawal") {
+      icon = "💸";
+      isPositive = false;
+      title = "Withdrawal";
+    } else if (tx.type === "Credit") {
+      icon = "🚗";
+      isPositive = false;
+      title = "Ride Payment";
+    }
+
+    // Format date
+    const date = new Date(tx.createdAt);
+    const formattedDate = date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
+
+    return {
+      id: tx.createdAt, // Use createdAt as unique ID
+      type: tx.type.toLowerCase(),
+      title,
+      date: formattedDate,
+      amount: Number(tx.amount),
+      isPositive,
+      icon,
+    };
+  }) || [];
 
   return (
     <GradientBackground>
@@ -100,9 +133,25 @@ const WalletMain = () => {
         <ScrollView
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              tintColor="#3853A4"
+            />
+          }
         >
           {/* Balance Card */}
-          <WalletBalanceCard balance={52.49} onAddFunds={handleAddFunds} />
+          {isLoadingBalance ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#3853A4" />
+            </View>
+          ) : (
+            <WalletBalanceCard 
+              balance={Number(balanceData?.totalBalanceInWallet) || 0} 
+              onAddFunds={handleAddFunds} 
+            />
+          )}
 
           {/* Transactions Section */}
           <View style={styles.transactionsSection}>
@@ -115,10 +164,20 @@ const WalletMain = () => {
             />
 
             {/* Transaction List */}
-            <TransactionsList
-              transactions={filteredTransactions}
-              onTransactionPress={handleTransactionPress}
-            />
+            {isLoadingHistory ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#3853A4" />
+              </View>
+            ) : formattedTransactions.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>No transactions found</Text>
+              </View>
+            ) : (
+              <TransactionsList
+                transactions={formattedTransactions}
+                onTransactionPress={handleTransactionPress}
+              />
+            )}
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -156,6 +215,20 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#000",
     marginBottom: 20,
+  },
+  loadingContainer: {
+    paddingVertical: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  emptyContainer: {
+    paddingVertical: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  emptyText: {
+    fontSize: 16,
+    color: "#6B7280",
   },
 });
 

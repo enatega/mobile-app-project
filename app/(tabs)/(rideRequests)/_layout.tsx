@@ -14,6 +14,8 @@ export default function RideRequestsLayout() {
           // presentation: "modal", 
           headerShown: false,
         }}/>
+      <Stack.Screen name = "callScreen" />
+      <Stack.Screen name = "chatScreen" />
     </Stack>
   );
 }
