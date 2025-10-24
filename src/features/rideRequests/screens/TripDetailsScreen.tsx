@@ -15,6 +15,20 @@ export const TripDetailsScreen: React.FC = () => {
     const [rideStatus, setRideStatus] = useState('in_progress');
     const [modalRatingVisible, setModalRatingVisible] = useState(false);
 
+    const handleChatButtonPress = () => {
+       router.push("/(tabs)/(rideRequests)/chatScreen")
+    }
+
+    const handleCallButtonPress = () => {
+        router.push({
+            pathname: "/(tabs)/(rideRequests)/callScreen",
+            params: {
+                profileImage: "https://avatar.iran.liara.run/public/48",
+                driverName: "John Doe"
+            }
+        });
+    };
+
     return (
         <View style={{ flex: 1, }}>
 
@@ -81,10 +95,10 @@ export const TripDetailsScreen: React.FC = () => {
 
                     {/* Right Section */}
                     <View style={styles.rightSection}>
-                        <TouchableOpacity style={styles.iconButton}>
+                        <TouchableOpacity style={styles.iconButton} onPress= {handleCallButtonPress}>
                             <Ionicons name="call-outline" size={18} color="#27272A" />
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.iconButton}>
+                        <TouchableOpacity style={styles.iconButton} onPress = {handleChatButtonPress}>
                             <MaterialCommunityIcons name="message-reply-text-outline" size={18} color="#27272A" />
                         </TouchableOpacity>
                     </View>

@@ -3,35 +3,60 @@ import GradientBackground from "@/src/components/common/GradientBackground";
 import Button from "@/src/components/ui/Button ";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import { Image, SafeAreaView, StyleSheet, Text, View } from "react-native";
 import Title from "../components/common/TitleHeader";
 import { useSendLoginOtp } from "../hooks";
 
 const VerificationMethodLoginScreen: React.FC = () => {
-
   const { phoneNumber: phone } = useLocalSearchParams<{ phoneNumber: string }>();
 
   const sendOtpMutation = useSendLoginOtp();
+  
+  // Track which button is loading
+  const [activeMethod, setActiveMethod] = useState<'sms' | 'call' | null>(null);
 
   const handleSendSMS = () => {
-    console.log('📤 Sending OTP via SMS to:', phone);
+    if (activeMethod) return; // Prevent double clicks
     
-    sendOtpMutation.mutate({
-      phone: phone,
-      otp_type: 'sms'
-    });
+    console.log('📤 Sending OTP via SMS to:', phone);
+    setActiveMethod('sms');
+    
+    sendOtpMutation.mutate(
+      {
+        phone: phone,
+        otp_type: 'sms'
+      },
+      {
+        onSettled: () => {
+          setActiveMethod(null);
+        }
+      }
+    );
   };
 
   const handleSendCall = () => {
-    console.log('📤 Sending OTP via Call to:', phone);
+    if (activeMethod) return; // Prevent double clicks
     
-    sendOtpMutation.mutate({
-      phone: phone,
-      otp_type: 'call'
-    });
+    console.log('📤 Sending OTP via Call to:', phone);
+    setActiveMethod('call');
+    
+    sendOtpMutation.mutate(
+      {
+        phone: phone,
+        otp_type: 'call'
+      },
+      {
+        onSettled: () => {
+          setActiveMethod(null);
+        }
+      }
+    );
   };
-  const isLoading = sendOtpMutation.isPending;
+
+  const isSmsLoading = activeMethod === 'sms';
+  const isCallLoading = activeMethod === 'call';
+  const isAnyLoading = activeMethod !== null;
 
   return (
     <GradientBackground>
@@ -69,12 +94,12 @@ const VerificationMethodLoginScreen: React.FC = () => {
         <View style={styles.content}>
           {/* SMS Button */}
           <Button
-            title={isLoading ? "Sending SMS..." : "Send code by SMS"}
+            title={isSmsLoading ? "Sending SMS..." : "Send code by SMS"}
             onPress={handleSendSMS}
             variant="outline"
             size="large"
-            disabled={isLoading}
-            loading={isLoading}
+            disabled={isAnyLoading}
+            loading={isSmsLoading}
             fullWidth
             icon={
               <Ionicons
@@ -97,12 +122,12 @@ const VerificationMethodLoginScreen: React.FC = () => {
 
           {/* Call Button */}
           <Button
-            title={isLoading ? "Calling..." : "Send code by Call"}
+            title={isCallLoading ? "Calling..." : "Send code by Call"}
             onPress={handleSendCall}
             variant="primary"
             size="large"
-            disabled={isLoading}
-            loading={isLoading}
+            disabled={isAnyLoading}
+            loading={isCallLoading}
             fullWidth
             icon={
               <Ionicons
