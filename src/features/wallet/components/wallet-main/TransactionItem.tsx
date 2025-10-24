@@ -1,3 +1,4 @@
+// src/features/wallet/components/wallet-main/TransactionItem.tsx
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -21,6 +22,10 @@ const TransactionItem: React.FC<TransactionItemProps> = ({
   transaction,
   onPress,
 }) => {
+  // Safely convert amount to number and format
+  const amount = Number(transaction.amount) || 0;
+  const formattedAmount = amount.toFixed(2);
+
   return (
     <TouchableOpacity
       style={styles.container}
@@ -43,7 +48,7 @@ const TransactionItem: React.FC<TransactionItemProps> = ({
             transaction.isPositive && styles.amountPositive,
           ]}
         >
-          {transaction.isPositive ? "+" : "-"} QAR {transaction.amount.toFixed(2)}
+          {transaction.isPositive ? "+" : "-"} QAR {formattedAmount}
         </Text>
         <Ionicons name="chevron-forward" size={20} color="#999" />
       </View>

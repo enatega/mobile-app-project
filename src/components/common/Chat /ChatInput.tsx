@@ -1,7 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
-  Keyboard,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
@@ -27,7 +26,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
     if (message.trim()) {
       onSend(message.trim());
       setMessage("");
-      Keyboard.dismiss();
+      // Removed Keyboard.dismiss() - keyboard stays open
     }
   };
 
