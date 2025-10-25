@@ -4,7 +4,6 @@ import { useTheme } from '@/src/context/ThemeContext';
 import { webSocketService } from '@/src/services/socket/webSocketService';
 import { selectUser } from '@/src/store/selectors/authSelectors';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
@@ -86,17 +85,19 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
 
 
     onAccept?.(defaultFare);
-    router.push("/tripDetail"); 
-    onClose(); setIsOffering(true);
-    // setIsOffering(true);
-    // Animated.timing(progress, {
-    //   toValue: 0,
-    //   duration: 10000,
-    //   useNativeDriver: false,
-    // }).start(() => {
-    //   setIsOffering(false);
-    //   onClose();
-    // });
+
+    // router.push("/tripDetail"); 
+    // onClose(); setIsOffering(true);
+    setIsOffering(true);
+    Animated.timing(progress, {
+      toValue: 0,
+      duration: 10000,
+      useNativeDriver: false,
+    }).start(() => {
+      setIsOffering(false);
+      onClose();
+    });
+
   };
 
   const handleOfferFare = (fare: number) => {
