@@ -9,9 +9,7 @@ import BottomFadeGradient from '../components/terms&services/bottomFadeGradient'
 import ScrollControl from '../components/terms&services/scrollControl';
 import TermsContent from '../components/terms&services/termSection';
 
-// ============================================
-// NEW IMPORTS - Redux Integration
-// ============================================
+
 import { useAppDispatch } from '@/src/store/hooks';
 import { setTermsAccepted } from '@/src/store/slices/auth.slice';
 
@@ -23,9 +21,7 @@ export default function TermsAndServiceScreen() {
 
   const router = useRouter();
   
-  // ============================================
-  // USE REDUX DISPATCH
-  // ============================================
+
   const dispatch = useAppDispatch();
 
   const { height: screenHeight } = Dimensions.get('window');
@@ -48,35 +44,13 @@ export default function TermsAndServiceScreen() {
     scrollViewRef.current?.scrollTo({ y: 0, animated: true });
   };
 
-  // ============================================
-  // HANDLE ACCEPT - FINAL GATE!
-  // ============================================
-  const handleAcceptAndContinue = () => {
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('🎉 USER ACCEPTED TERMS & CONDITIONS');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-    // ============================================
-    // MARK GATE 3 AS PASSED!
-    // ============================================
+  const handleAcceptAndContinue = () => {
+
     dispatch(setTermsAccepted(true));
     
-    console.log('✅ GATE 3 PASSED: Terms Accepted');
-    console.log('🎊 ALL THREE GATES NOW PASSED!');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('Gate 1 - Authenticated: ✅');
-    console.log('Gate 2 - Onboarded: ✅');
-    console.log('Gate 3 - Terms Accepted: ✅');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('🚀 Navigating to Main App...');
-    console.log('➡️  Route: /(tabs)/(rideRequests)/rideRequest');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
-    // ============================================
-    // NAVIGATE TO MAIN APP
-    // ============================================
-    // Navigation will be handled by root index.tsx
-    // which checks all three gates and redirects accordingly
+
     router.replace("/(tabs)/(rideRequests)");
   };
 
@@ -89,7 +63,7 @@ export default function TermsAndServiceScreen() {
         lastUpdated="Last updated on 5/12/2022"
       />
 
-      {/* Spacer to push content below header */}
+
       <View style={{ height: HEADER_HEIGHT }} />
 
       <Animated.ScrollView

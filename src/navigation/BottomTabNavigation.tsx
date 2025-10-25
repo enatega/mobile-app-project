@@ -20,7 +20,7 @@ const TAB_CONFIG = [
   },
   {
     name: '(wallet)',
-    title: 'Wallet',
+    title: 'wallet',
     icon: 'wallet-sharp',
   },
   {

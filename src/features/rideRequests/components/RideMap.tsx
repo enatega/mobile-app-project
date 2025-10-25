@@ -34,6 +34,7 @@ const RideMap: React.FC<RideMapProps> = ({ origin, destination, rideRequest }) =
         provider={PROVIDER_GOOGLE}
         style={styles.map}
         initialRegion={{
+
           latitude: rideRequest?.pickupLocation?.latitude ?? origin.latitude,
           longitude: rideRequest?.pickupLocation?.longitude ?? origin.longitude,
           latitudeDelta: 0.05,

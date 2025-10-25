@@ -85,6 +85,7 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
 
 
     onAccept?.(defaultFare);
+
     // router.push("/tripDetail"); 
     // onClose(); setIsOffering(true);
     setIsOffering(true);
@@ -96,6 +97,7 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
       setIsOffering(false);
       onClose();
     });
+
   };
 
   const handleOfferFare = (fare: number) => {

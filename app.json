@@ -22,7 +22,7 @@
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Allow $(PRODUCT_NAME) to use location to determine the delivery address for your orders.",
         "NSMicrophoneUsageDescription": "Allow $(PRODUCT_NAME) to access your microphone for voice calls with restaurants and delivery partners",
-       "NSPhotoLibraryUsageDescription": "Allow $(PRODUCT_NAME) to access your photos to upload documents.",
+        "NSPhotoLibraryUsageDescription": "Allow $(PRODUCT_NAME) to access your photos to upload documents.",
         "NSCameraUsageDescription": "Allow $(PRODUCT_NAME) to access your camera to take profile pictures.",
         "UIBackgroundModes": [
           "audio",
@@ -58,7 +58,6 @@
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE"
-        
       ],
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
@@ -74,7 +73,10 @@
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
-    "plugins": ["expo-router", "expo-web-browser"],
+    "plugins": [
+      "expo-router",
+      "expo-web-browser"
+    ],
     "experiments": {
       "typedRoutes": true
     },

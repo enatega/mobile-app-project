@@ -1,5 +1,5 @@
-// src/app/(tabs)/(rideRequests)/support.tsx
-// FIXED VERSION - Messages now persist when app is closed and reopened
+// src/app/(tabs)/(rideRequests)/driverChat.tsx
+// FIXED: UI handling matches support.tsx exactly
 
 import ChatHeader from "@/src/components/common/Chat /ChatHeader";
 import ChatInput from "@/src/components/common/Chat /ChatInput";
@@ -7,75 +7,71 @@ import ChatMessageList, { ChatMessage } from "@/src/components/common/Chat /Chat
 import GradientBackground from "@/src/components/common/GradientBackground";
 import Button from "@/src/components/ui/Button ";
 import CustomText from "@/src/components/ui/Text";
-import { useRouter } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Keyboard,
-  KeyboardAvoidingView,
-  Linking,
-  Platform,
-  StyleSheet,
-  View,
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    Keyboard,
+    KeyboardAvoidingView,
+    Platform,
+    StyleSheet,
+    View,
 } from "react-native";
 
 import { useAppSelector } from "@/src/store/hooks";
 import { selectUser } from "@/src/store/selectors/authSelectors";
 
-import { useSendSupportMessage } from "../hooks/mutations/useSendSupportMessage";
-import { useGetSupportMessages } from "../hooks/queries/useGetSupportMessages";
-import { useInitializeSupportChat } from "../hooks/queries/useInitializeSupportChat";
+import { useSendMessage } from "../../hooks/mutations/useSendMessage";
+import { useGetMessages } from "../../hooks/queries/useGetMessages";
+import { useInitializeChat } from "../../hooks/queries/useInitializeChatHook";
 
 import {
-  convertWebSocketToSupportMessage,
-  IReceivedMessage,
-  SUPPORT_TEAM_ID,
-  supportChatApi
-} from "@/src/services/supportChatApi";
+    chatApi,
+    convertWebSocketMessage,
+    IReceivedMessage,
+} from "@/src/services/chatApi";
 
-const support = () => {
-  const router = useRouter();
-  
-  // Get driver ID from Redux store
+const DriverChatScreen = () => {
+  const params = useLocalSearchParams();
+
+
   const currentUser = useAppSelector(selectUser);
   const driverId = currentUser?.id;
 
-  // ============================================
-  // STATE
-  // ============================================
+  const customerId = "2bf0c0c2-f44f-445b-99ac-36c72dce52fa";
+  const customerName = params.customerName as string || "Customer";
+  const profileImage = params.profileImage as string || "https://avatar.iran.liara.run/public/48";
+
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const [realtimeMessages, setRealtimeMessages] = useState<any[]>([]);
   const [chatBoxId, setChatBoxId] = useState<string | null>(null);
   const flatListRef = useRef<FlatList>(null);
 
-  // ============================================
-  // TanStack Query Hooks
-  // ============================================
-  
-  // 1️⃣ Initialize chat - finds existing chat or creates temp
+  // Quick reply buttons
+  const quickReplies = [
+    { id: "1", text: "I'm on my way" },
+    { id: "2", text: "I'll be there in 5 minutes" },
+    { id: "3", text: "I have arrived" },
+    { id: "4", text: "Please come to the car" },
+    { id: "5", text: "Running a bit late, sorry" },
+  ];
+
+
   const {
     data: chatData,
     isLoading: isInitializing,
     error: initError,
     isSuccess: isChatInitialized,
-  } = useInitializeSupportChat(driverId, { 
-    enabled: !!driverId  // Always fetch when driverId exists
-  });
+  } = useInitializeChat(driverId, customerId, !!driverId && !!customerId);
 
-  // 2️⃣ Fetch message history - ONLY runs when we have a REAL chatBoxId (not temp)
-  // This is the key fix - it fetches persisted messages from backend
   const {
     data: historyMessages = [],
     isLoading: isLoadingMessages,
     refetch: refetchMessages,
-  } = useGetSupportMessages(
+  } = useGetMessages(
     chatBoxId,
-    // Enable when:
-    // - Chat is initialized
-    // - We have a chatBoxId
-    // - ChatBoxId is NOT temp (real chats only)
     isChatInitialized && !!chatBoxId && !chatBoxId?.startsWith('temp-')
   );
 
@@ -83,15 +79,7 @@ const support = () => {
   const {
     mutate: sendMessage,
     isPending: isSendingMessage,
-  } = useSendSupportMessage();
-
-  const quickReplies = [
-    { id: "1", text: "My driver hasn't arrived yet" },
-    { id: "2", text: "I need help with my delivery" },
-    { id: "3", text: "I want a refund" },
-    { id: "4", text: "I was overcharged" },
-    { id: "5", text: "I can't contact my driver" },
-  ];
+  } = useSendMessage();
 
   // ============================================
   // Keyboard listeners
@@ -112,22 +100,18 @@ const support = () => {
     };
   }, []);
 
-  // ============================================
-  // CRITICAL FIX: Set chatBoxId and refetch messages when chat initializes
-  // ============================================
   useEffect(() => {
     if (isChatInitialized && chatData?.chatBox) {
       const newChatBoxId = chatData.chatBox.id;
-      
-      console.log('✅ Support chat initialized');
+
+      console.log('✅ Chat initialized');
       console.log('📦 Chat Box ID:', newChatBoxId);
       console.log('📦 Initial messages from init:', chatData.messages?.length || 0);
       console.log('🔍 Is temp chat?', newChatBoxId.startsWith('temp-'));
-      
+
       setChatBoxId(newChatBoxId);
 
-      // 🔥 KEY FIX: If this is a REAL chat (not temp), refetch messages
-      // This ensures we get the latest messages from backend when app reopens
+      // If this is a REAL chat (not temp), refetch messages
       if (!newChatBoxId.startsWith('temp-') && refetchMessages) {
         console.log('🔄 Refetching messages for real chat...');
         setTimeout(() => {
@@ -138,22 +122,22 @@ const support = () => {
   }, [isChatInitialized, chatData]);
 
   // ============================================
-  // WebSocket connection - Connect once when initialized
+  // WebSocket connection
   // ============================================
   useEffect(() => {
-    if (!driverId || !chatBoxId) {
+    if (!driverId || !customerId || !chatBoxId) {
       return;
     }
 
-    console.log('🔌 Setting up WebSocket connection for driver:', driverId);
+    console.log('🔌 Setting up WebSocket for driver:', driverId, 'customer:', customerId);
 
     const connectWebSocket = async () => {
       try {
-        const isConnected = supportChatApi.isSocketConnected();
-        
+        const isConnected = chatApi.isSocketConnected();
+
         if (!isConnected) {
-          await supportChatApi.connectToSocket(driverId);
-          console.log('✅ WebSocket connected for support chat');
+          await chatApi.connectToSocket(driverId);
+          console.log('✅ WebSocket connected');
         } else {
           console.log('✅ WebSocket already connected');
         }
@@ -164,29 +148,32 @@ const support = () => {
 
     connectWebSocket();
 
-    const unsubscribeMessages = supportChatApi.onMessageReceived((wsMessage: IReceivedMessage) => {
+    const unsubscribeMessages = chatApi.onMessageReceived((wsMessage: IReceivedMessage) => {
       console.log('📥 Received WebSocket message:', wsMessage);
 
+      // ONLY process messages for THIS specific conversation
       const isRelevantMessage =
-        (wsMessage.sender === SUPPORT_TEAM_ID && wsMessage.receiver === driverId) ||
-        (wsMessage.sender === driverId && wsMessage.receiver === SUPPORT_TEAM_ID);
+        (wsMessage.sender === customerId && wsMessage.receiver === driverId) ||
+        (wsMessage.sender === driverId && wsMessage.receiver === customerId);
 
       if (isRelevantMessage) {
-        console.log('✅ Message is for this support conversation');
-        const chatMessage = convertWebSocketToSupportMessage(wsMessage, chatBoxId || undefined);
+        console.log('✅ Message is for this conversation');
+        const chatMessage = convertWebSocketMessage(wsMessage, chatBoxId || undefined);
 
         setRealtimeMessages((prev) => {
           if (prev.some((msg) => msg.id === chatMessage.id)) {
             console.log('⚠️ Duplicate message, skipping');
             return prev;
           }
-          
+
           return [...prev, chatMessage];
         });
 
         setTimeout(() => {
           flatListRef.current?.scrollToEnd({ animated: true });
         }, 100);
+      } else {
+        console.log('❌ Message not for this conversation');
       }
     });
 
@@ -194,18 +181,11 @@ const support = () => {
       console.log('🧹 Cleaning up WebSocket listeners');
       unsubscribeMessages();
     };
-  }, [driverId, chatBoxId]);
+  }, [driverId, customerId, chatBoxId]);
 
-  // ============================================
-  // Combine all messages from ALL sources
-  // This is where the magic happens - we merge:
-  // 1. Initial messages from initialization
-  // 2. Fetched messages from backend (historyMessages)
-  // 3. Real-time messages from WebSocket
-  // ============================================
   const allMessages = [
     ...(chatData?.messages || []),      // From initialization
-    ...historyMessages,                  // 🔥 From fetch query (persisted messages)
+    ...historyMessages,                  // From fetch query (persisted messages)
     ...realtimeMessages,                 // From WebSocket
   ]
     .filter(
@@ -228,52 +208,31 @@ const support = () => {
 
   console.log('📊 Message sources:', {
     fromInit: chatData?.messages?.length || 0,
-    fromHistory: historyMessages.length,  // 🔥 This should have your old messages!
+    fromHistory: historyMessages.length,
     fromRealtime: realtimeMessages.length,
     total: allMessages.length,
   });
 
-  // ============================================
-  // Add auto-message if no messages exist
-  // ============================================
-  const messagesWithAutoMessage = allMessages.length === 0 && isChatInitialized
-    ? [
-        {
-          id: 'auto-message-1',
-          text: 'How can we help you?\n[Automessage]',
-          senderId: SUPPORT_TEAM_ID,
-          receiverId: driverId,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          chatBoxId: chatBoxId || 'temp',
-        },
-      ]
-    : allMessages;
-
   // Convert to UI format (ChatMessage interface)
-  const messages: ChatMessage[] = messagesWithAutoMessage.map((msg) => ({
+  const messages: ChatMessage[] = allMessages.map((msg) => ({
     id: msg.id,
     message: msg.text,
     timestamp: new Date(msg.createdAt).toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
     }),
-    isIncoming: msg.senderId !== driverId,
+    isIncoming: msg.senderId !== driverId, // Messages from customer are incoming
     showTimestamp: true,
   }));
 
-  // ============================================
-  // Check if driver has sent any message (from ALL messages)
-  // ============================================
+
   const hasDriverSentMessage = allMessages.some(
     (msg) => msg.senderId === driverId
   );
 
   console.log('🎯 Quick replies visible:', !hasDriverSentMessage);
 
-  // ============================================
-  // Auto-scroll on initial load
-  // ============================================
+
   useEffect(() => {
     if (messages.length > 0 && !isLoadingMessages) {
       setTimeout(() => {
@@ -282,34 +241,37 @@ const support = () => {
     }
   }, [messages.length, isLoadingMessages]);
 
-  // ============================================
-  // Handlers
-  // ============================================
+
   const handleBackPress = () => {
     router.back();
   };
 
   const handlePhonePress = () => {
-    const phoneNumber = "tel:+1234567890";
-    Linking.openURL(phoneNumber).catch(() => {
-      Alert.alert("Error", "Unable to make a call");
+    router.push({
+      pathname: "/(tabs)/(rideRequests)/callScreen",
+      params: {
+        profileImage: profileImage,
+        driverName: customerName,
+      },
     });
   };
 
   const handleSendMessage = (message: string) => {
-    if (!message.trim() || isSendingMessage || !driverId) return;
+    if (!message.trim() || isSendingMessage || !driverId || !customerId) {
+      return;
+    }
 
-    console.log('📤 Sending support message:', message);
+    console.log('📤 Sending message:', message);
 
     sendMessage(
       {
         senderId: driverId,
-        receiverId: SUPPORT_TEAM_ID,
+        receiverId: customerId,
         text: message.trim(),
       },
       {
         onSuccess: () => {
-          console.log('✅ Support message sent successfully');
+          console.log('✅ Message sent successfully');
 
           // Scroll to bottom after sending
           setTimeout(() => {
@@ -317,8 +279,8 @@ const support = () => {
           }, 100);
         },
         onError: (error: any) => {
-          console.error('❌ Send support message error:', error);
-          Alert.alert('Error', 'Failed to send message to support. Please try again.');
+          console.error('❌ Send message error:', error);
+          Alert.alert('Error', 'Failed to send message. Please try again.');
         },
       }
     );
@@ -332,47 +294,58 @@ const support = () => {
     Alert.alert("Camera", "Camera functionality will be implemented");
   };
 
-  // ============================================
-  // Error States
-  // ============================================
   if (!driverId) {
     return (
-      <View style={styles.centerContainer}>
-        <CustomText>Driver ID not found. Please login again.</CustomText>
-        <Button
-          title="Go Back"
-          variant="primary"
-          onPress={() => router.back()}
-        />
-      </View>
+      <GradientBackground>
+        <View style={styles.centerContainer}>
+          <CustomText>Driver ID not found. Please login again.</CustomText>
+          <Button
+            title="Go Back"
+            variant="primary"
+            onPress={() => router.back()}
+          />
+        </View>
+      </GradientBackground>
+    );
+  }
+
+  if (!customerId) {
+    return (
+      <GradientBackground>
+        <View style={styles.centerContainer}>
+          <CustomText>Customer ID not provided. Invalid route.</CustomText>
+          <Button
+            title="Go Back"
+            variant="primary"
+            onPress={() => router.back()}
+          />
+        </View>
+      </GradientBackground>
     );
   }
 
   if (isInitializing) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#DAD5FB" />
-        <CustomText style={{ marginTop: 12 }}>Connecting to support...</CustomText>
-      </View>
+      <GradientBackground>
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color="#DAD5FB" />
+          <CustomText style={{ marginTop: 12 }}>Loading chat...</CustomText>
+        </View>
+      </GradientBackground>
     );
   }
 
   if (initError) {
     return (
-      <View style={styles.errorContainer}>
-        <CustomText>Failed to connect to support</CustomText>
-        <Button
-          title="Retry"
-          variant="primary"
-          onPress={() => router.back()}
-        />
-      </View>
+      <GradientBackground>
+        <View style={styles.errorContainer}>
+          <CustomText>Failed to load chat</CustomText>
+          <Button title="Retry" variant="primary" onPress={() => router.back()} />
+        </View>
+      </GradientBackground>
     );
   }
 
-  // ============================================
-  // Main UI
-  // ============================================
   return (
     <GradientBackground>
       <KeyboardAvoidingView
@@ -381,9 +354,10 @@ const support = () => {
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
         <ChatHeader
-          name="Support"
+          name={customerName}
+          profileImage={profileImage}
           showBackButton={true}
-          showPhoneButton={false}
+          showPhoneButton={true}
           onBackPress={handleBackPress}
           onPhonePress={handlePhonePress}
         />
@@ -410,7 +384,7 @@ const support = () => {
           <ChatInput
             onSend={handleSendMessage}
             onCameraPress={handleCameraPress}
-            placeholder="Enter your concern..."
+            placeholder="Type a message..."
           />
         </View>
       </KeyboardAvoidingView>
@@ -418,7 +392,7 @@ const support = () => {
   );
 };
 
-export default support;
+export default DriverChatScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -428,6 +402,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    gap: 12,
     padding: 20,
   },
   errorContainer: {
