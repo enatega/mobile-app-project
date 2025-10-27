@@ -9,7 +9,7 @@ import { SafeAreaView, StyleSheet, View } from "react-native";
 import Title from "../components/common/TitleHeader";
 import Stepper from "../components/common/stepper";
 import DocumentSubmissionForm, {
-    DocumentSubmissionFormValues,
+  DocumentSubmissionFormValues,
 } from "../components/forms/documentSubmissionForm";
 
 const SignupSecondScreen: React.FC = () => {

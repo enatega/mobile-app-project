@@ -104,14 +104,14 @@ const profileScreen = () => {
                 router.navigate("/(tabs)/(profile)/support");
               }}
             />
-            <InfoCard
+            {/* <InfoCard
               title="Security and settings"
               description="Update your password and change app preferences."
               icon="security"
               onPress={() => {
                 router.navigate("/(tabs)/(profile)/security");
               }}
-            />
+            /> */}
           </View>
         </ScrollView>
 

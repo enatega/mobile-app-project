@@ -380,13 +380,14 @@ const support = () => {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
-        <ChatHeader
-          name="Support"
-          showBackButton={true}
-          showPhoneButton={false}
-          onBackPress={handleBackPress}
-          onPhonePress={handlePhonePress}
-        />
+       <ChatHeader
+  name="Support"
+  showBackButton={true}
+  showPhoneButton={false}
+  showProfileImage={false}
+  onBackPress={handleBackPress}
+  onPhonePress={handlePhonePress}
+/>
 
         <ChatMessageList
           messages={messages}

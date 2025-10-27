@@ -1,4 +1,5 @@
 
+import { BACKEND_URL } from '@/environment';
 import { logout } from '@/src/store/slices/auth.slice';
 import { store } from '@/src/store/store';
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
@@ -6,7 +7,7 @@ import { router } from 'expo-router';
 import { Alert } from 'react-native';
 
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+const BASE_URL = BACKEND_URL.PRODUCTION || 'http://localhost:3000';
 
 console.log('🌐 API Base URL:', BASE_URL);
 

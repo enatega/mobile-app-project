@@ -1,4 +1,4 @@
-// personalInfoForm.tsx - FINAL FIXED VERSION
+// personalInfoForm.tsx - ACTUALLY FIXED VERSION
 import Button from "@/src/components/ui/Button ";
 import CustomInput from "@/src/components/ui/Input";
 import CustomDropdown from "@/src/components/ui/dropdown";
@@ -19,11 +19,8 @@ import { PersonalInfoSchema } from "../../validations/authValidation";
 interface PersonalInfoFormProps {
   onSubmit: (values: PersonalInfoFormValues) => void;
   initialValues?: PersonalInfoFormValues;
-}
+} 
 
-// ============================================
-// ✅ FIXED: Cities with proper case
-// ============================================
 const cities = [
   { label: "Berlin", value: "Berlin" },
   { label: "Munich", value: "Munich" },
@@ -43,7 +40,7 @@ const vehicleTypes = [
   },
   { 
     label: "Lumi Plus (4-wheeler AC)", 
-    value: "38f16813-2929-4daf-9a21-c1a2dd4bad8d	" 
+    value: "38f16813-2929-4daf-9a21-c1a2dd4bad8d" 
   },
   { 
     label: "Lumi Max (4-wheeler AC)", 
@@ -63,10 +60,8 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
   onSubmit,
   initialValues,
 }) => {
-  // Get saved data from Redux store
   const savedPersonalInfo = useAppSelector(selectPersonalInfo);
   
-  // Use saved data from Redux if available, otherwise use prop initialValues or empty defaults
   const formInitialValues: PersonalInfoFormValues = initialValues || savedPersonalInfo || {
     fullName: "",
     phoneNumber: "",
@@ -81,7 +76,6 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
     values: PersonalInfoFormValues,
     formikHelpers: FormikHelpers<PersonalInfoFormValues>
   ) => {
-    // ✅ Format phone number with country code
     const formattedPhoneNumber = selectedCountry
       ? `${selectedCountry.callingCode.startsWith("+") 
           ? selectedCountry.callingCode 
@@ -103,6 +97,8 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
       validationSchema={PersonalInfoSchema}
       onSubmit={handleSubmit}
       enableReinitialize={true}
+      validateOnChange={true}
+      validateOnBlur={true}
     >
       {({
         values,
@@ -128,7 +124,7 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
               placeholder="Muhammad Umair"
               value={values.fullName}
               onChangeText={handleChange("fullName")}
-              onBlur={() => setFieldTouched("fullName")}
+              onBlur={() => setFieldTouched("fullName", true)}
               error={touched.fullName ? errors.fullName : undefined}
               variant="outline"
               size="large"
@@ -141,12 +137,11 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
               <PhoneInput
                 value={values.phoneNumber}
                 onChangePhoneNumber={(phoneNumber) => {
-                  setFieldValue("phoneNumber", phoneNumber);
+                  setFieldValue("phoneNumber", phoneNumber, true);
                 }}
                 selectedCountry={selectedCountry}
                 onChangeSelectedCountry={(country) => {
                   setSelectedCountry(country);
-                  // Log the country code for debugging
                   console.log("📍 Country Code:", country?.callingCode);
                 }}
                 placeholder="Phone number"
@@ -171,7 +166,7 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
               )}
             </View>
 
-            {/* City Dropdown */}
+            {/* City Dropdown - ✅ REAL FIX: Set value first, then touch+validate */}
             <View style={[styles.dropdownWrapper, { zIndex: openDropdown === 'city' ? 2000 : 1 }]}>
               <CustomDropdown
                 label="City"
@@ -180,9 +175,14 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
                 items={cities}
                 onChange={(value) => {
                   console.log("🏙️ City Selected:", value);
-                  setFieldValue("city", value);
+                  // ✅ REAL FIX: First set the value WITHOUT validating
+                  setFieldValue("city", value, false);
+                  // ✅ Then mark as touched AND validate together
+                  // This ensures the new value is set before validation runs
+                  setTimeout(() => {
+                    setFieldTouched("city", true, true);
+                  }, 0);
                 }}
-                onBlur={() => setFieldTouched("city")}
                 error={touched.city ? errors.city : undefined}
                 variant="outline"
                 size="large"
@@ -191,7 +191,7 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
               />
             </View>
 
-            {/* Vehicle Type Dropdown - NOW WITH REAL UUIDs */}
+            {/* Vehicle Type Dropdown - ✅ REAL FIX: Set value first, then touch+validate */}
             <View style={[styles.dropdownWrapper, { zIndex: openDropdown === 'vehicleType' ? 2000 : 1 }]}>
               <CustomDropdown
                 label="Vehicle Type"
@@ -200,9 +200,14 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
                 items={vehicleTypes}
                 onChange={(value) => {
                   console.log("🚗 Vehicle Type Selected (UUID):", value);
-                  setFieldValue("vehicleType", value);
+                  // ✅ REAL FIX: First set the value WITHOUT validating
+                  setFieldValue("vehicleType", value, false);
+                  // ✅ Then mark as touched AND validate together
+                  // This ensures the new value is set before validation runs
+                  setTimeout(() => {
+                    setFieldTouched("vehicleType", true, true);
+                  }, 0);
                 }}
-                onBlur={() => setFieldTouched("vehicleType")}
                 error={touched.vehicleType ? errors.vehicleType : undefined}
                 variant="outline"
                 size="large"
@@ -263,7 +268,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     color: "#374151",
   },
-  // Phone Input Styles
   phoneContainer: {
     backgroundColor: "#FFFFFF",
     borderWidth: 1,
@@ -304,7 +308,6 @@ const styles = StyleSheet.create({
     color: "#DC3545",
     marginTop: 4,
   },
-  // Submit Button
   buttonContainer: {
     marginTop: 20,
     marginBottom: 20,

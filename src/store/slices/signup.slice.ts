@@ -28,7 +28,7 @@ interface SignupState {
     nationalIdBack: UploadedFile[];
     vehicleRegistrationFront: UploadedFile[];
     vehicleRegistrationBack: UploadedFile[];
-    companyRegistration: UploadedFile[];
+    companyRegistration: UploadedFile[]; // ✅ Single field
   };
   
   // Stage 3: Vehicle Requirements
@@ -60,7 +60,7 @@ const initialState: SignupState = {
     nationalIdBack: [],
     vehicleRegistrationFront: [],
     vehicleRegistrationBack: [],
-    companyRegistration: [],
+    companyRegistration: [], // ✅ Single field
   },
   vehicleRequirements: {
     modelYearLimit: '',

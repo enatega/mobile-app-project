@@ -1,4 +1,4 @@
-
+// DocumentSubmissionForm.tsx - REVERTED to single company registration
 import Button from "@/src/components/ui/Button ";
 import { useAppSelector } from "@/src/store/hooks";
 import { selectDocumentSubmission } from "@/src/store/selectors/signup.selectors";
@@ -16,7 +16,7 @@ export interface DocumentSubmissionFormValues {
   nationalIdBack: UploadedFile[];
   vehicleRegistrationFront: UploadedFile[];
   vehicleRegistrationBack: UploadedFile[];
-  companyRegistration: UploadedFile[];
+  companyRegistration: UploadedFile[]; // ✅ Single field
 }
 
 interface DocumentSubmissionFormProps {
@@ -53,6 +53,8 @@ const DocumentSubmissionForm: React.FC<DocumentSubmissionFormProps> = ({
   const [vehicleRegistrationBack, setVehicleRegistrationBack] = useState<
     UploadedFile[]
   >(initialValues?.vehicleRegistrationBack || savedDocuments.vehicleRegistrationBack || []);
+  
+  // ✅ REVERTED: Single company registration field
   const [companyRegistration, setCompanyRegistration] = useState<UploadedFile[]>(
     initialValues?.companyRegistration || savedDocuments.companyRegistration || []
   );
@@ -226,7 +228,7 @@ const DocumentSubmissionForm: React.FC<DocumentSubmissionFormProps> = ({
       nationalIdBack,
       vehicleRegistrationFront,
       vehicleRegistrationBack,
-      companyRegistration,
+      companyRegistration, // ✅ Single field
     };
 
     console.log("✅ Form values:", values);
@@ -353,17 +355,14 @@ const DocumentSubmissionForm: React.FC<DocumentSubmissionFormProps> = ({
           helperText="Estimara"
         />
 
-        {/* Company Commercial Registration */}
+        {/* ✅ REVERTED: Company Commercial Registration - Single file only */}
         <FileUploadInput
-          label="Company Commercial Registration"
+          label="Company Commercial Registration (Optional)"
           placeholder="JPG, PNG, PDF, Max. Size 5mb"
           files={companyRegistration}
-          onUpload={() =>
-            handleDocumentPick(setCompanyRegistration, "companyRegistration")
-          }
-          onRemove={(index: number) =>
-            handleRemoveFile(setCompanyRegistration, index)
-          }
+          onUpload={() => handleDocumentPick(setCompanyRegistration, "companyRegistration")}
+          onRemove={(index: number) => handleRemoveFile(setCompanyRegistration, index)}
+          maxFiles={1}
           uploading={uploading === "companyRegistration"}
           uploadProgress={uploadProgress}
         />
