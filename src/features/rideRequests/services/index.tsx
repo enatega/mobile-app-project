@@ -18,10 +18,10 @@ export const rideRequestsService = {
 
     const state = store.getState();
     const newToken = selectToken(state);
- 
+
     try {
-      const latitude = 24.8607;
-      const longitude = 67.0011;
+      const latitude = 33.7039556;
+      const longitude = 72.9799404;
       const response = await axios.get(
         `${API_BASE}/ride-vehicles/nearby/${latitude}/${longitude}/${radius}?radius=${radius}`,
         {
@@ -32,7 +32,8 @@ export const rideRequestsService = {
         }
       );
       const data = response.data;
-     
+      // console.log("my data of response is :", data)
+
       const requests: RideRequest[] = data.map((item: any) => ({
         id: item.id,
         profileImg: item?.passenger?.profile,
@@ -43,7 +44,7 @@ export const rideRequestsService = {
           rating: item.reviews?.averageRating ?? 0,
           totalRides: item.reviews?.count ?? 0,
         },
-        passengerId:item?.passenger_id,
+        passengerId: item?.passenger_id,
         pickupLocation: {
           latitude: item.locations?.pickup.lat,
           longitude: item.locations?.pickup.lng,
@@ -70,8 +71,8 @@ export const rideRequestsService = {
       }));
 
       return requests;
-    } catch (error) {
-      console.error("Error fetching ride requests:", error);
+    } catch (error:any) {
+      console.error("Error fetching ride requests:", error.response.data);
       throw error;
     }
   },
@@ -108,6 +109,28 @@ export const rideRequestsService = {
       };
     } catch (error) {
       console.error('Error declining ride request:', error);
+      throw error;
+    }
+  },
+  getMyRiderId: async () => {
+    const state = store.getState();
+    const token = selectToken(state);
+
+    try {
+      const response = await axios.get(
+        `${API_BASE}/ride-vehicles/rider/get-my-rider-id`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log("✅ My Rider Data:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Error fetching rider ID:", error);
       throw error;
     }
   },
