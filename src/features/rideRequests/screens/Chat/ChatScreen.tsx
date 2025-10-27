@@ -10,14 +10,14 @@ import CustomText from "@/src/components/ui/Text";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    FlatList,
-    Keyboard,
-    KeyboardAvoidingView,
-    Platform,
-    StyleSheet,
-    View,
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  View,
 } from "react-native";
 
 import { useAppSelector } from "@/src/store/hooks";
@@ -28,9 +28,9 @@ import { useGetMessages } from "../../hooks/queries/useGetMessages";
 import { useInitializeChat } from "../../hooks/queries/useInitializeChatHook";
 
 import {
-    chatApi,
-    convertWebSocketMessage,
-    IReceivedMessage,
+  chatApi,
+  convertWebSocketMessage,
+  IReceivedMessage,
 } from "@/src/services/chatApi";
 
 const DriverChatScreen = () => {
@@ -357,7 +357,7 @@ const DriverChatScreen = () => {
           name={customerName}
           profileImage={profileImage}
           showBackButton={true}
-          showPhoneButton={true}
+          showPhoneButton={false}
           onBackPress={handleBackPress}
           onPhonePress={handlePhonePress}
         />

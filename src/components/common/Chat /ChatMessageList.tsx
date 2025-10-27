@@ -1,10 +1,10 @@
 import React, { useEffect, useRef } from "react";
 import {
-    FlatList,
-    Keyboard,
-    StyleSheet,
-    TouchableWithoutFeedback,
-    View,
+  FlatList,
+  Keyboard,
+  StyleSheet,
+  TouchableWithoutFeedback,
+  View,
 } from "react-native";
 import MessageBubble from "./MessageBubble";
 import QuickReplyButtons from "./QuickReplyButton";
@@ -75,9 +75,8 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({
   );
 
   const renderFooter = () => {
-    // Footer appears at the bottom (after all messages)
-    // Show quick replies when enabled
-    if (showQuickReplies && quickReplies.length > 0 && onQuickReply) {
+    // Only show quick replies in footer when there ARE messages
+    if (messages.length > 0 && showQuickReplies && quickReplies.length > 0 && onQuickReply) {
       return (
         <View style={styles.footerContainer}>
           <QuickReplyButtons buttons={quickReplies} onPress={onQuickReply} />
@@ -88,8 +87,8 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({
   };
 
   const renderEmpty = () => {
-    // This shows when messages array is empty
-    if (showQuickReplies && quickReplies.length > 0 && onQuickReply) {
+    // Only show quick replies in empty state when there are NO messages
+    if (messages.length === 0 && showQuickReplies && quickReplies.length > 0 && onQuickReply) {
       return (
         <View style={styles.emptyContainer}>
           <QuickReplyButtons buttons={quickReplies} onPress={onQuickReply} />

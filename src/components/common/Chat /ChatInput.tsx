@@ -36,13 +36,13 @@ const ChatInput: React.FC<ChatInputProps> = ({
       keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
     >
       <View style={styles.container}>
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={styles.cameraButton}
           onPress={onCameraPress}
           activeOpacity={0.7}
         >
           <Ionicons name="camera-outline" size={24} color="#27272A" />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         <TextInput
           style={styles.input}

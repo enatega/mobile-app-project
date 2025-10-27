@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "mobile-app-project",
-    "slug": "mobile-app-project",
+    "name": "Lumi Driver App",
+    "slug": "lumi-driver-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -15,7 +15,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ninjascode.lumidrive",
+      "bundleIdentifier": "com.lastorder.lumidrive",
       "config": {
         "googleMapsApiKey": "AIzaSyCcm7_Wd7uvmC9YnYLu2JHGWPt6z1MaL1E"
       },
@@ -66,7 +66,7 @@
           "apiKey": "AIzaSyCcm7_Wd7uvmC9YnYLu2JHGWPt6z1MaL1E"
         }
       },
-      "package": "com.ninjascode.lumidrive"
+      "package": "com.lastorder.lumidrive"
     },
     "web": {
       "bundler": "metro",
@@ -83,9 +83,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "51fbfa8e-d54f-4521-9c7d-8335e3d90842"
+        "projectId": "64f2d28a-689f-452e-84d5-a84d1eece8ce"
       }
     },
-    "owner": "ninjas_code"
+    "owner": "lastorder"
   }
 }

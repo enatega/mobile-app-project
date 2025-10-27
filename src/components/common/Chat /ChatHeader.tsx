@@ -8,6 +8,7 @@ interface ChatHeaderProps {
   profileImage?: string;
   showBackButton?: boolean;
   showPhoneButton?: boolean;
+  showProfileImage?: boolean;
   onBackPress?: () => void;
   onPhonePress?: () => void;
 }
@@ -17,6 +18,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
   profileImage,
   showBackButton = true,
   showPhoneButton = true,
+  showProfileImage = true,
   onBackPress,
   onPhonePress,
 }) => {
@@ -33,14 +35,16 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
       )}
 
       <View style={styles.centerContent}>
-        {profileImage ? (
-          <Image source={{ uri: profileImage }} style={styles.profileImage} />
-        ) : (
-          <View style={[styles.profileImage, styles.placeholderImage]}>
-            <CustomText style={styles.placeholderText}>
-              {name.charAt(0).toUpperCase()}
-            </CustomText>
-          </View>
+        {showProfileImage && (
+          profileImage ? (
+            <Image source={{ uri: profileImage }} style={styles.profileImage} />
+          ) : (
+            <View style={[styles.profileImage, styles.placeholderImage]}>
+              <CustomText style={styles.placeholderText}>
+                {name.charAt(0).toUpperCase()}
+              </CustomText>
+            </View>
+          )
         )}
         <CustomText style={styles.nameText}>{name}</CustomText>
       </View>
@@ -102,7 +106,7 @@ const styles = StyleSheet.create({
   },
   nameText: {
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: "600", 
     color: "#000",
   },
 });
