@@ -121,6 +121,25 @@ class WebSocketService {
     this.socket.emit('place-bid', payload);
   }
 
+  // Listen for bid accepted event (from backend)
+  onBidAccepted(callback: (data: any) => void): () => void {
+    if (!this.socket) {
+      console.warn('⚠️ Socket not initialized, cannot listen for bid-accepted');
+      return () => { };
+    }
+
+    const handler = (data: any) => {
+      console.log('📥 Bid accepted by backend:', data);
+      callback(data);
+    };
+
+    this.socket.on('bid-accepted', handler);
+
+    // Cleanup function
+    return () => {
+      this.socket?.off('bid-accepted', handler);
+    };
+  }
 
   // Send message via WebSocket (matching backend interface)
   sendMessage(message: IsentMessage): void {
