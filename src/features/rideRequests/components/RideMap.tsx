@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
+import { fetchGoogleRoute } from "../services/MapServices/getRouteCoordinates";
 
 interface Coordinate {
   latitude: number;
@@ -14,10 +15,32 @@ interface RideMapProps {
   rideRequest?: any; // optional, in case you want to pass it
 }
 
+const GOOGLE_MAPS_API_KEY = "AIzaSyCcm7_Wd7uvmC9YnYLu2JHGWPt6z1MaL1E";
+
+
 const RideMap: React.FC<RideMapProps> = ({ origin, destination, rideRequest }) => {
   const mapRef = useRef<MapView>(null);
+  const [routeCoords, setRouteCoords] = useState<{ latitude: number; longitude: number }[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // Automatically fit map to show both markers
+  useEffect(() => {
+    const fetchRoute = async () => {
+      if (origin && destination) {
+        setLoading(true);
+        const route = await fetchGoogleRoute(
+          { lat: origin.latitude, lng: origin.longitude },
+          { lat: destination.latitude, lng: destination.longitude },
+          [],
+          GOOGLE_MAPS_API_KEY
+        );
+        setRouteCoords(route);
+        setLoading(false);
+      }
+    };
+    fetchRoute();
+  }, [origin, destination]);
+
   useEffect(() => {
     if (mapRef.current && origin && destination) {
       mapRef.current.fitToCoordinates([origin, destination], {
@@ -54,11 +77,9 @@ const RideMap: React.FC<RideMapProps> = ({ origin, destination, rideRequest }) =
         </Marker>
 
         {/* Route Line */}
-        <Polyline
-          coordinates={[origin, destination]}
-          strokeColor="blue"
-          strokeWidth={4}
-        />
+        {routeCoords.length > 0 && (
+          <Polyline coordinates={routeCoords} strokeColor="#007AFF" strokeWidth={4} />
+        )}
       </MapView>
     </View>
   );

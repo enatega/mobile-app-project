@@ -4,6 +4,7 @@ import { useTheme } from '@/src/context/ThemeContext';
 import { webSocketService } from '@/src/services/socket/webSocketService';
 import { selectUser } from '@/src/store/selectors/authSelectors';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
@@ -17,6 +18,7 @@ import {
 } from 'react-native';
 import MapView from "react-native-maps";
 import { useSelector } from 'react-redux';
+import rideRequestsService from '../services';
 import { RideRequest } from '../types';
 import RideInfoCard from './RideInfoCard';
 import RideMap from './RideMap';
@@ -56,6 +58,7 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
     longitudeDelta: 0.05,
   });
   const [selectedFare, setSelectedFare] = useState<number | null>(null);
+  const [myRiderId, setMyRiderId]= useState("");
 
 
   const defaultFare = rideRequest?.estimatedFare || 0;
@@ -67,6 +70,20 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
   ];
 
 
+  useEffect(() => {
+    const fetchRiderData = async () => {
+      try {
+        const data = await rideRequestsService.getMyRiderId();
+        console.log("Rider ID response:", data);
+        setMyRiderId(data?.riderId);
+      } catch (error) {
+        console.error("Error fetching rider ID:", error);
+      }
+    };
+
+    fetchRiderData();
+  }, []);
+
 
   const handleAccept = (rideRequest: any) => {
     console.log('i am handling accept', user?.id)
@@ -75,7 +92,7 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
       return;
     }
     webSocketService.placeBid({
-      riderId: "1ba44a89-16d1-4280-820c-3f66262bb843",
+      riderId: myRiderId || "1ba44a89-16d1-4280-820c-3f66262bb843",
       rideRequestId: rideRequest?.id,
       price: defaultFare,
       // userId: rideRequest?.passenger?.id,
@@ -120,27 +137,30 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
   };
 
 
+
+
+
   useEffect(() => {
-    if (!rideRequest) return;
+    // ✅ Listen for bid accepted event
+    const unsubscribe = webSocketService.onBidAccepted((data) => {
+      console.log('🎯 Bid accepted event received:', data);
 
-    if (rideRequest && mapRef.current) {
-      const origin = {
-        latitude: rideRequest.pickupLocation.latitude,
-        longitude: rideRequest.pickupLocation.longitude,
-      };
-      const destination = {
-        latitude: rideRequest.dropoffLocation.latitude,
-        longitude: rideRequest.dropoffLocation.longitude,
-      };
+      // Example data: { rideRequestId, ride_request_is_now_ride, message }
 
-      mapRef.current.fitToCoordinates([origin, destination], {
-        edgePadding: { top: 80, right: 80, bottom: 80, left: 80 },
-        animated: true,
-      });
-    }
-  }, [rideRequest]);
+      if (data.message === 'Your bid was accepted. Ride started!') {
+        console.log("Your bid was accepted. Ride started!")
+        // ✅ Navigate and update UI
+        router.push('/tripDetail');
+        onClose?.();
+        // Optional: set offering state if needed
+        // setIsOffering(true);
+      }
+    });
 
-
+    return () => {
+      unsubscribe(); // Cleanup listener on unmount
+    };
+  }, []);
 
 
   const origin = {
@@ -152,6 +172,8 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
     latitude: rideRequest?.dropoffLocation?.latitude ?? 0,
     longitude: rideRequest?.dropoffLocation?.longitude ?? 0,
   };
+
+
 
 
   if (!rideRequest) return null;
