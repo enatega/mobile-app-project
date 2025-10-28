@@ -7,6 +7,7 @@ import { PersistConfig } from 'redux-persist/es/types';
 import authReducer from './slices/auth.slice';
 import signupReducer from './slices/signup.slice'; // Import signup reducer
 // Slices
+import driverLocationReducer from './slices/driverLocation.slice';
 import driverStatusReducer from './slices/driverStatus.slice';
 import themeReducer from './slices/theme.slice';
 
@@ -15,6 +16,7 @@ const rootReducer = combineReducers({
   auth: authReducer,
   signup: signupReducer, // Add signup reducer
   driverStatus: driverStatusReducer,
+  driverLocation: driverLocationReducer
 });
 
 type RootState = ReturnType<typeof rootReducer>;
