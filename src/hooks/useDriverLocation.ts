@@ -1,5 +1,6 @@
 import * as Location from 'expo-location';
 import { useCallback, useState } from 'react';
+import { updateRiderCurrentLocation } from '../services/currentLocationApi';
 import { useAppDispatch } from '../store/hooks';
 import { setDriverLocation } from '../store/slices/driverLocation.slice';
 import { setDriverStatus } from '../store/slices/driverStatus.slice';
@@ -34,6 +35,17 @@ const requestPermissionAndFetchLocation = useCallback(async () => {
         latitude: currentLocation.coords.latitude.toString(),
         longitude: currentLocation.coords.longitude.toString()
       }));
+
+      try {
+        // Update in backend
+      await updateRiderCurrentLocation(
+        currentLocation.coords.latitude,
+        currentLocation.coords.longitude
+      );
+      } catch (error) {
+        console.log("🚀 ~ useDriverLocation ~ error:", error)
+      }
+
     } catch (error) {
       setErrorMsg('Failed to fetch location.');
       console.error(error);
