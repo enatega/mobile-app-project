@@ -47,7 +47,7 @@ export const fetchGoogleRoute = async (
     const data = await res.json();
 
     if (!data.routes?.length) {
-      console.warn("⚠️ No routes found from Google");
+      console.log("⚠️ No routes found from Google");
       return [];
     }
 
