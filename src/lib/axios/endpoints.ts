@@ -36,6 +36,9 @@ export const API_ENDPOINTS = {
     
     // Get user by ID
     GET_USER: (userId: string) => `/api/v1/users/${userId}`,
+
+    // User location
+    CURRENT_LOCATION: '/api/v1/users/current-location/update',
   },
 
 
