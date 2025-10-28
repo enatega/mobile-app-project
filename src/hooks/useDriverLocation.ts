@@ -36,11 +36,15 @@ const requestPermissionAndFetchLocation = useCallback(async () => {
         longitude: currentLocation.coords.longitude.toString()
       }));
 
-      // Update in backend
+      try {
+        // Update in backend
       await updateRiderCurrentLocation(
         currentLocation.coords.latitude,
         currentLocation.coords.longitude
       );
+      } catch (error) {
+        console.log("🚀 ~ useDriverLocation ~ error:", error)
+      }
 
     } catch (error) {
       setErrorMsg('Failed to fetch location.');
