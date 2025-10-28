@@ -1,13 +1,13 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export type DriverLocationState = {
-  latitude: string;
-  longitude: string;
+  latitude: number | undefined;
+  longitude: number | undefined;
 };
 
 const initialState: DriverLocationState = {
-  latitude: "",
-  longitude: "",
+  latitude: undefined,
+  longitude: undefined,
 };
 
 const driverLocationSlice = createSlice({

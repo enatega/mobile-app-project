@@ -42,6 +42,12 @@ export const RideRequestsScreen: React.FC = () => {
     [cardRailWidth]
   );
   const rightOpenValue = -actionWidth;
+
+// first fetch driver location on mount
+  useEffect(() => {
+    requestPermissionAndFetchLocation();
+  }, [requestPermissionAndFetchLocation]);
+
   
   // Fetch ride requests from API
   const { data: rideRequests = [], isRefetching, refetch } = useActiveRideRequests();
@@ -63,11 +69,6 @@ export const RideRequestsScreen: React.FC = () => {
 
     return () => clearInterval(timer);
   }, []);
-
-    useEffect(() => {
-    requestPermissionAndFetchLocation();
-  }, [requestPermissionAndFetchLocation]);
-
 
   const handleRefresh = async () => {
     setIsRefreshing(true);

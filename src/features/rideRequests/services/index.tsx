@@ -23,8 +23,8 @@ export const rideRequestsService = {
     const newToken = selectToken(state);
 
     try {
-      const latitude = 33.7039556;
-      const longitude = 72.9799404;
+      const { latitude, longitude } = state.driverLocation;
+
       const response = await axios.get(
         `${API_BASE}/ride-vehicles/nearby/${latitude}/${longitude}/${radius}?radius=${radius}`,
         {

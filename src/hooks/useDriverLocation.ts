@@ -32,8 +32,8 @@ const requestPermissionAndFetchLocation = useCallback(async () => {
       
       // Store in Redux
       dispatch(setDriverLocation({
-        latitude: currentLocation.coords.latitude.toString(),
-        longitude: currentLocation.coords.longitude.toString()
+        latitude: currentLocation.coords.latitude,
+        longitude: currentLocation.coords.longitude
       }));
 
       try {
