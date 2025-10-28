@@ -98,9 +98,6 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
       // userId: rideRequest?.passenger?.id,
     });
 
-
-
-
     onAccept?.(defaultFare);
 
     // router.push("/tripDetail"); 
