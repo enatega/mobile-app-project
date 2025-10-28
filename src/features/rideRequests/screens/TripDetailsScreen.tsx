@@ -2,11 +2,12 @@ import { Colors } from "@/src/constants";
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import RatingModal from "../components/RatingModal";
 import RideMap from "../components/RideMap";
+import rideRequestsService from "../services";
 
 const { height } = Dimensions.get("window");
 
@@ -14,25 +15,90 @@ export const TripDetailsScreen: React.FC = () => {
     const insets = useSafeAreaInsets();
     const [rideStatus, setRideStatus] = useState('in_progress');
     const [modalRatingVisible, setModalRatingVisible] = useState(false);
+    const [rideData, setRideData] = useState<any | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [waitingTime, setWaitingTime] = useState(900); // 15 * 60
+
+
+
 
     const handleChatButtonPress = () => {
-       router.push("/(tabs)/(rideRequests)/chatScreen")
+        router.push("/(tabs)/(rideRequests)/chatScreen")
     }
 
     const handleCallButtonPress = () => {
         router.push({
             pathname: "/(tabs)/(rideRequests)/callScreen",
             params: {
-                profileImage: "https://avatar.iran.liara.run/public/48",
-                driverName: "John Doe"
+                profileImage: rideData?.passengerUser?.profile_image || "https://avatar.iran.liara.run/public/48",
+                driverName: rideData?.passengerUser?.name || "John Doe"
             }
         });
     };
 
+    const fetchActiveRide = async () => {
+        try {
+            const data = await rideRequestsService.acceptRideRequest();
+            console.log("✅ Ride result:", data);
+            setRideData(data);
+        } catch (err: any) {
+            console.error("❌ Error fetching active ride:", err);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+
+    useEffect(() => {
+        fetchActiveRide()
+
+    }, [])
+
+
+
+    useEffect(() => {
+        let interval: NodeJS.Timeout | null = null;
+
+        if (rideStatus === "in_progress") {
+            interval = setInterval(() => {
+                setWaitingTime((prev) => prev + 1);
+            }, 1000); // increase every second
+        } else {
+            if (interval) clearInterval(interval);
+        }
+
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [rideStatus]);
+
+
+    const formatTime = (seconds: number) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+    };
+
+    const origin = {
+        latitude: rideData?.pickup?.lat ?? 0,
+        longitude: rideData?.pickupLocation?.lng ?? 0,
+    };
+
+    const destination = {
+        latitude: rideData?.dropoff?.lat ?? 0,
+        longitude: rideData?.dropoff?.lng ?? 0,
+    };
+
+
     return (
         <View style={{ flex: 1, }}>
 
-            <RideMap />
+            <RideMap
+                origin={origin}
+                destination={destination}
+                rideRequest={rideData} />
+
+
             <View style={[styles.etaBar, { paddingTop: insets.top }]}>
                 {rideStatus === 'in_progess' ? (
                     <>
@@ -40,7 +106,7 @@ export const TripDetailsScreen: React.FC = () => {
                             <Text style={styles.cancelText}>Cancel</Text>
                         </View>
                         <View style={styles.timerWrapper}>
-                            <Text style={styles.etaText}>14:50</Text>
+                            <Text style={styles.etaText}>{formatTime(waitingTime)}</Text>
                         </View>
                     </>
                 ) : (
@@ -49,7 +115,7 @@ export const TripDetailsScreen: React.FC = () => {
                     <>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                             <Text style={styles.cancelText}>Waiting time </Text>
-                            <Text style={styles.etaText}>14:50</Text>
+                            <Text style={styles.etaText}>{formatTime(waitingTime)}</Text>
                         </View>
                     </>
 
@@ -64,12 +130,12 @@ export const TripDetailsScreen: React.FC = () => {
                 <View style={styles.bottomCardStyle}>
                     <View style={styles.leftSection}>
                         <Image
-                            source={{ uri: "https://avatar.iran.liara.run/public/48" }}
+                            source={{ uri: rideData?.passengerUser?.profile_image || "https://avatar.iran.liara.run/public/48" }}
                             style={styles.profileImage}
                         />
-                        <Text style={styles.name}>John Doe</Text>
-                        <Text style={styles.rating}>⭐ 4.7</Text>
-                        <Text style={styles.rides}>(727 rides)</Text>
+                        <Text style={styles.name}>{rideData?.passengerUser?.name || "John Doe"}</Text>
+                        <Text style={styles.rating}>⭐ {rideData?.passengerUser?.averageRating || '0'}</Text>
+                        <Text style={styles.rides}>{rideData?.passengerUser?.noOfReviewsReceived || '0'}</Text>
                     </View>
 
                     {/* Middle Section */}
@@ -79,7 +145,7 @@ export const TripDetailsScreen: React.FC = () => {
                                 source={require("@/assets/images/toIcon.png")}
                                 style={styles.iconImage}
                             />
-                            <Text style={styles.value}>Bahria University, Bahria University, Taxi zone (Taxi zone)</Text>
+                            <Text style={styles.value}>{rideData?.pickup_location || "Bahria University, Bahria University, Taxi zone (Taxi zone)"}</Text>
                         </View>
 
                         <View style={styles.section}>
@@ -87,18 +153,18 @@ export const TripDetailsScreen: React.FC = () => {
                                 source={require("@/assets/images/fromIcon.png")}
                                 style={styles.iconImage}
                             />
-                            <Text style={styles.value}>St 16 914 (Bahria Town, Phase 8)</Text>
+                            <Text style={styles.value}>{rideData?.dropoff_location || "St 16 914 (Bahria Town, Phase 8)"}</Text>
                         </View>
 
-                        <Text style={styles.priceTxt}>QAR 543</Text>
+                        <Text style={styles.priceTxt}>QAR {rideData?.agreed_price}</Text>
                     </View>
 
                     {/* Right Section */}
                     <View style={styles.rightSection}>
-                        <TouchableOpacity style={styles.iconButton} onPress= {handleCallButtonPress}>
+                        <TouchableOpacity style={styles.iconButton} onPress={handleCallButtonPress}>
                             <Ionicons name="call-outline" size={18} color="#27272A" />
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.iconButton} onPress = {handleChatButtonPress}>
+                        <TouchableOpacity style={styles.iconButton} onPress={handleChatButtonPress}>
                             <MaterialCommunityIcons name="message-reply-text-outline" size={18} color="#27272A" />
                         </TouchableOpacity>
                     </View>
@@ -203,7 +269,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: -2 },
         shadowRadius: 6,
         elevation: 6,
-        
+
     },
     section: {
         marginBottom: 15,
