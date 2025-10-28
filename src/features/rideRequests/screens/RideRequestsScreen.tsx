@@ -1,5 +1,6 @@
 import { GradientBackground, RideRequestsHeader } from '@/src/components/common';
 import { useTheme } from '@/src/context/ThemeContext';
+import { useDriverLocation } from '@/src/hooks/useDriverLocation';
 import { useDriverStatus } from '@/src/hooks/useDriverStatus';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useMemo, useState } from 'react';
@@ -23,6 +24,7 @@ const ACTION_RAIL_MAX_WIDTH = 320;
 const ACTION_GAP = 8;
 
 export const RideRequestsScreen: React.FC = () => {
+  const { requestPermissionAndFetchLocation } = useDriverLocation();
   const { colors } = useTheme();
   const { driverStatus } = useDriverStatus();
   const [countdown, setCountdown] = useState({ hours: 0, minutes: 27, seconds: 48 });
@@ -61,6 +63,10 @@ export const RideRequestsScreen: React.FC = () => {
 
     return () => clearInterval(timer);
   }, []);
+
+    useEffect(() => {
+    requestPermissionAndFetchLocation();
+  }, [requestPermissionAndFetchLocation]);
 
 
   const handleRefresh = async () => {
