@@ -6,6 +6,9 @@ import { DriverStatus, RideRequest, RideRequestResponse } from '../types';
 
 const API_BASE = "https://api-nestjs-enatega.up.railway.app/api/v1";
 
+let _isAcceptingRide = false;
+
+
 // Mock data for development - replace with actual API calls
 export const rideRequestsService = {
   // Get active ride requests
@@ -71,29 +74,52 @@ export const rideRequestsService = {
       }));
 
       return requests;
-    } catch (error:any) {
+    } catch (error: any) {
       console.error("Error fetching ride requests:", error.response.data);
       throw error;
     }
   },
 
-  // Accept a ride request
-  acceptRideRequest: async (requestId: string): Promise<RideRequestResponse> => {
-    try {
-      // TODO: Replace with actual API endpoint
-      // const response = await axiosInstance.post(`/api/ride-requests/${requestId}/accept`);
-      // return response.data;
 
-      // Mock response
-      return {
-        success: true,
-        message: 'Ride request accepted successfully',
+  // Accept a ride request
+  acceptRideRequest: async (): Promise<RideRequestResponse> => {
+    const state = store.getState();
+    const token = selectToken(state);
+    console.log("token",token)
+
+    try {
+      _isAcceptingRide = true;
+
+      const response = await axios.get(
+        `${API_BASE}/rides/ongoing/active/driver`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = response.data;
+      console.log("Ride accepted successfully:", data);
+
+      return data;
+    } catch (error: any) {
+      console.error("Error accepting ride request:", error.response?.data || error);
+      throw {
+        success: false,
+        message:
+          error.response?.data?.message || "Failed to accept ride request",
       };
-    } catch (error) {
-      console.error('Error accepting ride request:', error);
-      throw error;
+    } finally {
+      _isAcceptingRide = false;
     }
   },
+
+  // Optional: expose loading state for UI
+  isAcceptingRide: () => _isAcceptingRide,
+
+
 
   // Decline a ride request
   declineRideRequest: async (requestId: string): Promise<RideRequestResponse> => {
