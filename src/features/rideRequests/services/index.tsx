@@ -1,13 +1,12 @@
-import { selectToken } from '@/src/store/selectors/authSelectors';
-import { store } from '@/src/store/store';
-import axios from 'axios';
-import { DriverStatus, RideRequest, RideRequestResponse } from '../types';
-
+import { API_ENDPOINTS, client } from "@/src/lib/axios";
+import { selectToken } from "@/src/store/selectors/authSelectors";
+import { store } from "@/src/store/store";
+import axios from "axios";
+import { DriverStatus, RideRequest, RideRequestResponse, ScheduledRidesResponse } from "../types";
 
 const API_BASE = "https://api-nestjs-enatega.up.railway.app/api/v1";
 
 let _isAcceptingRide = false;
-
 
 // Mock data for development - replace with actual API calls
 export const rideRequestsService = {
@@ -18,12 +17,14 @@ export const rideRequestsService = {
     radius: number = 5000,
     token?: string // optional auth token
   ): Promise<RideRequest[]> => {
-
     const state = store.getState();
     const newToken = selectToken(state);
 
     try {
-      const { latitude, longitude } = state.driverLocation;
+      // Todo: need to get latitude and longitude from driver location slice
+      // const { latitude, longitude } = state.driverLocation;
+      const latitude = 33.7039556;
+      const longitude = 72.9799404;
 
       const response = await axios.get(
         `${API_BASE}/ride-vehicles/nearby/${latitude}/${longitude}/${radius}?radius=${radius}`,
@@ -35,7 +36,6 @@ export const rideRequestsService = {
         }
       );
       const data = response.data;
-      // console.log("my data of response is :", data)
 
       const requests: RideRequest[] = data.map((item: any) => ({
         id: item.id,
@@ -66,11 +66,11 @@ export const rideRequestsService = {
         rideType: item.is_hourly
           ? "hourly"
           : item.is_scheduled
-            ? "scheduled"
-            : "standard",
+          ? "scheduled"
+          : "standard",
         paymentMethod: item.payment_via.toLowerCase(),
         specialInstructions: null,
-        rideTypeId: item?.ride_type_id
+        rideTypeId: item?.ride_type_id,
       }));
 
       return requests;
@@ -80,12 +80,11 @@ export const rideRequestsService = {
     }
   },
 
-
   // Accept a ride request
   acceptRideRequest: async (): Promise<RideRequestResponse> => {
     const state = store.getState();
     const token = selectToken(state);
-    console.log("token",token)
+    console.log("token", token);
 
     try {
       _isAcceptingRide = true;
@@ -105,7 +104,10 @@ export const rideRequestsService = {
 
       return data;
     } catch (error: any) {
-      console.error("Error accepting ride request:", error.response?.data || error);
+      console.error(
+        "Error accepting ride request:",
+        error.response?.data || error
+      );
       throw {
         success: false,
         message:
@@ -119,10 +121,10 @@ export const rideRequestsService = {
   // Optional: expose loading state for UI
   isAcceptingRide: () => _isAcceptingRide,
 
-
-
   // Decline a ride request
-  declineRideRequest: async (requestId: string): Promise<RideRequestResponse> => {
+  declineRideRequest: async (
+    requestId: string
+  ): Promise<RideRequestResponse> => {
     try {
       // TODO: Replace with actual API endpoint
       // const response = await axiosInstance.post(`/api/ride-requests/${requestId}/decline`);
@@ -131,10 +133,10 @@ export const rideRequestsService = {
       // Mock response
       return {
         success: true,
-        message: 'Ride request declined',
+        message: "Ride request declined",
       };
     } catch (error) {
-      console.error('Error declining ride request:', error);
+      console.error("Error declining ride request:", error);
       throw error;
     }
   },
@@ -162,7 +164,9 @@ export const rideRequestsService = {
   },
 
   // Update driver status
-  updateDriverStatus: async (status: DriverStatus): Promise<{ success: boolean }> => {
+  updateDriverStatus: async (
+    status: DriverStatus
+  ): Promise<{ success: boolean }> => {
     try {
       // TODO: Replace with actual API endpoint
       // const response = await axiosInstance.put('/api/driver/status', { status });
@@ -171,12 +175,23 @@ export const rideRequestsService = {
       // Mock response
       return { success: true };
     } catch (error) {
-      console.error('Error updating driver status:', error);
+      console.error("Error updating driver status:", error);
+      throw error;
+    }
+  },
+
+  // get scheduled ride requests
+  getScheduledRideRequests: async (): Promise<ScheduledRidesResponse[]> => {
+    try {
+      const response = await client.get(
+        API_ENDPOINTS.RIDE_REQUESTS.SCHEDULED_RIDES
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching scheduled ride requests:", error);
       throw error;
     }
   },
 };
-
-
 
 export default rideRequestsService;

@@ -77,6 +77,8 @@ export const API_ENDPOINTS = {
     
     // Get ride history
     HISTORY: '/api/v1/ride-requests/history',
+
+    SCHEDULED_RIDES: '/api/v1/rides/scheduled',
   },
 
   RIDES: {
