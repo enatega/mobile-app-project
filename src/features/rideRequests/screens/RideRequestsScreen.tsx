@@ -5,6 +5,7 @@ import { useDriverStatus } from '@/src/hooks/useDriverStatus';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
+  Image,
   RefreshControl,
   SafeAreaView,
   StyleSheet,
@@ -15,7 +16,7 @@ import {
 } from 'react-native';
 import { SwipeListView, SwipeRow } from 'react-native-swipe-list-view';
 import { FareInputModal, OfflineScreen, RideCard, RideDetailsModal } from '../components';
-import { useActiveRideRequests } from '../hooks/queries';
+import { useActiveRideRequests, useScheduledRideRequests } from '../hooks/queries';
 import { RideRequest } from '../types';
 
 type RideRowMap = Record<string, SwipeRow<RideRequest>>;
@@ -51,7 +52,14 @@ export const RideRequestsScreen: React.FC = () => {
   
   // Fetch ride requests from API
   const { data: rideRequests = [], isRefetching, refetch } = useActiveRideRequests();
-
+    // Fetch ride requests from API
+    const {
+      data: scheduledRideRequests = { data: [] },
+      isRefetching: isRefetchingScheduledRideRequests,
+    } = useScheduledRideRequests();
+  
+  const upcomingRide = scheduledRideRequests.data[0] ?? [];
+    
   // Countdown timer for upcoming ride
   useEffect(() => {
     const timer = setInterval(() => {
@@ -216,7 +224,7 @@ export const RideRequestsScreen: React.FC = () => {
         <RideRequestsHeader />
 
        {/* Upcoming Ride Card */}
-       {driverStatus === 'online' && (
+       {!isRefetchingScheduledRideRequests && driverStatus === 'online' && (
          <View style={[styles.upcomingRideCard, { backgroundColor: colors.primaryGradient }]}>
            <View style={styles.upcomingRideHeader}>
              <Text style={styles.upcomingRideTitle}>Upcoming ride</Text>
@@ -229,18 +237,18 @@ export const RideRequestsScreen: React.FC = () => {
 
            <View style={styles.upcomingRideContent}>
              <View style={styles.carIconContainer}>
-               <Ionicons name="car-outline" size={32} color="#FFF" />
+                <Image source={{uri: upcomingRide?.rider?.rideType?.image}} width={50} height={50} resizeMode='contain' />
              </View>
              <View style={styles.upcomingRideInfo}>
-               <Text style={styles.upcomingRideLabel}>Ride</Text>
+                <Text style={styles.upcomingRideLabel}>{upcomingRide?.rider?.rideType?.name.replace(/_/g, ' ') ?? 'Ride'}</Text>
                <View style={styles.upcomingRideLocation}>
                  <Ionicons name="location" size={14} color="#FFF" />
                  <Text style={styles.upcomingRideAddress} numberOfLines={1}>
-                   79 Kampuchea Krom Boulevard...
+                   {upcomingRide?.dropoff?.location ?? 'No address available'}
                  </Text>
                </View>
              </View>
-             <Text style={styles.upcomingRideFare}>QAR 48.75</Text>
+              <Text style={styles.upcomingRideFare}>QAR {upcomingRide?.agreedPrice}</Text>
            </View>
          </View>
        )}
