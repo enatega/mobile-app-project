@@ -6,9 +6,11 @@ import { Linking, Platform, StyleSheet, Text, TouchableOpacity, View } from 'rea
 
 interface EmptyStateProps {
   isOnline: boolean;
+  title?: string;
+  description?: string;
 }
 
-export const OfflineScreen: React.FC<EmptyStateProps> = ({ isOnline }) => {
+export const OfflineScreen: React.FC<EmptyStateProps> = ({ isOnline, title, description }) => {
   const { colors } = useTheme();
 
   const handleGoToSettings = () => {
@@ -46,10 +48,9 @@ export const OfflineScreen: React.FC<EmptyStateProps> = ({ isOnline }) => {
       <View style={[styles.iconContainer, { backgroundColor: colors.backgroundSecondary }]}>
         <Ionicons name="car-outline" size={64} color={colors.primary} />
       </View>
-      <Text style={[styles.title, { color: colors.text }]}>No Active Requests</Text>
+      <Text style={[styles.title, { color: colors.text }]}>{title ?? 'No Active Requests'}</Text>
       <Text style={[styles.description, { color: colors.textSecondary }]}>
-        You're online and ready to accept rides.{'\n'}
-        New requests will appear here automatically.
+        {description ?? `You're online and ready to accept rides.\nNew requests will appear here automatically.`}
       </Text>
     </View>
   );
