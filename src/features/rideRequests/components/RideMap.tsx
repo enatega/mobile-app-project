@@ -1,7 +1,7 @@
-import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useRef, useState } from "react";
-import { StyleSheet, View } from "react-native";
-import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import { ActivityIndicator, Image, StyleSheet, View } from "react-native";
+import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
+import { fetchGoogleRoute } from "../services/MapServices/getRouteCoordinates";
 
 interface Coordinate {
   latitude: number;
@@ -11,10 +11,9 @@ interface Coordinate {
 interface RideMapProps {
   origin: Coordinate;
   destination: Coordinate;
-  rideRequest?: any; // optional, in case you want to pass it
+  rideRequest?: any;
 }
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyCcm7_Wd7uvmC9YnYLu2JHGWPt6z1MaL1E";
 
 
 const RideMap: React.FC<RideMapProps> = ({ origin, destination, rideRequest }) => {
@@ -22,23 +21,21 @@ const RideMap: React.FC<RideMapProps> = ({ origin, destination, rideRequest }) =
   const [routeCoords, setRouteCoords] = useState<{ latitude: number; longitude: number }[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Automatically fit map to show both markers
-  // useEffect(() => {
-  //   const fetchRoute = async () => {
-  //     if (origin && destination) {
-  //       setLoading(true);
-  //       const route = await fetchGoogleRoute(
-  //         { lat: origin.latitude, lng: origin.longitude },
-  //         { lat: destination.latitude, lng: destination.longitude },
-  //         [],
-  //         GOOGLE_MAPS_API_KEY
-  //       );
-  //       setRouteCoords(route);
-  //       setLoading(false);
-  //     }
-  //   };
-  //   fetchRoute();
-  // }, [origin, destination]);
+  useEffect(() => {
+    const fetchRoute = async () => {
+      if (origin && destination) {
+        setLoading(true);
+        const route = await fetchGoogleRoute(
+          { lat: origin.latitude, lng: origin.longitude },
+          { lat: destination.latitude, lng: destination.longitude },
+          [],
+        );
+        setRouteCoords(route);
+        setLoading(false);
+      }
+    };
+    fetchRoute();
+  }, [origin, destination]);
 
   useEffect(() => {
     if (mapRef.current && origin && destination) {
@@ -66,22 +63,29 @@ const RideMap: React.FC<RideMapProps> = ({ origin, destination, rideRequest }) =
         {/* Origin Marker */}
         <Marker coordinate={origin}>
           <View style={styles.iconContainer}>
-            <Ionicons name="car" size={20} color="#FFF" />
+            <Image source={require('../../../../assets/images/pickup.png')} style={styles.pickupIcon} />
           </View>
         </Marker>
 
         {/* Destination Marker */}
         <Marker coordinate={destination}>
-          <View style={[styles.iconContainer, { backgroundColor: "red" }]} />
+          <View style={[styles.iconContainer, { backgroundColor: "red" }]}>
+            <Image source={require('../../../../assets/images/dropoff.png')} style={styles.pickupIcon} />
+          </View>
         </Marker>
 
         {/* Route Line */}
-        {/* {routeCoords.length > 0 && (
+        {routeCoords.length > 0 && (
           <Polyline coordinates={routeCoords} strokeColor="#007AFF" strokeWidth={4} />
-        )} */}
+        )}
 
-        
+
       </MapView>
+      {loading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#007AFF" />
+        </View>
+      )}
     </View>
   );
 };
@@ -96,8 +100,24 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   iconContainer: {
-    backgroundColor: "black",
+    backgroundColor: "#6EE7B7",
     padding: 6,
     borderRadius: 20,
   },
+  pickupIcon: {
+    width: 8,
+    height: 8,
+    tintColor: "#fff",
+  },
+  loadingOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.4)",
+  },
+
 });

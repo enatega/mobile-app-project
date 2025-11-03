@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import RatingModal from "../components/RatingModal";
 import RideMap from "../components/RideMap";
 import rideRequestsService from "../services";
+import Shimmer from "../utils/Shimmer";
 
 const { height } = Dimensions.get("window");
 
@@ -36,12 +37,49 @@ export const TripDetailsScreen: React.FC = () => {
         });
     };
 
+
+    const rideStart = async (rideId: any) => {
+        console.log("calling ride start:", rideId)
+
+        try {
+            const data = await rideRequestsService.startMyRide(rideId);
+            console.log("my ride data", data)
+            if (data?.message === 'Ride status updated to IN_PROGRESS successfully') {
+                setRideStatus("completed");
+
+            }
+
+
+        } catch (error: any) {
+            console.log("Starting a ride error:", error.response)
+        }
+    }
+    const rideCompleted = async (rideId: any) => {
+        console.log("calling ride start:", rideId)
+
+        try {
+            const data = await rideRequestsService.completeMyRide(rideId);
+            console.log("my ride data", data)
+            if (data?.message === 'Ride completed successfully') {
+                setModalRatingVisible(true);
+
+            }
+
+         
+
+        } catch (error: any) {
+            console.log("completing a ride error:", error.response)
+        }
+    }
+
     const fetchActiveRide = useCallback(async () => {
         try {
             const data = await rideRequestsService.acceptRideRequest();
             console.log("✅ Ride result:", data);
+
             setRideData(data);
-           
+
+
         } catch (err) {
             console.error("❌ Error fetching active ride:", err);
         } finally {
@@ -50,11 +88,49 @@ export const TripDetailsScreen: React.FC = () => {
     }, []); // dependencies here if it depends on something (e.g. userId)
 
 
+    const giveRating = async (ratingData: { comment: string; rating: number }) => {
+        try {
+            console.log("Rating submitted:", ratingData);
+
+            const rideId = await rideRequestsService.getMyRiderId();
+            console.log("Rider ID response:", rideId);
+
+            const payload = {
+                description: ratingData.comment,
+                rating: ratingData.rating,
+                reviewedId: rideId?.riderId,
+            };
+
+            const result = await rideRequestsService.giveDriverRating(payload);
+            console.log("Server response:", result);
+            router.replace("/(tabs)/(rideRequests)/rideRequest")
+
+        } catch (error) {
+            console.log("Error giving rating:", error);
+        }
+    };
+
+
+
+
+
     useEffect(() => {
         fetchActiveRide()
 
     }, [fetchActiveRide])
 
+    useEffect(() => {
+        if (!rideData) {
+            return;
+        }
+        if (rideData.status === "ASSIGNED") {
+            setRideStatus("started")
+
+        } else if (rideData.status === 'IN_PROGRESS') {
+            setRideStatus("completed");
+        }
+
+    }, [rideData])
 
 
     useEffect(() => {
@@ -92,6 +168,7 @@ export const TripDetailsScreen: React.FC = () => {
             longitude: rideData?.dropoff?.lng ?? 0,
         };
     }, [rideData]);
+
 
 
 
@@ -136,11 +213,25 @@ export const TripDetailsScreen: React.FC = () => {
             <View style={styles.bottomCard}>
                 <View style={styles.bottomCardStyle}>
                     <View style={styles.leftSection}>
-                        <Image
-                            source={{ uri: rideData?.passengerUser?.profile_image || "https://avatar.iran.liara.run/public/48" }}
-                            style={styles.profileImage}
-                        />
-                        <Text style={styles.name}>{rideData?.passengerUser?.name || "John Doe"}</Text>
+                        {loading ? (
+                            <Shimmer width={60} height={60} borderRadius={30} />
+                        ) : (
+
+                            <Image
+                                source={{ uri: rideData?.passengerUser?.profile_image || "https://avatar.iran.liara.run/public/48" }}
+                                style={styles.profileImage}
+                            />
+                        )
+
+                        }
+                        {loading ? (
+
+                            <Shimmer width="70%" height={18} />
+                        ) : (
+                            <Text style={styles.name}>{rideData?.passengerUser?.name}</Text>
+                        )
+
+                        }
                         <Text style={styles.rating}>⭐ {rideData?.passengerUser?.averageRating || '0'}</Text>
                         <Text style={styles.rides}>{rideData?.passengerUser?.noOfReviewsReceived || '0'}</Text>
                     </View>
@@ -152,7 +243,14 @@ export const TripDetailsScreen: React.FC = () => {
                                 source={require("@/assets/images/toIcon.png")}
                                 style={styles.iconImage}
                             />
-                            <Text numberOfLines={3} style={styles.value}>{rideData?.pickup_location || "Bahria University, Bahria University, Taxi zone (Taxi zone)"}</Text>
+                            {loading ? (
+                                <Shimmer width="90%" height={24} />
+                            ) : (
+
+                                <Text numberOfLines={3} style={styles.value}>{rideData?.pickup_location}</Text>
+                            )
+
+                            }
                         </View>
 
                         <View style={styles.section}>
@@ -160,10 +258,25 @@ export const TripDetailsScreen: React.FC = () => {
                                 source={require("@/assets/images/fromIcon.png")}
                                 style={styles.iconImage}
                             />
-                            <Text numberOfLines={3} style={styles.value}>{rideData?.dropoff_location || "St 16 914 (Bahria Town, Phase 8)"}</Text>
-                        </View>
+                            {loading ? (
+                                <Shimmer width="90%" height={24} />
+                            ) : (
 
-                        <Text style={styles.priceTxt}>QAR {rideData?.agreed_price}</Text>
+                                <Text numberOfLines={3} style={styles.value}>{rideData?.dropoff_location}</Text>
+                            )
+
+                            }
+                        </View>
+                        {loading ? (
+                            <Shimmer width="70%" height={18} />
+                        ) : (
+
+                            <Text style={styles.priceTxt}>QAR {rideData?.agreed_price}</Text>
+                        )
+
+                        }
+
+
                     </View>
 
                     {/* Right Section */}
@@ -185,38 +298,50 @@ export const TripDetailsScreen: React.FC = () => {
                     onClose={() => setModalRatingVisible(false)}
                     onSubmit={(rating) => {
                         console.log("Rating submitted:", rating);
-                        router.replace("/(tabs)/(rideRequests)/rideRequest")
+
+                        giveRating(rating);
+
+
 
                     }}
                 />
 
             </View>
-            <TouchableOpacity
-                style={[
-                    styles.button, { marginBottom: insets.bottom + 60 },
-                    rideStatus === "started" || rideStatus === "completed"
-                        ? { backgroundColor: Colors.light.primary }
-                        : { backgroundColor: Colors.light.success }
-                ]}
-                onPress={() => {
-                    if (rideStatus === "in_progress") {
-                        setRideStatus("started");
-                    } else if (rideStatus === "started") {
-                        setRideStatus("completed");
-                    } else if (rideStatus === "completed") {
-                        console.log("Show ride completed modal here");
-                        setModalRatingVisible(true);
-                    }
-                }}
-            >
-                {rideStatus === "in_progress" ? (
-                    <Text style={styles.buttonText}>I’m Here</Text>
-                ) : rideStatus === "started" ? (
-                    <Text style={styles.buttonText}>Start ride</Text>
-                ) : (
-                    <Text style={styles.buttonText}>Ride Completed</Text>
-                )}
-            </TouchableOpacity>
+            {loading ? (
+                <View style={{ marginBottom: insets.bottom + 60, alignItems: "center", }}>
+                    <Shimmer width="90%" height={40} borderRadius={20} />
+                </View>
+
+            ) : (
+                <TouchableOpacity
+                    style={[
+                        styles.button, { marginBottom: insets.bottom + 60 },
+                        rideStatus === "started" || rideStatus === "completed"
+                            ? { backgroundColor: Colors.light.primary }
+                            : { backgroundColor: Colors.light.success }
+                    ]}
+                    onPress={() => {
+                        if (rideStatus === "in_progress") {
+                            setRideStatus("started");
+                        } else if (rideStatus === "started") {
+                            rideStart(rideData?.rideId);
+
+                        } else if (rideStatus === "completed") {
+                            rideCompleted(rideData?.rideId);
+                        }
+                    }}
+                >
+                    {rideStatus === "in_progress" ? (
+                        <Text style={styles.buttonText}>I’m Here</Text>
+                    ) : rideStatus === "started" ? (
+                        <Text style={styles.buttonText}>Start ride</Text>
+                    ) : (
+                        <Text style={styles.buttonText}>Ride Completed</Text>
+                    )}
+                </TouchableOpacity>
+            )
+
+            }
         </View>
     );
 };
