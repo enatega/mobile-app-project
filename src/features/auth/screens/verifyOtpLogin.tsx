@@ -59,7 +59,7 @@ const VerifyOTPLoginScreen: React.FC = () => {
           console.log(rider);
   
           if (rider?.is_onboarding_completed) {
-            router.replace('/(tabs)/(rideRequests)/rideRequest');
+            router.replace('/(tabs)/(rideRequests)');
           } else {
 
             router.replace('/(auth)/signupSecondStage');
