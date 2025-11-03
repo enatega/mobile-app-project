@@ -2,27 +2,24 @@ import { Colors } from "@/src/constants";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { router } from "expo-router";
-import React, { useState } from "react";
-import {
-    Dimensions,
-    Image,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-} from "react-native";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import RatingModal from "../components/RatingModal";
 import RideMap from "../components/RideMap";
+import rideRequestsService from "../services";
 
 const { height } = Dimensions.get("window");
 
 export const TripDetailsScreen: React.FC = () => {
-  const insets = useSafeAreaInsets();
-  const [rideStatus, setRideStatus] = useState("in_progress");
-  const [modalRatingVisible, setModalRatingVisible] = useState(false);
-
-  // ✅ TODO: Replace with actual IDs from your ride data/auth system
+    const insets = useSafeAreaInsets();
+    const [rideStatus, setRideStatus] = useState('in_progress');
+    const [modalRatingVisible, setModalRatingVisible] = useState(false);
+    const [rideData, setRideData] = useState<any | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [waitingTime, setWaitingTime] = useState(900); // 15 * 60
+              
+      // ✅ TODO: Replace with actual IDs from your ride data/auth system
   const driverId = "ce1dd6a2-8662-495e-ae04-e0b84e0e3e30"; // Hardcoded for testing
   const customerId = "f5258cbe-d593-440d-9d9c-1203aa003513"; // Hardcoded for testing
   const customerName = "John Doe"; // Get from ride data
@@ -44,20 +41,100 @@ export const TripDetailsScreen: React.FC = () => {
     });
   };
 
-  return (
-    <View style={{ flex: 1 }}>
-      <RideMap
-        origin={{ latitude: 37.78825, longitude: -122.4324 }}
-        destination={{ latitude: 37.78825, longitude: -122.4324 }}
-        rideRequest={{
-          pickupLocation: { latitude: 37.78825, longitude: -122.4324 },
-        }}
-      />
-      <View style={[styles.etaBar, { paddingTop: insets.top }]}>
-        {rideStatus === "in_progress" ? (
-          <>
-            <View style={styles.leftEtaSection}>
-              <Text style={styles.cancelText}>Cancel</Text>
+
+    const fetchActiveRide = useCallback(async () => {
+        try {
+            const data = await rideRequestsService.acceptRideRequest();
+            console.log("✅ Ride result:", data);
+            setRideData(data);
+           
+        } catch (err) {
+            console.error("❌ Error fetching active ride:", err);
+        } finally {
+            setLoading(false);
+        }
+    }, []); // dependencies here if it depends on something (e.g. userId)
+
+
+    useEffect(() => {
+        fetchActiveRide()
+
+    }, [fetchActiveRide])
+
+
+
+    useEffect(() => {
+        let interval: NodeJS.Timeout | null = null;
+
+        if (rideStatus === "in_progress") {
+            interval = setInterval(() => {
+                setWaitingTime((prev) => prev + 1);
+            }, 1000); // increase every second
+        } else {
+            if (interval) clearInterval(interval);
+        }
+
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [rideStatus]);
+
+
+    const formatTime = (seconds: number) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+    };
+    const origin = useMemo(() => {
+        return {
+            latitude: rideData?.pickup?.lat ?? 0,
+            longitude: rideData?.pickup?.lng ?? 0,
+        };
+    }, [rideData]);
+
+    const destination = useMemo(() => {
+        return {
+            latitude: rideData?.dropoff?.lat ?? 0,
+            longitude: rideData?.dropoff?.lng ?? 0,
+        };
+    }, [rideData]);
+
+
+
+
+
+    return (
+        <View style={{ flex: 1, }}>
+
+            <RideMap
+                origin={origin}
+                destination={destination}
+                rideRequest={rideData} />
+
+
+            <View style={[styles.etaBar, { paddingTop: insets.top }]}>
+                {rideStatus === 'in_progess' ? (
+                    <>
+                        <View style={styles.leftEtaSection}>
+                            <Text style={styles.cancelText}>Cancel</Text>
+                        </View>
+                        <View style={styles.timerWrapper}>
+                            <Text style={styles.etaText}>{formatTime(waitingTime)}</Text>
+                        </View>
+                    </>
+                ) : (
+
+
+                    <>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                            <Text style={styles.cancelText}>Waiting time </Text>
+                            <Text style={styles.etaText}>{formatTime(waitingTime)}</Text>
+                        </View>
+                    </>
+
+                )
+
+                }
             </View>
             <View style={styles.timerWrapper}>
               <Text style={styles.etaText}>14:50</Text>
@@ -88,17 +165,53 @@ export const TripDetailsScreen: React.FC = () => {
             <Text style={styles.rides}>(727 rides)</Text>
           </View>
 
-          {/* Middle Section */}
-          <View style={styles.middleSection}>
-            <View style={styles.section}>
-              <Image
-                source={require("@/assets/images/toIcon.png")}
-                style={styles.iconImage}
-              />
-              <Text style={styles.value}>
-                Bahria University, Bahria University, Taxi zone (Taxi zone)
-              </Text>
-            </View>
+            {/* Bottom Card */}
+            <View style={styles.bottomCard}>
+                <View style={styles.bottomCardStyle}>
+                    <View style={styles.leftSection}>
+                        <Image
+                            source={{ uri: rideData?.passengerUser?.profile_image || "https://avatar.iran.liara.run/public/48" }}
+                            style={styles.profileImage}
+                        />
+                        <Text style={styles.name}>{rideData?.passengerUser?.name || "John Doe"}</Text>
+                        <Text style={styles.rating}>⭐ {rideData?.passengerUser?.averageRating || '0'}</Text>
+                        <Text style={styles.rides}>{rideData?.passengerUser?.noOfReviewsReceived || '0'}</Text>
+                    </View>
+
+                    {/* Middle Section */}
+                    <View style={styles.middleSection}>
+                        <View style={styles.section}>
+                            <Image
+                                source={require("@/assets/images/toIcon.png")}
+                                style={styles.iconImage}
+                            />
+                            <Text numberOfLines={3} style={styles.value}>{rideData?.pickup_location || "Bahria University, Bahria University, Taxi zone (Taxi zone)"}</Text>
+                        </View>
+
+                        <View style={styles.section}>
+                            <Image
+                                source={require("@/assets/images/fromIcon.png")}
+                                style={styles.iconImage}
+                            />
+                            <Text numberOfLines={3} style={styles.value}>{rideData?.dropoff_location || "St 16 914 (Bahria Town, Phase 8)"}</Text>
+                        </View>
+
+                        <Text style={styles.priceTxt}>QAR {rideData?.agreed_price}</Text>
+                    </View>
+
+                    {/* Right Section */}
+                    <View style={styles.rightSection}>
+                        <TouchableOpacity style={styles.iconButton} onPress={handleCallButtonPress}>
+                            <Ionicons name="call-outline" size={18} color="#27272A" />
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.iconButton} onPress={handleChatButtonPress}>
+                            <MaterialCommunityIcons name="message-reply-text-outline" size={18} color="#27272A" />
+                        </TouchableOpacity>
+                    </View>
+
+
+                </View>
+
 
             <View style={styles.section}>
               <Image
@@ -114,8 +227,22 @@ export const TripDetailsScreen: React.FC = () => {
           {/* Right Section - Call & Chat Buttons */}
           <View style={styles.rightSection}>
             <TouchableOpacity
-              style={styles.iconButton}
-              onPress={handleCallButtonPress}
+                style={[
+                    styles.button, { marginBottom: insets.bottom + 60 },
+                    rideStatus === "started" || rideStatus === "completed"
+                        ? { backgroundColor: Colors.light.primary }
+                        : { backgroundColor: Colors.light.success }
+                ]}
+                onPress={() => {
+                    if (rideStatus === "in_progress") {
+                        setRideStatus("started");
+                    } else if (rideStatus === "started") {
+                        setRideStatus("completed");
+                    } else if (rideStatus === "completed") {
+                        console.log("Show ride completed modal here");
+                        setModalRatingVisible(true);
+                    }
+                }}
             >
               <Ionicons name="call-outline" size={18} color="#27272A" />
             </TouchableOpacity>

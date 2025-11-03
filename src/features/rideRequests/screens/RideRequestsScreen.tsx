@@ -1,11 +1,14 @@
 import { GradientBackground, RideRequestsHeader } from '@/src/components/common';
 import { useTheme } from '@/src/context/ThemeContext';
+import { useDriverLocation } from '@/src/hooks/useDriverLocation';
 import { useDriverStatus } from '@/src/hooks/useDriverStatus';
 import { Ionicons } from '@expo/vector-icons';
-import React, { useEffect, useMemo, useState } from 'react';
+import { router } from 'expo-router';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Animated,
   FlatList,
+  Image,
   RefreshControl,
   SafeAreaView,
   StyleSheet,
@@ -16,7 +19,8 @@ import {
 } from 'react-native';
 import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
 import { FareInputModal, OfflineScreen, RideCard, RideDetailsModal } from '../components';
-import { useActiveRideRequests } from '../hooks/queries';
+import { useActiveRideRequests, useScheduledRideRequests } from '../hooks/queries';
+import rideRequestsService from '../services';
 import { RideRequest } from '../types';
 
 const LIST_HORIZONTAL_PADDING = 16;
@@ -24,6 +28,7 @@ const ACTION_RAIL_MAX_WIDTH = 320;
 const ACTION_GAP = 8;
 
 export const RideRequestsScreen: React.FC = () => {
+  const { requestPermissionAndFetchLocation } = useDriverLocation();
   const { colors } = useTheme();
   const { driverStatus } = useDriverStatus();
   const [countdown, setCountdown] = useState({ hours: 0, minutes: 27, seconds: 48 });
@@ -50,6 +55,23 @@ export const RideRequestsScreen: React.FC = () => {
   // Ensure rideRequests is always an array for FlatList
   const safeRideRequests: RideRequest[] = Array.isArray(rideRequests) ? rideRequests : [];
 
+  const rightOpenValue = -actionWidth;
+
+// first fetch driver location on mount
+  useEffect(() => {
+    requestPermissionAndFetchLocation();
+  }, [requestPermissionAndFetchLocation]);
+
+  
+  // Fetch ride requests from API
+    // Fetch ride requests from API
+    const {
+      data: scheduledRideRequests = { data: [] },
+      isRefetching: isRefetchingScheduledRideRequests,
+    } = useScheduledRideRequests();
+  
+  const upcomingRide = scheduledRideRequests?.data[0] ?? [];
+    
   // Countdown timer for upcoming ride
   useEffect(() => {
     const timer = setInterval(() => {
@@ -143,6 +165,29 @@ export const RideRequestsScreen: React.FC = () => {
   };
 
   const renderRightActions = (item: RideRequest, progress: Animated.AnimatedInterpolation<number>, dragX: Animated.AnimatedInterpolation<number>) => {
+
+      const fetchActiveRide = useCallback(async () => {
+          try {
+              const data = await rideRequestsService.acceptRideRequest();
+              console.log("✅ Ride result:", data);
+             router.push('/tripDetail');
+          } catch (err) {
+              console.error("❌ Error fetching active ride:", err);
+          } finally {
+              console.log("finally data loaded")
+          }
+      }, []); // dependencies here if it depends on something (e.g. userId)
+  
+  
+      useEffect(() => {
+          fetchActiveRide()
+  
+      }, [fetchActiveRide])
+
+  const renderHiddenItem = (
+    { item }: { item: RideRequest },
+    rowMap: RideRowMap
+  ) => {
     const actions = [
       {
         key: 'complain',
@@ -172,6 +217,7 @@ export const RideRequestsScreen: React.FC = () => {
       (effectiveRailWidth - ACTION_GAP * (actions.length - 1)) / actions.length,
       68
     );
+
 
     return (
       <View
@@ -255,34 +301,46 @@ export const RideRequestsScreen: React.FC = () => {
         {/* Custom Header */}
         <RideRequestsHeader />
 
-        {/* Upcoming Ride Card */}
-        {driverStatus === 'online' && (
-          <View style={[styles.upcomingRideCard, { backgroundColor: colors.primaryGradient }]}>
-            <View style={styles.upcomingRideHeader}>
-              <Text style={styles.upcomingRideTitle}>Upcoming ride</Text>
-              <View style={styles.timerContainer}>
-                <Text style={styles.timerText}>
-                  {String(countdown.hours).padStart(2, '0')} : {String(countdown.minutes).padStart(2, '0')} : {String(countdown.seconds).padStart(2, '0')}
-                </Text>
-              </View>
-            </View>
+       {/* Upcoming Ride Card */}
+       {!isRefetchingScheduledRideRequests && driverStatus === 'online' &&  upcomingRide && (
+         <View style={[styles.upcomingRideCard, { backgroundColor: colors.primaryGradient }]}>
+           <View style={styles.upcomingRideHeader}>
+             <Text style={styles.upcomingRideTitle}>Upcoming ride</Text>
+             <View style={styles.timerContainer}>
+               <Text style={styles.timerText}>
+                 {String(countdown.hours).padStart(2, '0')} : {String(countdown.minutes).padStart(2, '0')} : {String(countdown.seconds).padStart(2, '0')}
+               </Text>
+             </View>
+           </View>
 
-            <View style={styles.upcomingRideContent}>
-              <View style={styles.carIconContainer}>
-                <Ionicons name="car-outline" size={32} color="#FFF" />
-              </View>
-              <View style={styles.upcomingRideInfo}>
-                <Text style={styles.upcomingRideLabel}>Ride</Text>
-                <View style={styles.upcomingRideLocation}>
-                  <Ionicons name="location" size={14} color="#FFF" />
-                  <Text style={styles.upcomingRideAddress} numberOfLines={1}>
-                    79 Kampuchea Krom Boulevard...
-                  </Text>
-                </View>
-              </View>
-              <Text style={styles.upcomingRideFare}>QAR 48.75</Text>
-            </View>
-          </View>
+           <View style={styles.upcomingRideContent}>
+             <View style={styles.carIconContainer}>
+                <Image source={{uri: upcomingRide?.rider?.rideType?.image}} width={50} height={50} resizeMode='contain' />
+             </View>
+             <View style={styles.upcomingRideInfo}>
+                <Text style={styles.upcomingRideLabel}>{upcomingRide?.rider?.rideType?.name.replace(/_/g, ' ') ?? 'Ride'}</Text>
+               <View style={styles.upcomingRideLocation}>
+                 <Ionicons name="location" size={14} color="#FFF" />
+                 <Text style={styles.upcomingRideAddress} numberOfLines={1}>
+                   {upcomingRide?.dropoff?.location ?? 'No address available'}
+                 </Text>
+               </View>
+             </View>
+              <Text style={styles.upcomingRideFare}>QAR {upcomingRide?.agreedPrice}</Text>
+           </View>
+         </View>
+       )}
+
+      {/* Ride Requests List */}
+      <SwipeListView
+        data={activeRequests}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <RideCard
+            rideRequest={item}
+            onMenuPress={(rideRequest) => console.log('Menu pressed for ride:', rideRequest.id)}
+            onPress={handleRideCardPress}
+          />
         )}
 
         {/* Ride Requests List */}
