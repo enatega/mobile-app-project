@@ -279,7 +279,7 @@ export const RideRequestsScreen: React.FC = () => {
         contentContainerStyle={styles.listContent}
         refreshControl={
           <RefreshControl
-            refreshing={isRefreshing || isRefetching}
+            refreshing={isRefreshing}
             onRefresh={handleRefresh}
           />
         }
