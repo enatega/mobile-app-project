@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Lumi Driver App",
-    "slug": "lumi-driver-app",
+    "slug": "mobile-app-project",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -15,7 +15,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.lastorder.lumidrive",
+      "bundleIdentifier": "com.ninjascode.lumidrive",
       "config": {
         "googleMapsApiKey": "AIzaSyCcm7_Wd7uvmC9YnYLu2JHGWPt6z1MaL1E"
       },
@@ -66,7 +66,8 @@
           "apiKey": "AIzaSyCcm7_Wd7uvmC9YnYLu2JHGWPt6z1MaL1E"
         }
       },
-      "package": "com.lastorder.lumidrive"
+      "package": "com.ninjascode.lumidrive",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",
@@ -75,7 +76,8 @@
     },
     "plugins": [
       "expo-router",
-      "expo-web-browser"
+      "expo-web-browser",
+      "./plugins/app.plugin.js"
     ],
     "experiments": {
       "typedRoutes": true
@@ -83,9 +85,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "64f2d28a-689f-452e-84d5-a84d1eece8ce"
+        "projectId": "51fbfa8e-d54f-4521-9c7d-8335e3d90842"
       }
     },
-    "owner": "lastorder"
+    "owner": "ninjas_code"
   }
 }

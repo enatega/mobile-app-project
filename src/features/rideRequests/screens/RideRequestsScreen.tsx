@@ -4,20 +4,21 @@ import { useDriverStatus } from '@/src/hooks/useDriverStatus';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
+  Animated,
+  FlatList,
   RefreshControl,
   SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
   useWindowDimensions,
-  View
+  View,
 } from 'react-native';
-import { SwipeListView, SwipeRow } from 'react-native-swipe-list-view';
+import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
 import { FareInputModal, OfflineScreen, RideCard, RideDetailsModal } from '../components';
 import { useActiveRideRequests } from '../hooks/queries';
 import { RideRequest } from '../types';
 
-type RideRowMap = Record<string, SwipeRow<RideRequest>>;
 const LIST_HORIZONTAL_PADDING = 16;
 const ACTION_RAIL_MAX_WIDTH = 320;
 const ACTION_GAP = 8;
@@ -30,6 +31,9 @@ export const RideRequestsScreen: React.FC = () => {
   const [selectedRide, setSelectedRide] = useState<RideRequest | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [fareInputVisible, setFareInputVisible] = useState(false);
+  const [openSwipeableId, setOpenSwipeableId] = useState<string | null>(null);
+  const swipeableRefs = React.useRef<Map<string, Swipeable>>(new Map());
+  
   const { width: windowWidth } = useWindowDimensions();
   const cardRailWidth = useMemo(
     () => Math.max(0, windowWidth - LIST_HORIZONTAL_PADDING * 2),
@@ -39,10 +43,12 @@ export const RideRequestsScreen: React.FC = () => {
     () => Math.min(ACTION_RAIL_MAX_WIDTH, Math.max(120, cardRailWidth * 0.2)),
     [cardRailWidth]
   );
-  const rightOpenValue = -actionWidth;
   
   // Fetch ride requests from API
   const { data: rideRequests = [], isRefetching, refetch } = useActiveRideRequests();
+  
+  // Ensure rideRequests is always an array for FlatList
+  const safeRideRequests: RideRequest[] = Array.isArray(rideRequests) ? rideRequests : [];
 
   // Countdown timer for upcoming ride
   useEffect(() => {
@@ -62,7 +68,6 @@ export const RideRequestsScreen: React.FC = () => {
     return () => clearInterval(timer);
   }, []);
 
-
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
@@ -74,30 +79,36 @@ export const RideRequestsScreen: React.FC = () => {
     }
   };
 
-  const activeRequests = driverStatus === 'online' ? rideRequests : [];
+  const activeRequests: RideRequest[] = driverStatus === 'online' ? safeRideRequests : [];
 
-  const closeRow = (rowMap: RideRowMap, rowKey: string) => {
-    if (rowMap[rowKey]) {
-      rowMap[rowKey].closeRow();
+  const closeRow = (id: string) => {
+    const swipeable = swipeableRefs.current.get(id);
+    if (swipeable) {
+      swipeable.close();
     }
+    setOpenSwipeableId(null);
   };
 
-  const handleComplain = (rowMap: RideRowMap, rowKey: string) => {
-    closeRow(rowMap, rowKey);
-    console.log('Complain about ride:', rowKey);
+  const handleComplain = (id: string) => {
+    closeRow(id);
+    console.log('Complain about ride:', id);
   };
 
-  const handleHide = (rowMap: RideRowMap, rowKey: string) => {
-    closeRow(rowMap, rowKey);
-    console.log('Hide ride:', rowKey);
+  const handleHide = (id: string) => {
+    closeRow(id);
+    console.log('Hide ride:', id);
   };
 
-  const handleChooseOnMap = (rowMap: RideRowMap, rowKey: string) => {
-    closeRow(rowMap, rowKey);
-    console.log('Choose on map for ride:', rowKey);
+  const handleChooseOnMap = (id: string) => {
+    closeRow(id);
+    console.log('Choose on map for ride:', id);
   };
 
   const handleRideCardPress = (rideRequest: RideRequest) => {
+    // Close any open swipeable before opening modal
+    if (openSwipeableId) {
+      closeRow(openSwipeableId);
+    }
     setSelectedRide(rideRequest);
     setModalVisible(true);
   };
@@ -123,33 +134,39 @@ export const RideRequestsScreen: React.FC = () => {
     setTimeout(() => setModalVisible(true), 100);
   };
 
-  const renderHiddenItem = (
-    { item }: { item: RideRequest },
-    rowMap: RideRowMap
-  ) => {
+  const handleSwipeableWillOpen = (id: string) => {
+    // Close previously opened swipeable
+    if (openSwipeableId && openSwipeableId !== id) {
+      closeRow(openSwipeableId);
+    }
+    setOpenSwipeableId(id);
+  };
+
+  const renderRightActions = (item: RideRequest, progress: Animated.AnimatedInterpolation<number>, dragX: Animated.AnimatedInterpolation<number>) => {
     const actions = [
       {
         key: 'complain',
         label: 'Complain',
         icon: 'warning-outline' as const,
         accent: colors.danger,
-        handler: () => handleComplain(rowMap, item.id),
+        handler: () => handleComplain(item.id),
       },
       {
         key: 'hide',
         label: 'Hide Ride',
         icon: 'eye-off-outline' as const,
         accent: colors.textSecondary,
-        handler: () => handleHide(rowMap, item.id),
+        handler: () => handleHide(item.id),
       },
       {
         key: 'map',
         label: 'Choose on Map',
         icon: 'location-outline' as const,
         accent: colors.primary,
-        handler: () => handleChooseOnMap(rowMap, item.id),
+        handler: () => handleChooseOnMap(item.id),
       },
     ];
+
     const effectiveRailWidth = actionWidth - 16;
     const actionButtonWidth = Math.max(
       (effectiveRailWidth - ACTION_GAP * (actions.length - 1)) / actions.length,
@@ -159,137 +176,152 @@ export const RideRequestsScreen: React.FC = () => {
     return (
       <View
         style={[
-          styles.hiddenRow,
+          styles.hiddenActions,
           {
-            backgroundColor: colors.backgroundSecondary,
-            shadowColor: colors.shadow,
-            width: cardRailWidth,
+            width: actionWidth,
           },
         ]}
       >
-        <View
-          style={[
-            styles.hiddenActions,
-            {
-              width: actionWidth,
-            },
-          ]}
-        >
-          {actions.map((action) => (
-            <TouchableOpacity
+        {actions.map((action, index) => {
+          const trans = progress.interpolate({
+            inputRange: [0, 1],
+            outputRange: [actionWidth, 0],
+            extrapolate: 'clamp',
+          });
+
+          return (
+            <Animated.View
               key={action.key}
               style={[
-                styles.actionButton,
                 {
-                  width: actionButtonWidth,
-                  height: 52,
-                  borderColor: action.accent,
-                  marginHorizontal: ACTION_GAP / 2,
-                  marginRight: 25,
+                  transform: [{ translateX: trans }],
+                  opacity: progress,
                 },
               ]}
-              onPress={action.handler}
-              activeOpacity={0.7}
-              hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
             >
-              <Ionicons name={action.icon} size={12} color={action.accent} />
-              <Text style={[styles.actionText, { color: action.accent }]}>{action.label}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+              <TouchableOpacity
+                style={[
+                  styles.actionButton,
+                  {
+                    width: actionButtonWidth,
+                    height: 52,
+                    borderColor: action.accent,
+                    marginHorizontal: ACTION_GAP / 2,
+                    marginRight: index === actions.length - 1 ? 25 : ACTION_GAP / 2,
+                  },
+                ]}
+                onPress={action.handler}
+                activeOpacity={0.7}
+              >
+                <Ionicons name={action.icon} size={12} color={action.accent} />
+                <Text style={[styles.actionText, { color: action.accent }]}>
+                  {action.label}
+                </Text>
+              </TouchableOpacity>
+            </Animated.View>
+          );
+        })}
       </View>
     );
   };
 
+  const renderItem = ({ item }: { item: RideRequest }) => (
+    <Swipeable
+      ref={(ref) => {
+        if (ref) {
+          swipeableRefs.current.set(item.id, ref);
+        } else {
+          swipeableRefs.current.delete(item.id);
+        }
+      }}
+      renderRightActions={(progress, dragX) => renderRightActions(item, progress, dragX)}
+      overshootRight={false}
+      rightThreshold={40}
+      onSwipeableWillOpen={() => handleSwipeableWillOpen(item.id)}
+      containerStyle={styles.swipeableContainer}
+    >
+      <RideCard
+        rideRequest={item}
+        onMenuPress={(rideRequest) => console.log('Menu pressed for ride:', rideRequest.id)}
+        onPress={handleRideCardPress}
+      />
+    </Swipeable>
+  );
+
   return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
     <GradientBackground style={{ flex: 1 }}>
       <SafeAreaView style={styles.container}>
         {/* Custom Header */}
         <RideRequestsHeader />
 
-       {/* Upcoming Ride Card */}
-       {driverStatus === 'online' && (
-         <View style={[styles.upcomingRideCard, { backgroundColor: colors.primaryGradient }]}>
-           <View style={styles.upcomingRideHeader}>
-             <Text style={styles.upcomingRideTitle}>Upcoming ride</Text>
-             <View style={styles.timerContainer}>
-               <Text style={styles.timerText}>
-                 {String(countdown.hours).padStart(2, '0')} : {String(countdown.minutes).padStart(2, '0')} : {String(countdown.seconds).padStart(2, '0')}
-               </Text>
-             </View>
-           </View>
+        {/* Upcoming Ride Card */}
+        {driverStatus === 'online' && (
+          <View style={[styles.upcomingRideCard, { backgroundColor: colors.primaryGradient }]}>
+            <View style={styles.upcomingRideHeader}>
+              <Text style={styles.upcomingRideTitle}>Upcoming ride</Text>
+              <View style={styles.timerContainer}>
+                <Text style={styles.timerText}>
+                  {String(countdown.hours).padStart(2, '0')} : {String(countdown.minutes).padStart(2, '0')} : {String(countdown.seconds).padStart(2, '0')}
+                </Text>
+              </View>
+            </View>
 
-           <View style={styles.upcomingRideContent}>
-             <View style={styles.carIconContainer}>
-               <Ionicons name="car-outline" size={32} color="#FFF" />
-             </View>
-             <View style={styles.upcomingRideInfo}>
-               <Text style={styles.upcomingRideLabel}>Ride</Text>
-               <View style={styles.upcomingRideLocation}>
-                 <Ionicons name="location" size={14} color="#FFF" />
-                 <Text style={styles.upcomingRideAddress} numberOfLines={1}>
-                   79 Kampuchea Krom Boulevard...
-                 </Text>
-               </View>
-             </View>
-             <Text style={styles.upcomingRideFare}>QAR 48.75</Text>
-           </View>
-         </View>
-       )}
-
-      {/* Ride Requests List */}
-      <SwipeListView
-        data={activeRequests}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <RideCard
-            rideRequest={item}
-            onMenuPress={(rideRequest) => console.log('Menu pressed for ride:', rideRequest.id)}
-            onPress={handleRideCardPress}
-          />
+            <View style={styles.upcomingRideContent}>
+              <View style={styles.carIconContainer}>
+                <Ionicons name="car-outline" size={32} color="#FFF" />
+              </View>
+              <View style={styles.upcomingRideInfo}>
+                <Text style={styles.upcomingRideLabel}>Ride</Text>
+                <View style={styles.upcomingRideLocation}>
+                  <Ionicons name="location" size={14} color="#FFF" />
+                  <Text style={styles.upcomingRideAddress} numberOfLines={1}>
+                    79 Kampuchea Krom Boulevard...
+                  </Text>
+                </View>
+              </View>
+              <Text style={styles.upcomingRideFare}>QAR 48.75</Text>
+            </View>
+          </View>
         )}
-        renderHiddenItem={renderHiddenItem}
-        rightOpenValue={rightOpenValue}
-        stopRightSwipe={rightOpenValue}
-        leftOpenValue={0}
-        stopLeftSwipe={0}
-        disableLeftSwipe={false}
-        disableRightSwipe
-        closeOnRowPress
-        swipeToOpenPercent={35}
-        swipeToClosePercent={20}
-        recalculateHiddenLayout
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.listContent}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing || isRefetching}
-            onRefresh={handleRefresh}
-          />
-        }
-        ListEmptyComponent={<OfflineScreen isOnline={driverStatus === 'online'} />}
-      />
-      
-      <RideDetailsModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        rideRequest={selectedRide}
-        onAccept={handleAcceptRide}
-        onOfferFare={handleOfferFare}
-        onEditFare={handleEditFare}
-      />
-      
-      <FareInputModal
-        visible={fareInputVisible}
-        onClose={() => {
-          setFareInputVisible(false);
-          setTimeout(() => setModalVisible(true), 100);
-        }}
-        onOffer={handleCustomFareOffer}
-        passengerOffer={selectedRide?.estimatedFare}
-      />
+
+        {/* Ride Requests List */}
+        <FlatList
+          data={activeRequests}
+          keyExtractor={(item) => item.id}
+          renderItem={renderItem}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContent}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing || isRefetching}
+              onRefresh={handleRefresh}
+            />
+          }
+          ListEmptyComponent={<OfflineScreen isOnline={driverStatus === 'online'} />}
+        />
+
+        <RideDetailsModal
+          visible={modalVisible}
+          onClose={() => setModalVisible(false)}
+          rideRequest={selectedRide}
+          onAccept={handleAcceptRide}
+          onOfferFare={handleOfferFare}
+          onEditFare={handleEditFare}
+        />
+
+        <FareInputModal
+          visible={fareInputVisible}
+          onClose={() => {
+            setFareInputVisible(false);
+            setTimeout(() => setModalVisible(true), 100);
+          }}
+          onOffer={handleCustomFareOffer}
+          passengerOffer={selectedRide?.estimatedFare}
+        />
       </SafeAreaView>
     </GradientBackground>
+    </GestureHandlerRootView>
   );
 };
 
@@ -374,19 +406,8 @@ const styles = StyleSheet.create({
     paddingBottom: 64,
     paddingTop: 8,
   },
-  hiddenRow: {
-    minHeight: 194,
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
+  swipeableContainer: {
     marginBottom: 12,
-    borderRadius: 16,
-    paddingVertical: 6,
-    overflow: 'hidden',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    
   },
   hiddenActions: {
     flexDirection: 'column',

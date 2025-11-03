@@ -103,17 +103,17 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
 
     onAccept?.(defaultFare);
 
-    // router.push("/tripDetail"); 
-    // onClose(); setIsOffering(true);
-    setIsOffering(true);
-    Animated.timing(progress, {
-      toValue: 0,
-      duration: 10000,
-      useNativeDriver: false,
-    }).start(() => {
-      setIsOffering(false);
-      onClose();
-    });
+    router.push("/tripDetail"); 
+    onClose(); setIsOffering(true);
+    // setIsOffering(true);
+    // Animated.timing(progress, {
+    //   toValue: 0,
+    //   duration: 10000,
+    //   useNativeDriver: false,
+    // }).start(() => {
+    //   setIsOffering(false);
+    //   onClose();
+    // });
 
   };
 
