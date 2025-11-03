@@ -19,6 +19,7 @@ export const rideRequestsService = {
   ): Promise<RideRequest[]> => {
     const state = store.getState();
     const newToken = selectToken(state);
+      console.log("token", newToken);
 
     try {
       // Todo: need to get latitude and longitude from driver location slice
