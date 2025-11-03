@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "852357205099",
+    "project_id": "lumi-drive-app",
+    "storage_bucket": "lumi-drive-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:852357205099:android:a476dae050f4ffa48cb52e",
+        "android_client_info": {
+          "package_name": "com.ninjascode.lumidrive"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCL69DJPNOsl7m01qpni8VTHhTQ7mL3qwo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
