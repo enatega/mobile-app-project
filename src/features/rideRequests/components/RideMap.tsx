@@ -1,6 +1,5 @@
-import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useRef, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 
 interface Coordinate {
@@ -66,13 +65,15 @@ const RideMap: React.FC<RideMapProps> = ({ origin, destination, rideRequest }) =
         {/* Origin Marker */}
         <Marker coordinate={origin}>
           <View style={styles.iconContainer}>
-            <Ionicons name="car" size={20} color="#FFF" />
+            <Image source={require('../../../../assets/images/pickup.png')} style={styles.pickupIcon} />
           </View>
         </Marker>
 
         {/* Destination Marker */}
         <Marker coordinate={destination}>
-          <View style={[styles.iconContainer, { backgroundColor: "red" }]} />
+          <View style={[styles.iconContainer, { backgroundColor: "red" }]}>
+            <Image source={require('../../../../assets/images/dropoff.png')} style={styles.pickupIcon} />
+          </View>
         </Marker>
 
         {/* Route Line */}
@@ -96,8 +97,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   iconContainer: {
-    backgroundColor: "black",
+    backgroundColor: "#6EE7B7",
     padding: 6,
     borderRadius: 20,
+  },
+  pickupIcon: {
+    width: 16,
+    height: 16,
+    tintColor: "#fff",
   },
 });
