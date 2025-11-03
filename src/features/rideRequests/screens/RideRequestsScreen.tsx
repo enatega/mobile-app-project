@@ -3,7 +3,8 @@ import { useTheme } from '@/src/context/ThemeContext';
 import { useDriverLocation } from '@/src/hooks/useDriverLocation';
 import { useDriverStatus } from '@/src/hooks/useDriverStatus';
 import { Ionicons } from '@expo/vector-icons';
-import React, { useEffect, useMemo, useState } from 'react';
+import { router } from 'expo-router';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Image,
   RefreshControl,
@@ -17,6 +18,7 @@ import {
 import { SwipeListView, SwipeRow } from 'react-native-swipe-list-view';
 import { FareInputModal, OfflineScreen, RideCard, RideDetailsModal } from '../components';
 import { useActiveRideRequests, useScheduledRideRequests } from '../hooks/queries';
+import rideRequestsService from '../services';
 import { RideRequest } from '../types';
 
 type RideRowMap = Record<string, SwipeRow<RideRequest>>;
@@ -58,7 +60,7 @@ export const RideRequestsScreen: React.FC = () => {
       isRefetching: isRefetchingScheduledRideRequests,
     } = useScheduledRideRequests();
   
-  const upcomingRide = scheduledRideRequests.data[0] ?? [];
+  const upcomingRide = scheduledRideRequests?.data[0] ?? [];
     
   // Countdown timer for upcoming ride
   useEffect(() => {
@@ -137,6 +139,25 @@ export const RideRequestsScreen: React.FC = () => {
     setFareInputVisible(false);
     setTimeout(() => setModalVisible(true), 100);
   };
+
+
+      const fetchActiveRide = useCallback(async () => {
+          try {
+              const data = await rideRequestsService.acceptRideRequest();
+              console.log("✅ Ride result:", data);
+             router.push('/tripDetail');
+          } catch (err) {
+              console.error("❌ Error fetching active ride:", err);
+          } finally {
+              console.log("finally data loaded")
+          }
+      }, []); // dependencies here if it depends on something (e.g. userId)
+  
+  
+      useEffect(() => {
+          fetchActiveRide()
+  
+      }, [fetchActiveRide])
 
   const renderHiddenItem = (
     { item }: { item: RideRequest },
@@ -224,7 +245,7 @@ export const RideRequestsScreen: React.FC = () => {
         <RideRequestsHeader />
 
        {/* Upcoming Ride Card */}
-       {!isRefetchingScheduledRideRequests && driverStatus === 'online' && (
+       {!isRefetchingScheduledRideRequests && driverStatus === 'online' &&  upcomingRide && (
          <View style={[styles.upcomingRideCard, { backgroundColor: colors.primaryGradient }]}>
            <View style={styles.upcomingRideHeader}>
              <Text style={styles.upcomingRideTitle}>Upcoming ride</Text>
