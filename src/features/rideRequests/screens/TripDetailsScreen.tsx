@@ -2,7 +2,7 @@ import { Colors } from "@/src/constants";
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import RatingModal from "../components/RatingModal";
@@ -36,23 +36,24 @@ export const TripDetailsScreen: React.FC = () => {
         });
     };
 
-    const fetchActiveRide = async () => {
+    const fetchActiveRide = useCallback(async () => {
         try {
             const data = await rideRequestsService.acceptRideRequest();
             console.log("✅ Ride result:", data);
             setRideData(data);
-        } catch (err: any) {
+           
+        } catch (err) {
             console.error("❌ Error fetching active ride:", err);
         } finally {
             setLoading(false);
         }
-    }
+    }, []); // dependencies here if it depends on something (e.g. userId)
 
 
     useEffect(() => {
         fetchActiveRide()
 
-    }, [])
+    }, [fetchActiveRide])
 
 
 
@@ -78,16 +79,22 @@ export const TripDetailsScreen: React.FC = () => {
         const secs = seconds % 60;
         return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
     };
+    const origin = useMemo(() => {
+        return {
+            latitude: rideData?.pickup?.lat ?? 0,
+            longitude: rideData?.pickup?.lng ?? 0,
+        };
+    }, [rideData]);
 
-    const origin = {
-        latitude: rideData?.pickup?.lat ?? 0,
-        longitude: rideData?.pickupLocation?.lng ?? 0,
-    };
+    const destination = useMemo(() => {
+        return {
+            latitude: rideData?.dropoff?.lat ?? 0,
+            longitude: rideData?.dropoff?.lng ?? 0,
+        };
+    }, [rideData]);
 
-    const destination = {
-        latitude: rideData?.dropoff?.lat ?? 0,
-        longitude: rideData?.dropoff?.lng ?? 0,
-    };
+
+
 
 
     return (
@@ -145,7 +152,7 @@ export const TripDetailsScreen: React.FC = () => {
                                 source={require("@/assets/images/toIcon.png")}
                                 style={styles.iconImage}
                             />
-                            <Text style={styles.value}>{rideData?.pickup_location || "Bahria University, Bahria University, Taxi zone (Taxi zone)"}</Text>
+                            <Text numberOfLines={3} style={styles.value}>{rideData?.pickup_location || "Bahria University, Bahria University, Taxi zone (Taxi zone)"}</Text>
                         </View>
 
                         <View style={styles.section}>
@@ -153,7 +160,7 @@ export const TripDetailsScreen: React.FC = () => {
                                 source={require("@/assets/images/fromIcon.png")}
                                 style={styles.iconImage}
                             />
-                            <Text style={styles.value}>{rideData?.dropoff_location || "St 16 914 (Bahria Town, Phase 8)"}</Text>
+                            <Text numberOfLines={3} style={styles.value}>{rideData?.dropoff_location || "St 16 914 (Bahria Town, Phase 8)"}</Text>
                         </View>
 
                         <Text style={styles.priceTxt}>QAR {rideData?.agreed_price}</Text>
@@ -186,7 +193,7 @@ export const TripDetailsScreen: React.FC = () => {
             </View>
             <TouchableOpacity
                 style={[
-                    styles.button, { marginBottom: insets.bottom + 70 },
+                    styles.button, { marginBottom: insets.bottom + 60 },
                     rideStatus === "started" || rideStatus === "completed"
                         ? { backgroundColor: Colors.light.primary }
                         : { backgroundColor: Colors.light.success }
