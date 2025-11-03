@@ -1,18 +1,77 @@
+import { selectToken } from '@/src/store/selectors/authSelectors';
+import { store } from '@/src/store/store';
+import axios from 'axios';
 import { DriverStatus, RideRequest, RideRequestResponse } from '../types';
+
+
+const API_BASE = "https://api-nestjs-enatega.up.railway.app/api/v1";
 
 // Mock data for development - replace with actual API calls
 export const rideRequestsService = {
   // Get active ride requests
-  getActiveRequests: async (): Promise<RideRequest[]> => {
-    try {
-      // TODO: Replace with actual API endpoint
-      // const response = await axiosInstance.get('/api/ride-requests/active');
-      // return response.data;
+  getActiveRequests: async (
+    latitude: number,
+    longitude: number,
+    radius: number = 5000,
+    token?: string // optional auth token
+  ): Promise<RideRequest[]> => {
 
-      // Mock data for now
-      return MOCK_RIDE_REQUESTS;
+    const state = store.getState();
+    const newToken = selectToken(state);
+ 
+    try {
+      const latitude = 24.8607;
+      const longitude = 67.0011;
+      const response = await axios.get(
+        `${API_BASE}/ride-vehicles/nearby/${latitude}/${longitude}/${radius}?radius=${radius}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${newToken}`,
+          },
+        }
+      );
+      const data = response.data;
+     
+      const requests: RideRequest[] = data.map((item: any) => ({
+        id: item.id,
+        profileImg: item?.passenger?.profile,
+        passenger: {
+          id: item.passenger_id,
+          name: item.passenger.name,
+          phoneNumber: "",
+          rating: item.reviews?.averageRating ?? 0,
+          totalRides: item.reviews?.count ?? 0,
+        },
+        passengerId:item?.passenger_id,
+        pickupLocation: {
+          latitude: item.locations?.pickup.lat,
+          longitude: item.locations?.pickup.lng,
+          address: item.locations?.pickup_location || "Pickup Location",
+        },
+        dropoffLocation: {
+          latitude: item.locations?.dropoff.lat,
+          longitude: item.locations?.dropoff.lng,
+          address: item.locations?.dropoff_location || "Dropoff Location",
+        },
+        requestTime: item.createdAt,
+        estimatedFare: parseFloat(item.offered_fair) || 0,
+        distance: item.distance ?? 0,
+        estimatedDuration: 0,
+        status: item.status.toLowerCase(),
+        rideType: item.is_hourly
+          ? "hourly"
+          : item.is_scheduled
+            ? "scheduled"
+            : "standard",
+        paymentMethod: item.payment_via.toLowerCase(),
+        specialInstructions: null,
+        rideTypeId: item?.ride_type_id
+      }));
+
+      return requests;
     } catch (error) {
-      console.error('Error fetching ride requests:', error);
+      console.error("Error fetching ride requests:", error);
       throw error;
     }
   },
@@ -69,93 +128,6 @@ export const rideRequestsService = {
   },
 };
 
-// Mock data for development
-const MOCK_RIDE_REQUESTS: RideRequest[] = [
-  {
-    id: '1',
-    passenger: {
-      id: 'p1',
-      name: 'Muhammad Ali',
-      phoneNumber: '+1234567890',
-      rating: 4.7,
-      totalRides: 312,
-    },
-    pickupLocation: {
-      latitude: 40.7128,
-      longitude: -74.006,
-      address: '79 Kampuchea Krom Boulevard (128)',
-      landmark: 'Near Central Mall',
-    },
-    dropoffLocation: {
-      latitude: 40.7614,
-      longitude: -73.9776,
-      address: 'JFK Airport Terminal 2, Queens, NY',
-    },
-    requestTime: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
-    estimatedFare: 56.53,
-    distance: 1.7,
-    estimatedDuration: 25,
-    status: 'accepted',
-    rideType: 'scheduled',
-    paymentMethod: 'card',
-    specialInstructions: undefined,
-  },
-  {
-    id: '2',
-    passenger: {
-      id: 'p2',
-      name: 'Sarah Johnson',
-      phoneNumber: '+1234567891',
-      rating: 4.7,
-      totalRides: 128,
-    },
-    pickupLocation: {
-      latitude: 40.7489,
-      longitude: -73.9680,
-      address: '79 Kampuchea Krom Boulevard (128)',
-    },
-    dropoffLocation: {
-      latitude: 40.7527,
-      longitude: -73.9772,
-      address: 'Central Station, 789 Park Ave, NY',
-    },
-    requestTime: new Date(Date.now() - 300000).toISOString(),
-    estimatedFare: 56.53,
-    distance: 1.7,
-    estimatedDuration: 15,
-    status: 'pending',
-    rideType: 'standard',
-    paymentMethod: 'cash',
-    specialInstructions: undefined,
-  },
-  {
-    id: '3',
-    passenger: {
-      id: 'p3',
-      name: 'Mike Wilson',
-      phoneNumber: '+1234567892',
-      rating: 4.7,
-      totalRides: 528,
-    },
-    pickupLocation: {
-      latitude: 40.7580,
-      longitude: -73.9855,
-      address: '79 Kampuchea Krom Boulevard (128)',
-    },
-    dropoffLocation: {
-      latitude: 40.7282,
-      longitude: -74.0776,
-      address: 'Beach Resort, Staten Island, NY',
-    },
-    requestTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
-    estimatedFare: 56.53,
-    distance: 1.7,
-    estimatedDuration: 35,
-    status: 'pending',
-    rideType: 'hourly',
-    paymentMethod: 'wallet',
-    specialInstructions: 'Business charter • 3-hour block',
-  },
-];
+
 
 export default rideRequestsService;

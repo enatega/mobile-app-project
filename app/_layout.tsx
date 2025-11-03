@@ -9,13 +9,14 @@ import { useEffect } from "react";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 
-// Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
 
-export default function RootLayout() {
+export default function RootLayout() 
+{  
   const [loaded, error] = useFonts({
-    // Your custom fonts here
+
   });
+
 
   useEffect(() => {
     if (loaded || error) {
@@ -28,11 +29,19 @@ export default function RootLayout() {
   }
 
   return (
+
     <QueryClientProvider client={queryClient}>
+
       <Provider store={store}>
+
         <PersistGate loading={null} persistor={persistor}>
+
           <ThemeProvider>
-            <Stack>
+
+            <Stack screenOptions={{ headerShown: false }}>
+
+              <Stack.Screen name="index" />
+              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen name="+not-found" />
             </Stack>

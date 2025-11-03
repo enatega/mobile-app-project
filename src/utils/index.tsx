@@ -1,1 +1,0 @@
-export { handleTruncate } from "./truncate";

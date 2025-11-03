@@ -1,5 +1,17 @@
 // --- Light Theme Palette ---
 export const lightColors = {
+     // Backgrounds
+  BACKGROUND: '#FFFFFF',
+  
+  // Brand Colors
+  PRIMARY: '#3853A4', // Main brand blue
+  
+  // Text Colors
+  TEXT_PRIMARY: '#1F2937',
+  TEXT_SECONDARY: '#6B7280',
+  
+  // Gradients
+
   GRADIENT_COLORS:["#DAD5FB", "#fcfcfc"],
   colorText: "#18181B",
   colorBgTertiary:"#F4F4F5",
@@ -27,12 +39,29 @@ export const lightColors = {
   card: '#FFFFFF',
   cardBorder: '#E5E7EB',
   shadow: '#000000',
+  colorBg: "#FFFFFF",
+  colorBorder: "#E4E4E7",
+  colorBgSecondary: '#D3F2FA',
+  colorIconPrimary: '#1691BF',
+  colorTextPrimary: '#1677A4',
+  colorTextError: '#DC2626',
+  colorIconError: '#DC2626',
+  white: '#FFFFFF',
+  progressFill:"#1691BF",
   };
-  
-  // --- Dark Theme Palette ---
-  export const darkColors = {
 
-    GRADIENT_COLORS:["#DAD5FB", "#fcfcfc"],
+// --- Dark Theme Palette ---
+export const darkColors = {
+    
+  // Brand Colors
+  PRIMARY: '#3853A4', // Main brand blue
+  
+  // Text Colors
+  TEXT_PRIMARY: '#1F2937',
+  TEXT_SECONDARY: '#6B7280',
+  
+  // Gradients
+  GRADIENT_COLORS: ["#DAD5FB", "#fcfcfc"],
     colorText: "#18181B",
     colorBgTertiary:"#F4F4F5",
     colorIcon: "#27272A",
@@ -59,6 +88,14 @@ export const lightColors = {
     card: '#1F2937',
     cardBorder: '#374151',
     shadow: '#000000',
+    colorBg: "#FFFFFF",
+    colorBorder: "#E4E4E7",
+    colorBgSecondary: '#D3F2FA',
+    colorIconPrimary: '#1691BF',
+    colorTextPrimary: '#1677A4',
+    colorTextError: '#DC2626',
+    colorIconError: '#DC2626',
+    white: '#FFFFFF',
   };
   
   // --- Common Colors Palette ---
@@ -83,13 +120,13 @@ export const lightColors = {
     accepted: '#1691BF',
     completed: '#10B981',
     cancelled: '#EF4444',
+    progressFill:"#1691BF",
   };
-  
-  // --- Export ---
-  const Colors = {
-    light: lightColors,
-    dark: darkColors,
-    common: commonColors,
-  };
-  
-  export default Colors;
+// --- Export ---
+const Colors = {
+  light: lightColors,
+  dark: darkColors,
+  common: commonColors,
+};
+
+export default Colors;
