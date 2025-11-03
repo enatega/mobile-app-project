@@ -1,8 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
-import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
-import { fetchGoogleRoute } from "../services/MapServices/getRouteCoordinates";
+import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 
 interface Coordinate {
   latitude: number;
@@ -24,22 +23,22 @@ const RideMap: React.FC<RideMapProps> = ({ origin, destination, rideRequest }) =
   const [loading, setLoading] = useState(true);
 
   // Automatically fit map to show both markers
-  useEffect(() => {
-    const fetchRoute = async () => {
-      if (origin && destination) {
-        setLoading(true);
-        const route = await fetchGoogleRoute(
-          { lat: origin.latitude, lng: origin.longitude },
-          { lat: destination.latitude, lng: destination.longitude },
-          [],
-          GOOGLE_MAPS_API_KEY
-        );
-        setRouteCoords(route);
-        setLoading(false);
-      }
-    };
-    fetchRoute();
-  }, [origin, destination]);
+  // useEffect(() => {
+  //   const fetchRoute = async () => {
+  //     if (origin && destination) {
+  //       setLoading(true);
+  //       const route = await fetchGoogleRoute(
+  //         { lat: origin.latitude, lng: origin.longitude },
+  //         { lat: destination.latitude, lng: destination.longitude },
+  //         [],
+  //         GOOGLE_MAPS_API_KEY
+  //       );
+  //       setRouteCoords(route);
+  //       setLoading(false);
+  //     }
+  //   };
+  //   fetchRoute();
+  // }, [origin, destination]);
 
   useEffect(() => {
     if (mapRef.current && origin && destination) {
@@ -77,9 +76,11 @@ const RideMap: React.FC<RideMapProps> = ({ origin, destination, rideRequest }) =
         </Marker>
 
         {/* Route Line */}
-        {routeCoords.length > 0 && (
+        {/* {routeCoords.length > 0 && (
           <Polyline coordinates={routeCoords} strokeColor="#007AFF" strokeWidth={4} />
-        )}
+        )} */}
+
+        
       </MapView>
     </View>
   );
