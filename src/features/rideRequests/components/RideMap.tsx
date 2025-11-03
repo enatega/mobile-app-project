@@ -102,8 +102,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   pickupIcon: {
-    width: 16,
-    height: 16,
+    width: 8,
+    height: 8,
     tintColor: "#fff",
   },
 });
