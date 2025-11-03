@@ -1,26 +1,16 @@
-// src/lib/axios/client.ts
-// Complete Axios Client with Token Management & Error Handling
 
+import { BACKEND_URL } from '@/environment';
 import { logout } from '@/src/store/slices/auth.slice';
 import { store } from '@/src/store/store';
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { router } from 'expo-router';
 import { Alert } from 'react-native';
 
-// ============================================
-// BASE URL CONFIGURATION
-// ============================================
-// Get base URL from environment variable
-// Make sure to create .env file with: EXPO_PUBLIC_API_URL=http://your-backend-url:3000
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+
+const BASE_URL = BACKEND_URL.PRODUCTION || 'http://localhost:3000';
 
 console.log('🌐 API Base URL:', BASE_URL);
 
-// ============================================
-// CREATE AXIOS INSTANCES
-// ============================================
-
-// Main API client (for JSON requests)
 export const apiClient = axios.create({
   baseURL: BASE_URL,
   headers: {
@@ -55,7 +45,7 @@ const requestInterceptor = (config: InternalAxiosRequestConfig) => {
     console.log('⚠️ No token available for request:', config.url);
   }
 
-  // Log request details (helpful for debugging)
+
   console.log('📤 API Request:', {
     method: config.method?.toUpperCase(),
     url: config.url,
@@ -69,10 +59,7 @@ const requestInterceptor = (config: InternalAxiosRequestConfig) => {
 apiClient.interceptors.request.use(requestInterceptor);
 multipartClient.interceptors.request.use(requestInterceptor);
 
-// ============================================
-// RESPONSE INTERCEPTOR
-// ============================================
-// Handle errors globally
+
 
 const responseInterceptor = {
   // On success, just return the response
@@ -84,7 +71,6 @@ const responseInterceptor = {
     return response;
   },
 
-  // On error, handle different error types
   onError: (error: AxiosError<any>) => {
     console.error('❌ API Error:', {
       url: error.config?.url,
