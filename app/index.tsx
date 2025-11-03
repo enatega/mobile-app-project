@@ -8,7 +8,7 @@ import {
   selectTermsAccepted,
 } from "@/src/store/selectors/authSelectors";
 import { Redirect } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 
@@ -77,7 +77,7 @@ export default function RootIndex() {
 
 
   
-  return <Redirect href="/(tabs)/(rideRequests)" />;
+  return <Redirect href="/(tabs)/(rideRequests)/rideRequest" />;
 }
 
 const styles = StyleSheet.create({

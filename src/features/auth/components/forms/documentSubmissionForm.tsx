@@ -4,7 +4,7 @@ import { useAppSelector } from "@/src/store/hooks";
 import { selectDocumentSubmission } from "@/src/store/selectors/signup.selectors";
 import React, { useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
-import DocumentPicker from "react-native-document-picker";
+// import DocumentPicker from "react-native-document-picker";
 import ImagePicker from "react-native-image-crop-picker";
 import FileUploadInput, { UploadedFile } from "../common/FileUploadInput";
 
@@ -158,31 +158,33 @@ const DocumentSubmissionForm: React.FC<DocumentSubmissionFormProps> = ({
     setter: React.Dispatch<React.SetStateAction<UploadedFile[]>>,
     field: string
   ) => {
-    try {
-      console.log("Opening document picker...");
-      setUploading(field);
 
-      const res = await DocumentPicker.pick({
-        type: [DocumentPicker.types.pdf, DocumentPicker.types.images],
-      });
+    console.log("hitting this");
+    // try {
+    //   console.log("Opening document picker...");
+    //   setUploading(field);
 
-      console.log("Document picked:", res);
+    //   const res = await DocumentPicker.pick({
+    //     type: [DocumentPicker.types.pdf, DocumentPicker.types.images],
+    //   });
 
-      simulateProgress(() => {
-        const file = makeDocumentObj(res[0]);
-        console.log("File object created:", file);
-        setter([file]);
-        setErrors((prev) => ({ ...prev, [field]: undefined }));
-      });
-    } catch (err: any) {
-      console.error("Document picker error:", err);
-      setUploading(null);
-      if (DocumentPicker.isCancel(err)) {
-        console.log("User canceled the picker");
-      } else {
-        Alert.alert("Error", "Failed to pick document. Please try again.");
-      }
-    }
+    //   console.log("Document picked:", res);
+
+    //   simulateProgress(() => {
+    //     const file = makeDocumentObj(res[0]);
+    //     console.log("File object created:", file);
+    //     setter([file]);
+    //     setErrors((prev) => ({ ...prev, [field]: undefined }));
+    //   });
+    // } catch (err: any) {
+    //   console.error("Document picker error:", err);
+    //   setUploading(null);
+    //   if (DocumentPicker.isCancel(err)) {
+    //     console.log("User canceled the picker");
+    //   } else {
+    //     Alert.alert("Error", "Failed to pick document. Please try again.");
+    //   }
+    // }
   };
 
   // Remove File Handler
