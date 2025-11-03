@@ -9,33 +9,28 @@ export interface SendLoginOtpRequest {
 }
 
 interface SendLoginOtpResponse {
-  message?: string;  // Made optional since it's not in your API response
+  message?: string; 
   userId: string;
 }
 
 export const useSendLoginOtp = () => {
   return useMutation({
     mutationFn: async (data: SendLoginOtpRequest) => {
-      console.log('📤 Sending login OTP:', { ...data });
       
       const response = await apiClient.post<SendLoginOtpResponse>(
         API_ENDPOINTS.AUTH.LOGIN_SEND_OTP,
         data
       );
-      console.log("🚀 ~ useSendLoginOtp ~ response:", response.data)
-      
+
       return response.data;
     },
     onSuccess: (data, variables) => {
-      console.log('✅ Login OTP sent successfully');
-      console.log('📝 User ID:', data?.userId);  // Updated to flat access
-      console.log('📱 Phone:', variables.phone);
       
-      // Navigate with flat userId access
+
       router.push({
         pathname: '/(auth)/verifyOtpLogin',
         params: {
-          userId: data.userId,  // Fixed: No nested 'data'
+          userId: data.userId,
           phone: variables.phone,
         }
       });

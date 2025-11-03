@@ -121,6 +121,23 @@ class WebSocketService {
     this.socket.emit('place-bid', payload);
   }
 
+  onBidAccepted(callback: (data: any) => void): () => void {
+    if (!this.socket) {
+      console.warn('⚠️ Socket not initialized, cannot listen for bid-accepted');
+      return () => { };
+    }
+
+    const handler = (data: any) => {
+      console.log('📥 Bid accepted by backend:', data);
+      callback(data);
+    };
+
+    this.socket.on('bid-accepted', handler);
+
+    return () => {
+      this.socket?.off('bid-accepted', handler);
+    };
+  }
 
   // Send message via WebSocket (matching backend interface)
   sendMessage(message: IsentMessage): void {
@@ -156,6 +173,24 @@ class WebSocketService {
       if (index > -1) {
         this.connectionListeners.splice(index, 1);
       }
+    };
+  }
+  onNewRideRequest(callback: (data: any) => void): () => void {
+    if (!this.socket) {
+      console.warn('⚠️ Socket not initialized, cannot listen for new ride requests');
+      return () => { };
+    }
+
+    const handler = (data: any) => {
+      console.log('📥 New ride request for driver:', data);
+      callback(data);
+    };
+
+    this.socket.on('new-ride-request-for-driver', handler);
+
+    // Return an unsubscribe function
+    return () => {
+      this.socket?.off('new-ride-request-for-driver', handler);
     };
   }
 

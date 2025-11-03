@@ -60,3 +60,10 @@ export interface RideRequestResponse {
   message: string;
   data?: RideRequest;
 }
+
+
+export interface ScheduledRidesResponse {
+  success: boolean;
+  message: string;
+  data: RideRequest[];
+}

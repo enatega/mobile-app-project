@@ -1,4 +1,4 @@
-// src/features/auth/screens/signupThirdStage.tsx
+// src/features/auth/screens/signupThirdStage.tsx - REVERTED company registration
 import BackButton from "@/src/components/common/BackButton";
 import GradientBackground from "@/src/components/common/GradientBackground";
 import { router } from "expo-router";
@@ -7,12 +7,9 @@ import { SafeAreaView, StyleSheet, View } from "react-native";
 import Title from "../components/common/TitleHeader";
 import Stepper from "../components/common/stepper";
 import VehicleRequirementsForm, {
-    VehicleRequirementsFormValues,
+  VehicleRequirementsFormValues,
 } from "../components/forms/vechileRequirementsForm";
 
-// ============================================
-// NEW IMPORTS - API Integration
-// ============================================
 import { useCompleteOnboarding } from '@/src/features/auth/hooks';
 import { useAppDispatch, useAppSelector } from '@/src/store/hooks';
 import { selectDocumentSubmission, selectPersonalInfo } from '@/src/store/selectors/signup.selectors';
@@ -21,29 +18,16 @@ import { setVehicleRequirements } from '@/src/store/slices/signup.slice';
 const SignupThirdScreen: React.FC = () => {
   const dispatch = useAppDispatch();
 
-  // ============================================
-  // GET DATA FROM REDUX
-  // ============================================
   const documents = useAppSelector(selectDocumentSubmission);
   const personalInfo = useAppSelector(selectPersonalInfo);
 
-  // ============================================
-  // USE THE MUTATION HOOK
-  // ============================================
   const completeOnboardingMutation = useCompleteOnboarding();
 
-  // ============================================
-  // HANDLE FORM SUBMISSION
-  // ============================================
   const handleVehicleRequirementsSubmit = (values: VehicleRequirementsFormValues) => {
     console.log("🚗 Vehicle Requirements Values:", values);
 
-    // Save to Redux store first
     dispatch(setVehicleRequirements(values));
 
-    // ============================================
-    // PREPARE FILES FOR UPLOAD
-    // ============================================
     // Helper function to convert file array to single file object
     const prepareFile = (fileArray: any[]) => {
       if (!fileArray || fileArray.length === 0) {
@@ -59,18 +43,16 @@ const SignupThirdScreen: React.FC = () => {
 
     console.log('📤 Preparing onboarding data...');
     console.log('📄 Documents:', {
-      driverLicenseFront: documents.driverLicenseFront.length > 0,
-      driverLicenseBack: documents.driverLicenseBack.length > 0,
-      nationalIdFront: documents.nationalIdFront.length > 0,
-      nationalIdBack: documents.nationalIdBack.length > 0,
-      vehicleRegFront: documents.vehicleRegistrationFront.length > 0,
-      vehicleRegBack: documents.vehicleRegistrationBack.length > 0,
-      companyReg: documents.companyRegistration.length > 0,
+      driverLicenseFront: documents.driverLicenseFront?.length > 0,
+      driverLicenseBack: documents.driverLicenseBack?.length > 0,
+      nationalIdFront: documents.nationalIdFront?.length > 0,
+      nationalIdBack: documents.nationalIdBack?.length > 0,
+      vehicleRegFront: documents.vehicleRegistrationFront?.length > 0,
+      vehicleRegBack: documents.vehicleRegistrationBack?.length > 0,
+      companyReg: documents.companyRegistration?.length > 0, // ✅ Single field
     });
 
-    // ============================================
-    // VALIDATE REQUIRED DOCUMENTS
-    // ============================================
+    // Validate required documents
     const requiredDocs = [
       { name: 'Driver License Front', data: documents.driverLicenseFront },
       { name: 'Driver License Back', data: documents.driverLicenseBack },
@@ -88,9 +70,7 @@ const SignupThirdScreen: React.FC = () => {
       return;
     }
 
-    // ============================================
-    // CALL MUTATION
-    // ============================================
+    // Call mutation
     completeOnboardingMutation.mutate({
       // Required documents
       driver_license_front: prepareFile(documents.driverLicenseFront) as any,
@@ -100,8 +80,8 @@ const SignupThirdScreen: React.FC = () => {
       vehicle_registration_front: prepareFile(documents.vehicleRegistrationFront) as any,
       vehicle_registration_back: prepareFile(documents.vehicleRegistrationBack) as any,
       
-      // Optional document
-      company_commercial_registration: documents.companyRegistration.length > 0 
+      // ✅ REVERTED: Optional company registration - single field
+      company_commercial_registration: documents.companyRegistration?.length > 0 
         ? prepareFile(documents.companyRegistration) as any 
         : undefined,
       
@@ -110,15 +90,9 @@ const SignupThirdScreen: React.FC = () => {
       is_four_wheeler: values.fourDoorCar === 'yes',
       air_conditioning: values.airConditioning === 'yes',
       no_cosmetic_damage: values.noCosmeticDamage === 'yes',
-      licenseNumber: '', // TODO: Add license number field to form if needed
-      ride_type_id: personalInfo.vehicleType, // From Stage 1
+      licenseNumber: '',
+      ride_type_id: personalInfo.vehicleType,
     });
-    // Hook automatically:
-    // - Uploads all 7 files to S3 ✅
-    // - Updates backend with vehicle requirements ✅
-    // - Updates Redux (isOnboarded = true) ✅ (GATE 2 PASSED!)
-    // - Navigates to terms&service ✅
-    // - Shows success alert ✅
   };
 
   const handleBack = () => {
@@ -128,9 +102,7 @@ const SignupThirdScreen: React.FC = () => {
   return (
     <GradientBackground>
       <SafeAreaView style={styles.safeArea}>
-        {/* Fixed Header Section */}
         <View style={styles.fixedHeader}>
-          {/* Top-left back button */}
           <View style={styles.backButtonWrapper}>
             <BackButton
               size={48}
@@ -141,7 +113,6 @@ const SignupThirdScreen: React.FC = () => {
             />
           </View>
 
-          {/* Title Section */}
           <View style={styles.titleWrapper}>
             <Title
               heading="Sign up"
@@ -151,7 +122,6 @@ const SignupThirdScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Fixed Stepper - Showing step 3 */}
         <View style={styles.stepperWrapper}>
           <Stepper
             steps={[
@@ -163,12 +133,10 @@ const SignupThirdScreen: React.FC = () => {
           />
         </View>
 
-        {/* Vehicle Requirements Form */}
         <VehicleRequirementsForm 
           onSubmit={handleVehicleRequirementsSubmit}
           onBack={handleBack}
-          // Pass loading state to form
-        //   isSubmitting={completeOnboardingMutation.isPending}
+          isSubmitting={completeOnboardingMutation.isPending}
         />
       </SafeAreaView>
     </GradientBackground>
