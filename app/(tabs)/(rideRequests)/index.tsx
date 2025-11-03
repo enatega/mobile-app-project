@@ -1,13 +1,20 @@
-import { RideRequestsScreen } from '@/src/features/rideRequests/screens';
+import { RideRequestsScreen, TripDetailsScreen } from '@/src/features/rideRequests/screens';
+import rideRequestsService from '@/src/features/rideRequests/services';
 import { webSocketService } from '@/src/services/socket/webSocketService';
 import { selectUser } from '@/src/store/selectors/authSelectors';
-import React, { useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import { setNewRideRequest } from '@/src/store/slices/requestedRide';
+import { router } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 
 export default function RideRequestsRoute() {
   console.log('🚗 RideRequestsRoute is rendering!');
+  const dispatch = useDispatch();
+  const [activeRide, setActiveRide] = useState(false);
 
-  const user = useSelector(selectUser); 
+
+
+  const user = useSelector(selectUser);
 
   useEffect(() => {
     if (user?.id) {
@@ -26,14 +33,64 @@ export default function RideRequestsRoute() {
         console.log('🌐 WebSocket connection status changed:', connected);
       });
 
+      const unsubscribeNewRide = webSocketService.onNewRideRequest((data) => {
+        console.log('🔥 Received new ride for driver:', data);
+        dispatch(setNewRideRequest(data));
+      });
+
       return () => {
         console.log('👋 Cleaning up WebSocket connection');
         unsubscribeMessage();
         unsubscribeConnection();
+        unsubscribeNewRide();
         webSocketService.disconnect();
       };
     }
   }, [user?.id]);
 
+  const fetchActiveRide = useCallback(async () => {
+    try {
+      const data = await rideRequestsService.acceptRideRequest();
+      setActiveRide(true);
+    } catch (err) {
+      console.error("❌ Error fetching active ride:", err);
+    } finally {
+      console.log("finally data loaded")
+    }
+  }, [activeRide]);
+
+
+  useEffect(() => {
+    fetchActiveRide()
+
+  }, [fetchActiveRide])
+
+
+  useEffect(() => {
+    // ✅ Listen for bid accepted event
+    const unsubscribe = webSocketService.onBidAccepted((data) => {
+      console.log('🎯 Bid accepted event received:', data);
+
+      // Example data: { rideRequestId, ride_request_is_now_ride, message }
+
+      if (data.message === 'Your bid was accepted. Ride started!') {
+        console.log("Your bid was accepted. Ride started!")
+        // ✅ Navigate and update UI
+        router.push('/tripDetail');
+        // Optional: set offering state if needed
+        // setIsOffering(true);
+      }
+    });
+
+    return () => {
+      unsubscribe(); // Cleanup listener on unmount
+    };
+  }, []);
+
+  if (activeRide) {
+    return <TripDetailsScreen />;
+  }
+
   return <RideRequestsScreen />;
+
 }
