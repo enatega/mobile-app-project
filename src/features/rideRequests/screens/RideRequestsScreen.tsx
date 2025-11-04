@@ -38,7 +38,7 @@ export const RideRequestsScreen: React.FC = () => {
   const [fareInputVisible, setFareInputVisible] = useState(false);
   const [openSwipeableId, setOpenSwipeableId] = useState<string | null>(null);
   const swipeableRefs = useRef<Map<string, Swipeable>>(new Map());
-  
+
   const { width: windowWidth } = useWindowDimensions();
   const cardRailWidth = useMemo(
     () => Math.max(0, windowWidth - LIST_HORIZONTAL_PADDING * 2),
@@ -48,18 +48,18 @@ export const RideRequestsScreen: React.FC = () => {
     () => Math.min(ACTION_RAIL_MAX_WIDTH, Math.max(120, cardRailWidth * 0.2)),
     [cardRailWidth]
   );
-  
+
   // Fetch ride requests from API
   const { data: rideRequests = [], isRefetching, refetch } = useActiveRideRequests();
-  
+
   // Fetch scheduled ride requests
   const {
     data: scheduledRideRequests = { data: [] },
     isRefetching: isRefetchingScheduledRideRequests,
   } = useScheduledRideRequests();
-  
+
   const upcomingRide = scheduledRideRequests?.data[0] ?? null;
-  
+
   // Ensure rideRequests is always an array for FlatList
   const safeRideRequests: RideRequest[] = Array.isArray(rideRequests) ? rideRequests : [];
 
@@ -166,7 +166,11 @@ export const RideRequestsScreen: React.FC = () => {
     try {
       const data = await rideRequestsService.acceptRideRequest();
       console.log("✅ Ride result:", data);
-      router.push('/tripDetail');
+      console.log("ride is ::" , data?.isActiveRide)
+      if (data?.isActiveRide === 'true') {
+        router.push('/tripDetail');
+      }
+
     } catch (err) {
       console.error("❌ Error fetching active ride:", err);
     }
@@ -307,11 +311,11 @@ export const RideRequestsScreen: React.FC = () => {
 
               <View style={styles.upcomingRideContent}>
                 <View style={styles.carIconContainer}>
-                  <Image 
-                    source={{ uri: upcomingRide?.rider?.rideType?.image }} 
-                    width={50} 
-                    height={50} 
-                    resizeMode='contain' 
+                  <Image
+                    source={{ uri: upcomingRide?.rider?.rideType?.image }}
+                    width={50}
+                    height={50}
+                    resizeMode='contain'
                   />
                 </View>
                 <View style={styles.upcomingRideInfo}>
