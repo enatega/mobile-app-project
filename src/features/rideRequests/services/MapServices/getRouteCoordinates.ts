@@ -1,58 +1,32 @@
-export const decodePolyline = (t: string) => {
-  let points: { latitude: number; longitude: number }[] = [];
-  let index = 0, lat = 0, lng = 0;
+import { BACKEND_URL } from "@/environment";
 
-  while (index < t.length) {
-    let b, shift = 0, result = 0;
-    do {
-      b = t.charCodeAt(index++) - 63;
-      result |= (b & 0x1f) << shift;
-      shift += 5;
-    } while (b >= 0x20);
-    const dlat = result & 1 ? ~(result >> 1) : (result >> 1);
-    lat += dlat;
 
-    shift = 0;
-    result = 0;
-    do {
-      b = t.charCodeAt(index++) - 63;
-      result |= (b & 0x1f) << shift;
-      shift += 5;
-    } while (b >= 0x20);
-    const dlng = result & 1 ? ~(result >> 1) : (result >> 1);
-    lng += dlng;
-
-    points.push({ latitude: lat / 1e5, longitude: lng / 1e5 });
-  }
-
-  return points;
-};
+const BASE_URL = BACKEND_URL.PRODUCTION
 
 export const fetchGoogleRoute = async (
   origin: { lat: number; lng: number },
   destination: { lat: number; lng: number },
-  stops: { lat: number; lng: number }[] = [],
-  apiKey: string
+  stops: { lat: number; lng: number }[] = []
 ) => {
-  const originStr = `${origin.lat},${origin.lng}`;
-  const destinationStr = `${destination.lat},${destination.lng}`;
-  const waypoints = stops.length
-    ? `&waypoints=${stops.map((s) => `${s.lat},${s.lng}`).join("|")}`
-    : "";
-
-  const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${originStr}&destination=${destinationStr}${waypoints}&key=${apiKey}`;
-
   try {
+    const url = `${BASE_URL}/api/v1/maps/route?originLat=${origin.lat}&originLng=${origin.lng}&destinationLat=${destination.lat}&destinationLng=${destination.lng}`;
+
     const res = await fetch(url);
     const data = await res.json();
 
-    if (!data.routes?.length) {
-      console.log("⚠️ No routes found from Google");
+
+    if (!data?.path || !Array.isArray(data.path)) {
+      console.warn("⚠️ No valid path found in response");
       return [];
     }
 
-    const encoded = data.routes[0].overview_polyline.points;
-    return decodePolyline(encoded);
+    // Convert [lat, lng] pairs into { latitude, longitude } objects
+    const routeCoords = data.path.map(([lat, lng]: [number, number]) => ({
+      latitude: lat,
+      longitude: lng,
+    }));
+
+    return routeCoords;
   } catch (error) {
     console.error("❌ Error fetching route:", error);
     return [];

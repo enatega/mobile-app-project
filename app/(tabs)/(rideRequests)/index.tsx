@@ -51,9 +51,14 @@ export default function RideRequestsRoute() {
   const fetchActiveRide = useCallback(async () => {
     try {
       const data = await rideRequestsService.acceptRideRequest();
-      setActiveRide(true);
+      if (data?.isActiveRide === 'true') {
+        router.push('/tripDetail');
+      }
+
+      setActiveRide(false);
     } catch (err) {
       console.error("❌ Error fetching active ride:", err);
+      setActiveRide(false);
     } finally {
       console.log("finally data loaded")
     }
