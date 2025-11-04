@@ -9,23 +9,23 @@ const RideRequestsHeader: React.FC = () => {
   const { driverStatus, toggleDriverStatus } = useDriverStatus();
   
   // Animation for toggle switch
-  const toggleAnimation = useRef(new Animated.Value(0)).current;
+  const toggleAnimation = useRef(new Animated.Value(driverStatus === 'online' ? 1 : 0)).current;
 
-  // Initialize animation based on current status
+  // Sync animation with status changes
   useEffect(() => {
-    toggleAnimation.setValue(driverStatus === 'online' ? 1 : 0);
-  }, [driverStatus]);
+    const targetValue = driverStatus === 'online' ? 1 : 0;
+    
+    // Use timing animation for better Android performance
+    Animated.timing(toggleAnimation, {
+      toValue: targetValue,
+      duration: Platform.OS === 'android' ? 200 : 300,
+      useNativeDriver: true,
+    }).start();
+  }, [driverStatus, toggleAnimation]);
 
   const handleStatusToggle = () => {
+    // Toggle status first, animation will follow via useEffect
     toggleDriverStatus();
-    
-    // Animate toggle switch
-    Animated.spring(toggleAnimation, {
-      toValue: driverStatus === 'online' ? 0 : 1,
-      useNativeDriver: true,
-      friction: 8,
-      tension: 100,
-    }).start();
   };
 
   
@@ -70,12 +70,15 @@ const RideRequestsHeader: React.FC = () => {
                     {
                       translateX: toggleAnimation.interpolate({
                         inputRange: [0, 1],
-                        outputRange: [0, 80], // Fixed: Offline on left (0), Online on right (80)
+                        outputRange: [0, 80],
+                        extrapolate: 'clamp', // Prevent over-animation on Android
                       }),
                     },
                   ],
                 },
               ]}
+              renderToHardwareTextureAndroid={true} // Android optimization
+              shouldRasterizeIOS={true} // iOS optimization
             >
               <Text style={styles.toggleIndicatorText}>
                 {driverStatus === 'online' ? 'Online' : 'Offline'}
@@ -150,7 +153,12 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: Platform.OS === 'android' ? 5 : 3, // Higher elevation for Android
+    // Android-specific optimizations
+    ...(Platform.OS === 'android' && {
+      borderWidth: 0.5,
+      borderColor: 'rgba(0,0,0,0.1)',
+    }),
   },
   toggleIndicatorText: {
     color: '#FFF',
