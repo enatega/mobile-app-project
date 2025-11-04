@@ -58,6 +58,7 @@ export const useVerifyLoginOtp = () => {
         return;
       }
 
+      console.log("rider data verify :", rider)
       console.log('🚗 Rider Status:', rider.status);
       console.log('📋 Onboarded:', rider.is_onboarding_completed);
 
@@ -81,6 +82,7 @@ export const useVerifyLoginOtp = () => {
             availabilityStatus: rider.availabilityStatus,
             is_onboarding_completed: rider.is_onboarding_completed,
           },
+          mainTablesData: data.mainTablesData,
         })
       );
 

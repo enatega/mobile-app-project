@@ -42,6 +42,7 @@ interface AuthState {
 
   // ========== RIDER PROFILE ==========
   riderProfile: RiderProfile | null; // Rider-specific data
+  mainTablesData?: any[];
 }
 
 // ============================================
@@ -55,6 +56,7 @@ const initialState: AuthState = {
   isOnboarded: false,
   termsAccepted: false,
   riderProfile: null,
+ mainTablesData: [],
 };
 
 // ============================================
@@ -77,6 +79,7 @@ const authSlice = createSlice({
         isOnboarded: boolean;
         termsAccepted: boolean;
         riderProfile: RiderProfile;
+        mainTablesData: any[];
       }>
     ) => {
       state.isLoggedIn = true;
@@ -85,6 +88,7 @@ const authSlice = createSlice({
       state.isOnboarded = action.payload.isOnboarded;
       state.termsAccepted = action.payload.termsAccepted;
       state.riderProfile = action.payload.riderProfile;
+      state.mainTablesData = action.payload.mainTablesData;
     },
 
     // ============================================
@@ -141,6 +145,7 @@ const authSlice = createSlice({
       state.isOnboarded = false;
       state.termsAccepted = false;
       state.riderProfile = null;
+      state.mainTablesData=[];
     },
   },
 });
