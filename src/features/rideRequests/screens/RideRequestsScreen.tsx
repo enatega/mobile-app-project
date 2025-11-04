@@ -249,7 +249,6 @@ export const RideRequestsScreen: React.FC = () => {
                     height: 52,
                     borderColor: action.accent,
                     marginHorizontal: ACTION_GAP / 2,
-                    marginRight: index === actions.length - 1 ? 25 : ACTION_GAP / 2,
                   },
                 ]}
                 onPress={action.handler}
