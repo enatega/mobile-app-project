@@ -1,10 +1,14 @@
+import { BACKEND_URL } from "@/environment";
 import { API_ENDPOINTS, client } from "@/src/lib/axios";
 import { selectToken } from "@/src/store/selectors/authSelectors";
 import { store } from "@/src/store/store";
 import axios from "axios";
 import { DriverStatus, RideRequest, RideRequestResponse, ScheduledRidesResponse } from "../types";
 
-const API_BASE = "https://api-nestjs-enatega.up.railway.app/api/v1";
+
+const BASE_URL = BACKEND_URL.PRODUCTION
+
+const API_BASE = `${BASE_URL}/api/v1`;
 
 let _isAcceptingRide = false;
 

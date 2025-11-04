@@ -1,6 +1,7 @@
+import { BACKEND_URL } from "@/environment";
 
 
-const Api_Url = process.env.EXPO_BASE_URL
+const BASE_URL = BACKEND_URL.PRODUCTION
 
 export const fetchGoogleRoute = async (
   origin: { lat: number; lng: number },
@@ -8,7 +9,7 @@ export const fetchGoogleRoute = async (
   stops: { lat: number; lng: number }[] = []
 ) => {
   try {
-    const url = `https://api-nestjs-enatega.up.railway.app/api/v1/maps/route?originLat=${origin.lat}&originLng=${origin.lng}&destinationLat=${destination.lat}&destinationLng=${destination.lng}`;
+    const url = `${BASE_URL}/api/v1/maps/route?originLat=${origin.lat}&originLng=${origin.lng}&destinationLat=${destination.lat}&destinationLng=${destination.lng}`;
 
     const res = await fetch(url);
     const data = await res.json();

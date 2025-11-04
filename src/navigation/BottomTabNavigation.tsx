@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const TAB_BAR_BACKGROUND = '#1F2937';
 const ACTIVE_TINT_COLOR = '#1691BF';
@@ -61,6 +62,10 @@ function TabBarIcon({
 }
 
 export default function BottomTabsNavigator() {
+
+  const insets = useSafeAreaInsets();
+
+
   return (
     <Tabs
       initialRouteName="(rideRequests)"
@@ -75,8 +80,9 @@ export default function BottomTabsNavigator() {
           borderTopRightRadius: 20,
           elevation: 0,
           shadowOpacity: 0,
-          height: Platform.OS === 'ios' ? 85 : 60,
-          paddingBottom: Platform.OS === 'ios' ? 25 : 8,
+          height: Platform.OS === 'ios' ? 85 : 80,
+          paddingBottom: Platform.OS === 'ios' ? insets.bottom : insets.bottom +2,
+          // marginBottom:insets.bottom,
           paddingTop: 8,
           position: 'absolute',
           overflow: 'hidden',

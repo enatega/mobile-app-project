@@ -7,7 +7,7 @@ import { router } from 'expo-router';
 import { Alert } from 'react-native';
 
 
-const BASE_URL = BACKEND_URL.LOCAL || 'http://localhost:3000';
+const BASE_URL = BACKEND_URL.PRODUCTION || 'http://localhost:3000';
 
 console.log('🌐 API Base URL:', BASE_URL);
 
