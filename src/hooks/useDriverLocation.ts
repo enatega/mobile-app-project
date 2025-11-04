@@ -16,7 +16,7 @@ export const useDriverLocation = (): LocationHookResult => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const dispatch = useAppDispatch()
 
-const requestPermissionAndFetchLocation = useCallback(async () => {
+  const requestPermissionAndFetchLocation = useCallback(async () => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
@@ -25,11 +25,29 @@ const requestPermissionAndFetchLocation = useCallback(async () => {
         dispatch(setDriverStatus('offline'))
         return;
       }
+
+      const servicesEnabled = await Location.hasServicesEnabledAsync();
+      if (!servicesEnabled) {
+        setErrorMsg('Location services are disabled. Please enable GPS.');
+        dispatch(setDriverStatus('offline'));
+        return;
+      }
+
+      const currentLocation = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Highest,
+        mayShowUserSettingsDialog: true, // helps on Android
+      });
+
+      console.log("my current location : ", currentLocation)
+
+      setLocation(currentLocation);
+
+
       setErrorMsg(null);
 
-      const currentLocation = await Location.getCurrentPositionAsync({});
-      setLocation(currentLocation);
-      
+      // const currentLocation = await Location.getCurrentPositionAsync({});
+      // setLocation(currentLocation);
+
       // Store in Redux
       dispatch(setDriverLocation({
         latitude: currentLocation.coords.latitude,
@@ -38,10 +56,10 @@ const requestPermissionAndFetchLocation = useCallback(async () => {
 
       try {
         // Update in backend
-      await updateRiderCurrentLocation(
-        currentLocation.coords.latitude,
-        currentLocation.coords.longitude
-      );
+        await updateRiderCurrentLocation(
+          currentLocation.coords.latitude,
+          currentLocation.coords.longitude
+        );
       } catch (error) {
         console.log("🚀 ~ useDriverLocation ~ error:", error)
       }
