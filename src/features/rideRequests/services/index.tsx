@@ -19,7 +19,7 @@ export const rideRequestsService = {
   ): Promise<RideRequest[]> => {
     const state = store.getState();
     const newToken = selectToken(state);
-      console.log("token", newToken);
+    console.log("token", newToken);
 
     try {
       // Todo: need to get latitude and longitude from driver location slice
@@ -67,8 +67,8 @@ export const rideRequestsService = {
         rideType: item.is_hourly
           ? "hourly"
           : item.is_scheduled
-          ? "scheduled"
-          : "standard",
+            ? "scheduled"
+            : "standard",
         paymentMethod: item.payment_via.toLowerCase(),
         specialInstructions: null,
         rideTypeId: item?.ride_type_id,
@@ -119,6 +119,9 @@ export const rideRequestsService = {
     }
   },
 
+
+
+
   // Optional: expose loading state for UI
   isAcceptingRide: () => _isAcceptingRide,
 
@@ -163,6 +166,78 @@ export const rideRequestsService = {
       throw error;
     }
   },
+
+  startMyRide: async (rideId: any) => {
+    const state = store.getState();
+    const token = selectToken(state);
+
+    try {
+      const response = await axios.patch(
+        `${API_BASE}/rides/${rideId}/start-ride/${rideId}`,
+        {}, // no body data here (use {} if none)
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log("✅ Ride started:", response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error("❌ Error starting ride:", error.response?.data || error.message);
+      throw error;
+    }
+  },
+  completeMyRide: async (rideId: any) => {
+    const state = store.getState();
+    const token = selectToken(state);
+
+    try {
+      const response = await axios.patch(
+        `${API_BASE}/rides/${rideId}/complete-ride`,
+        {}, // no body data here (use {} if none)
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log("✅ Ride started:", response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error("❌ Error completing ride:", error.response?.data || error.message);
+      throw error;
+    }
+  },
+  giveDriverRating: async (reviewData: { description: string; rating: number; reviewedId: string }) => {
+    const state = store.getState();
+    const token = selectToken(state);
+
+    try {
+      const response = await axios.post(
+        `${API_BASE}/reviews`,
+        reviewData, 
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log("✅ Rating submitted:", response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error("❌ Error giving ride rating:", error.response?.data || error.message);
+      throw error;
+    }
+  },
+
+
 
   // Update driver status
   updateDriverStatus: async (
