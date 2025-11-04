@@ -2,7 +2,7 @@ import { CustomHeader, GradientBackground } from "@/src/components/common";
 import { globalStyles } from "@/src/constants";
 import { useDriverStatus } from "@/src/hooks/useDriverStatus";
 import React, { useMemo, useRef, useState } from "react";
-import { Animated, FlatList, RefreshControl, StyleSheet, View } from "react-native";
+import { Animated, FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
 import { OfflineScreen, RideCard } from "../components";
 import { useScheduledRideRequests } from "../hooks/queries";
