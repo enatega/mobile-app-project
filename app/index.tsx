@@ -77,7 +77,7 @@ export default function RootIndex() {
 
 
   
-  return <Redirect href="/(tabs)/(rideRequests)/rideRequest" />;
+  return <Redirect href="/(tabs)/(rideRequests)" />;
 }
 
 const styles = StyleSheet.create({
