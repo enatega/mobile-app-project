@@ -54,8 +54,8 @@ const RideMap: React.FC<RideMapProps> = ({ origin, destination, rideRequest }) =
         style={styles.map}
         initialRegion={{
 
-          latitude: rideRequest?.pickupLocation?.latitude ? origin.latitude : 33.6844,
-          longitude: rideRequest?.pickupLocation?.longitude ? origin.longitude : 73.0479,
+          latitude: rideRequest?.pickupLocation?.latitude ? origin.latitude : 0,
+          longitude: rideRequest?.pickupLocation?.longitude ? origin.longitude : 0,
           latitudeDelta: 0.05,
           longitudeDelta: 0.05,
         }}

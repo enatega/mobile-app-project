@@ -66,7 +66,8 @@
           "apiKey": "AIzaSyCcm7_Wd7uvmC9YnYLu2JHGWPt6z1MaL1E"
         }
       },
-      "package": "com.ninjascode.lumidrive"
+      "package": "com.ninjascode.lumidrive",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",
@@ -76,6 +77,7 @@
     "plugins": [
       "expo-router",
       "expo-web-browser",
+      "./plugins/withTwilioVoiceProxy",
       [
         "expo-location",
         {
