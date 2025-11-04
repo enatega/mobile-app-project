@@ -21,8 +21,8 @@ export const useActiveRideRequests = () => {
     queryKey: ['rideRequests', 'active', latitude, longitude],
     queryFn: () => rideRequestsService.getActiveRequests(latitude, longitude),
     enabled: !!latitude && !!longitude, // Only run if location is avail
-    refetchInterval: 10000, // Refetch every 10 seconds
-    staleTime: 5000, // Consider data stale after 5 seconds
+    // refetchInterval: 10000, // Refetch every 10 seconds
+    // staleTime: 5000, // Consider data stale after 5 seconds
   });
 };
 
