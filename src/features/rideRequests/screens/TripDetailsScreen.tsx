@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import RatingModal from "../components/RatingModal";
 import RideMap from "../components/RideMap";
 import rideRequestsService from "../services";
+import Shimmer from "../utils/Shimmer";
 
 const { height } = Dimensions.get("window");
 
@@ -48,196 +49,311 @@ export const TripDetailsScreen: React.FC = () => {
     });
   };
 
-  const fetchActiveRide = useCallback(async () => {
-    try {
-      const data = await rideRequestsService.acceptRideRequest();
-      console.log("✅ Ride result:", data);
-      setRideData(data);
-    } catch (err) {
-      console.error("❌ Error fetching active ride:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+ const rideStart = async (rideId: any) => {
+        console.log("calling ride start:", rideId)
 
-  useEffect(() => {
-    fetchActiveRide();
-  }, [fetchActiveRide]);
+        try {
+            const data = await rideRequestsService.startMyRide(rideId);
+            console.log("my ride data", data)
+            if (data?.message === 'Ride status updated to IN_PROGRESS successfully') {
+                setRideStatus("completed");
 
-  useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
-
-    if (rideStatus === "in_progress") {
-      interval = setInterval(() => {
-        setWaitingTime((prev) => prev + 1);
-      }, 1000); // increase every second
-    } else {
-      if (interval) clearInterval(interval);
-    }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [rideStatus]);
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
-  };
-
-  const origin = useMemo(() => {
-    return {
-      latitude: rideData?.pickup?.lat ?? 0,
-      longitude: rideData?.pickup?.lng ?? 0,
-    };
-  }, [rideData]);
-
-  const destination = useMemo(() => {
-    return {
-      latitude: rideData?.dropoff?.lat ?? 0,
-      longitude: rideData?.dropoff?.lng ?? 0,
-    };
-  }, [rideData]);
-
-  return (
-    <View style={{ flex: 1 }}>
-      <RideMap
-        origin={origin}
-        destination={destination}
-        rideRequest={rideData}
-      />
-
-      <View style={[styles.etaBar, { paddingTop: insets.top }]}>
-        {rideStatus === "in_progress" ? (
-          <View
-            style={{ flexDirection: "row", justifyContent: "space-between" }}
-          >
-            <Text style={styles.cancelText}>Cancel</Text>
-            <View style={styles.timerWrapper}>
-              <Text style={styles.etaText}>{formatTime(waitingTime)}</Text>
-            </View>
-          </View>
-        ) : (
-          <View
-            style={{ flexDirection: "row", justifyContent: "space-between" }}
-          >
-            <Text style={styles.cancelText}>Waiting time </Text>
-            <Text style={styles.etaText}>{formatTime(waitingTime)}</Text>
-          </View>
-        )}
-      </View>
-
-      {/* Bottom Card */}
-      <View style={styles.bottomCard}>
-        <View style={styles.bottomCardStyle}>
-          <View style={styles.leftSection}>
-            <Image
-              source={{
-                uri:
-                  rideData?.passengerUser?.profile_image ||
-                  "https://avatar.iran.liara.run/public/48",
-              }}
-              style={styles.profileImage}
-            />
-            <Text style={styles.name}>
-              {rideData?.passengerUser?.name || "John Doe"}
-            </Text>
-            <Text style={styles.rating}>
-              ⭐ {rideData?.passengerUser?.averageRating || "0"}
-            </Text>
-            <Text style={styles.rides}>
-              {rideData?.passengerUser?.noOfReviewsReceived || "0"} rides
-            </Text>
-          </View>
-
-          {/* Middle Section */}
-          <View style={styles.middleSection}>
-            <View style={styles.section}>
-              <Image
-                source={require("@/assets/images/toIcon.png")}
-                style={styles.iconImage}
-              />
-              <Text numberOfLines={3} style={styles.value}>
-                {rideData?.pickup_location ||
-                  "Bahria University, Bahria University, Taxi zone (Taxi zone)"}
-              </Text>
-            </View>
-
-            <View style={styles.section}>
-              <Image
-                source={require("@/assets/images/fromIcon.png")}
-                style={styles.iconImage}
-              />
-              <Text numberOfLines={3} style={styles.value}>
-                {rideData?.dropoff_location ||
-                  "St 16 914 (Bahria Town, Phase 8)"}
-              </Text>
-            </View>
-
-            <Text style={styles.priceTxt}>QAR {rideData?.agreed_price}</Text>
-          </View>
-
-          {/* Right Section */}
-          <View style={styles.rightSection}>
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={handleCallButtonPress}
-            >
-              <Ionicons name="call-outline" size={18} color="#27272A" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={handleChatButtonPress}
-            >
-              <MaterialCommunityIcons
-                name="message-reply-text-outline"
-                size={18}
-                color="#27272A"
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Action Button */}
-        <TouchableOpacity
-          style={[
-            styles.button,
-            { marginBottom: insets.bottom + 70 },
-            rideStatus === "started" || rideStatus === "completed"
-              ? { backgroundColor: Colors.light.primary }
-              : { backgroundColor: Colors.light.success },
-          ]}
-          onPress={() => {
-            if (rideStatus === "in_progress") {
-              setRideStatus("started");
-            } else if (rideStatus === "started") {
-              setRideStatus("completed");
-            } else if (rideStatus === "completed") {
-              console.log("Show ride completed modal here");
-              setModalRatingVisible(true);
             }
-          }}
-        >
-          {rideStatus === "in_progress" ? (
-            <Text style={styles.buttonText}>I'm Here</Text>
-          ) : rideStatus === "started" ? (
-            <Text style={styles.buttonText}>Start ride</Text>
-          ) : (
-            <Text style={styles.buttonText}>Ride Completed</Text>
-          )}
-        </TouchableOpacity>
-      </View>
 
-      <RatingModal
-        visible={modalRatingVisible}
-        onClose={() => setModalRatingVisible(false)}
-        onSubmit={(rating) => {
-          console.log("Rating submitted:", rating);
-          router.replace("/(tabs)/(rideRequests)/rideRequest");
-        }}
-      />
-    </View>
+
+        } catch (error: any) {
+            console.log("Starting a ride error:", error.response)
+        }
+    }
+    const rideCompleted = async (rideId: any) => {
+        console.log("calling ride start:", rideId)
+
+        try {
+            const data = await rideRequestsService.completeMyRide(rideId);
+            console.log("my ride data", data)
+            if (data?.message === 'Ride completed successfully') {
+                setModalRatingVisible(true);
+
+            }
+
+         
+
+        } catch (error: any) {
+            console.log("completing a ride error:", error.response)
+        }
+    }
+
+    const fetchActiveRide = useCallback(async () => {
+        try {
+            const data = await rideRequestsService.acceptRideRequest();
+            console.log("✅ Ride result:", data);
+
+            setRideData(data);
+
+
+        } catch (err) {
+            console.error("❌ Error fetching active ride:", err);
+        } finally {
+            setLoading(false);
+        }
+    }, []); // dependencies here if it depends on something (e.g. userId)
+
+
+    const giveRating = async (ratingData: { comment: string; rating: number }) => {
+        try {
+            console.log("Rating submitted:", ratingData);
+
+            const rideId = await rideRequestsService.getMyRiderId();
+            console.log("Rider ID response:", rideId);
+
+            const payload = {
+                description: ratingData.comment,
+                rating: ratingData.rating,
+                reviewedId: rideId?.riderId,
+            };
+
+            const result = await rideRequestsService.giveDriverRating(payload);
+            console.log("Server response:", result);
+            router.replace("/(tabs)/(rideRequests)/rideRequest")
+
+        } catch (error) {
+            console.log("Error giving rating:", error);
+        }
+    };
+
+
+
+
+
+    useEffect(() => {
+        fetchActiveRide()
+
+    }, [fetchActiveRide])
+
+    useEffect(() => {
+        if (!rideData) {
+            return;
+        }
+        if (rideData.status === "ASSIGNED") {
+            setRideStatus("started")
+
+        } else if (rideData.status === 'IN_PROGRESS') {
+            setRideStatus("completed");
+        }
+
+    }, [rideData])
+
+
+    useEffect(() => {
+        let interval: NodeJS.Timeout | null = null;
+
+        if (rideStatus === "in_progress") {
+            interval = setInterval(() => {
+                setWaitingTime((prev) => prev + 1);
+            }, 1000); // increase every second
+        } else {
+            if (interval) clearInterval(interval);
+        }
+
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [rideStatus]);
+
+
+    const formatTime = (seconds: number) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+    };
+    const origin = useMemo(() => {
+        return {
+            latitude: rideData?.pickup?.lat ?? 0,
+            longitude: rideData?.pickup?.lng ?? 0,
+        };
+    }, [rideData]);
+
+    const destination = useMemo(() => {
+        return {
+            latitude: rideData?.dropoff?.lat ?? 0,
+            longitude: rideData?.dropoff?.lng ?? 0,
+        };
+    }, [rideData]);
+
+
+
+
+
+
+    return (
+       <View style={{ flex: 1, }}>
+
+            <RideMap
+                origin={origin}
+                destination={destination}
+                rideRequest={rideData} />
+
+
+            <View style={[styles.etaBar, { paddingTop: insets.top }]}>
+                {rideStatus === 'in_progess' ? (
+                    <>
+                        <View style={styles.leftEtaSection}>
+                            <Text style={styles.cancelText}>Cancel</Text>
+                        </View>
+                        <View style={styles.timerWrapper}>
+                            <Text style={styles.etaText}>{formatTime(waitingTime)}</Text>
+                        </View>
+                    </>
+                ) : (
+
+
+                    <>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                            <Text style={styles.cancelText}>Waiting time </Text>
+                            <Text style={styles.etaText}>{formatTime(waitingTime)}</Text>
+                        </View>
+                    </>
+
+                )
+
+                }
+            </View>
+
+
+            {/* Bottom Card */}
+            <View style={styles.bottomCard}>
+                <View style={styles.bottomCardStyle}>
+                    <View style={styles.leftSection}>
+                        {loading ? (
+                            <Shimmer width={60} height={60} borderRadius={30} />
+                        ) : (
+
+                            <Image
+                                source={{ uri: rideData?.passengerUser?.profile_image || "https://avatar.iran.liara.run/public/48" }}
+                                style={styles.profileImage}
+                            />
+                        )
+
+                        }
+                        {loading ? (
+
+                            <Shimmer width="70%" height={18} />
+                        ) : (
+                            <Text style={styles.name}>{rideData?.passengerUser?.name}</Text>
+                        )
+
+                        }
+                        <Text style={styles.rating}>⭐ {rideData?.passengerUser?.averageRating || '0'}</Text>
+                        <Text style={styles.rides}>{rideData?.passengerUser?.noOfReviewsReceived || '0'}</Text>
+                    </View>
+
+                    {/* Middle Section */}
+                    <View style={styles.middleSection}>
+                        <View style={styles.section}>
+                            <Image
+                                source={require("@/assets/images/toIcon.png")}
+                                style={styles.iconImage}
+                            />
+                            {loading ? (
+                                <Shimmer width="90%" height={24} />
+                            ) : (
+
+                                <Text numberOfLines={3} style={styles.value}>{rideData?.pickup_location}</Text>
+                            )
+
+                            }
+                        </View>
+
+                        <View style={styles.section}>
+                            <Image
+                                source={require("@/assets/images/fromIcon.png")}
+                                style={styles.iconImage}
+                            />
+                            {loading ? (
+                                <Shimmer width="90%" height={24} />
+                            ) : (
+
+                                <Text numberOfLines={3} style={styles.value}>{rideData?.dropoff_location}</Text>
+                            )
+
+                            }
+                        </View>
+                        {loading ? (
+                            <Shimmer width="70%" height={18} />
+                        ) : (
+
+                            <Text style={styles.priceTxt}>QAR {rideData?.agreed_price}</Text>
+                        )
+
+                        }
+
+
+                    </View>
+
+                    {/* Right Section */}
+                    <View style={styles.rightSection}>
+                        <TouchableOpacity style={styles.iconButton} onPress={handleCallButtonPress}>
+                            <Ionicons name="call-outline" size={18} color="#27272A" />
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.iconButton} onPress={handleChatButtonPress}>
+                            <MaterialCommunityIcons name="message-reply-text-outline" size={18} color="#27272A" />
+                        </TouchableOpacity>
+                    </View>
+
+
+                </View>
+
+
+                <RatingModal
+                    visible={modalRatingVisible}
+                    onClose={() => setModalRatingVisible(false)}
+                    onSubmit={(rating) => {
+                        console.log("Rating submitted:", rating);
+
+                        giveRating(rating);
+
+
+
+                    }}
+                />
+
+            </View>
+            {loading ? (
+                <View style={{ marginBottom: insets.bottom + 60, alignItems: "center", }}>
+                    <Shimmer width="90%" height={40} borderRadius={20} />
+                </View>
+
+            ) : (
+                <TouchableOpacity
+                    style={[
+                        styles.button, { marginBottom: insets.bottom + 60 },
+                        rideStatus === "started" || rideStatus === "completed"
+                            ? { backgroundColor: Colors.light.primary }
+                            : { backgroundColor: Colors.light.success }
+                    ]}
+                    onPress={() => {
+                        if (rideStatus === "in_progress") {
+                            setRideStatus("started");
+                        } else if (rideStatus === "started") {
+                            rideStart(rideData?.rideId);
+
+                        } else if (rideStatus === "completed") {
+                            rideCompleted(rideData?.rideId);
+                        }
+                    }}
+                >
+                    {rideStatus === "in_progress" ? (
+                        <Text style={styles.buttonText}>I’m Here</Text>
+                    ) : rideStatus === "started" ? (
+                        <Text style={styles.buttonText}>Start ride</Text>
+                    ) : (
+                        <Text style={styles.buttonText}>Ride Completed</Text>
+                    )}
+                </TouchableOpacity>
+            )
+
+            }
+        </View>
   );
 };
 
