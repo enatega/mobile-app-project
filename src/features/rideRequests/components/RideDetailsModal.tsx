@@ -138,27 +138,27 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
 
 
 
-  useEffect(() => {
-    // ✅ Listen for bid accepted event
-    const unsubscribe = webSocketService.onBidAccepted((data) => {
-      console.log('🎯 Bid accepted event received:', data);
+  // useEffect(() => {
+  //   // ✅ Listen for bid accepted event
+  //   const unsubscribe = webSocketService.onBidAccepted((data) => {
+  //     console.log('🎯 Bid accepted event received:', data);
 
-      // Example data: { rideRequestId, ride_request_is_now_ride, message }
+  //     // Example data: { rideRequestId, ride_request_is_now_ride, message }
 
-      if (data.message === 'Your bid was accepted. Ride started!') {
-        console.log("Your bid was accepted. Ride started!")
-        // ✅ Navigate and update UI
-        router.push('/tripDetail');
-        onClose?.();
-        // Optional: set offering state if needed
-        // setIsOffering(true);
-      }
-    });
+  //     if (data.message === 'Your bid was accepted. Ride started!') {
+  //       console.log("Your bid was accepted. Ride started!")
+  //       // ✅ Navigate and update UI
+  //       router.push('/tripDetail');
+  //       onClose?.();
+  //       // Optional: set offering state if needed
+  //       // setIsOffering(true);
+  //     }
+  //   });
 
-    return () => {
-      unsubscribe(); // Cleanup listener on unmount
-    };
-  }, []);
+  //   return () => {
+  //     unsubscribe(); // Cleanup listener on unmount
+  //   };
+  // }, []);
 
 
   const origin = {
