@@ -1,4 +1,5 @@
 import { Colors } from "@/src/constants";
+import { RootState } from "@/src/store/store";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { router } from "expo-router";
@@ -12,6 +13,7 @@ import {
     View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSelector } from "react-redux";
 import RatingModal from "../components/RatingModal";
 import RideMap from "../components/RideMap";
 import rideRequestsService from "../services";
@@ -26,6 +28,8 @@ export const TripDetailsScreen: React.FC = () => {
   const [rideData, setRideData] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [waitingTime, setWaitingTime] = useState(900); // 15 * 60
+  const { currency } = useSelector((state: RootState) => state.appConfig);
+
 
   // ✅ TODO: Replace with actual IDs from your ride data/auth system
   const driverId = "ce1dd6a2-8662-495e-ae04-e0b84e0e3e30"; // Hardcoded for testing
@@ -288,7 +292,7 @@ export const TripDetailsScreen: React.FC = () => {
                             <Shimmer width="70%" height={18} />
                         ) : (
 
-                            <Text style={styles.priceTxt}>QAR {rideData?.agreed_price}</Text>
+                            <Text style={styles.priceTxt}>{currency?.code} {rideData?.agreed_price}</Text>
                         )
 
                         }
