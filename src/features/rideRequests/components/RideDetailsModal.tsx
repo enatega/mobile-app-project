@@ -10,6 +10,7 @@ import {
   Animated,
   Dimensions,
   Modal,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -187,6 +188,15 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         {/* Header */}
         <View style={[styles.header, { borderBottomColor: colors.border }]}>
+          {Platform.OS === 'android' && (
+            <TouchableOpacity 
+              style={styles.backButton}
+              onPress={onClose}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="arrow-back" size={24} color={colors.text} />
+            </TouchableOpacity>
+          )}
           <Text style={[styles.headerTitle, { color: colors.text }]}>Ride Details</Text>
         </View>
 
@@ -349,6 +359,16 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
     paddingHorizontal: 20,
     alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    width: '100%',
+  },
+  backButton: {
+    position: 'absolute',
+    left: 20,
+    top: 30,
+    padding: 8,
+    zIndex: 1,
   },
   headerTitle: {
     fontSize: 18,
