@@ -4,12 +4,12 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { router } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  Dimensions,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Dimensions,
+    Image,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import RatingModal from "../components/RatingModal";
@@ -219,6 +219,12 @@ export const TripDetailsScreen: React.FC = () => {
                 }
             </View>
 
+
+            {/* Navigate Button */}
+            <TouchableOpacity style={styles.navigateButton}>
+                <Ionicons name="navigate" size={24} color="#fff" />
+                <Text style={{ color: "#fff", marginTop: 4, fontSize: 16, fontWeight: "600" }}>Navigate</Text>
+            </TouchableOpacity>
 
             {/* Bottom Card */}
             <View style={styles.bottomCard}>
@@ -498,5 +504,25 @@ const styles = StyleSheet.create({
   },
   timerWrapper: {
     alignItems: "center",
+  },
+  navigateButton: {
+    position: "absolute",
+    display: "flex",
+    flexDirection: "row",
+    alignContent: "center",
+    gap: "2",
+    bottom: height * 0.4 + 10,
+    left: 20,
+    backgroundColor: "#000000",
+    width: 140,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 4,
   },
 });
