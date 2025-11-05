@@ -1,18 +1,16 @@
-import {
-  RideRequestsScreen,
-  TripDetailsScreen,
-} from "@/src/features/rideRequests/screens";
-import rideRequestsService from "@/src/features/rideRequests/services";
-import { webSocketService } from "@/src/services/socket/webSocketService";
-import { selectUser } from "@/src/store/selectors/authSelectors";
-import { router } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { RideRequestsScreen, TripDetailsScreen } from '@/src/features/rideRequests/screens';
+import rideRequestsService from '@/src/features/rideRequests/services';
+import { useAppConfig } from '@/src/hooks/useAppConfig';
+import { webSocketService } from '@/src/services/socket/webSocketService';
+import { selectUser } from '@/src/store/selectors/authSelectors';
+import { router } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 
 export default function RideRequestsRoute() {
   console.log("🚗 RideRequestsRoute is rendering!");
-  const dispatch = useDispatch();
   const [activeRide, setActiveRide] = useState(false);
+  const {} = useAppConfig();
 
   const user = useSelector(selectUser);
 

@@ -1,6 +1,8 @@
+import { RootState } from "@/src/store/store";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
+import { useSelector } from "react-redux";
 
 interface RideInfoCardProps {
   rideRequest: any;
@@ -9,6 +11,10 @@ interface RideInfoCardProps {
 }
 
 const RideInfoCard: React.FC<RideInfoCardProps> = ({ rideRequest, defaultFare, colors }) => {
+
+  const { currency } = useSelector((state: RootState) => state.appConfig);
+
+  
   return (
     <View style={styles.rideInfo}>
       {/* Fare + Passenger Section */}
@@ -19,7 +25,7 @@ const RideInfoCard: React.FC<RideInfoCardProps> = ({ rideRequest, defaultFare, c
         />
         <View style={styles.fareDetails}>
           <Text style={[styles.fareAmount, { color: colors.text }]}>
-            QAR {defaultFare.toFixed(2)}
+            {currency?.code} {defaultFare.toFixed(2)}
           </Text>
           <Text style={[styles.passengerName, { color: colors.textSecondary }]}>
             {rideRequest?.passenger?.name}

@@ -1,7 +1,9 @@
 // src/features/wallet/components/wallet-main/TransactionItem.tsx
+import { RootState } from "@/src/store/store";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useSelector } from "react-redux";
 
 export interface Transaction {
   id: string;
@@ -22,6 +24,9 @@ const TransactionItem: React.FC<TransactionItemProps> = ({
   transaction,
   onPress,
 }) => {
+
+  const { currency } = useSelector((state: RootState) => state.appConfig);
+
   // Safely convert amount to number and format
   const amount = Number(transaction.amount) || 0;
   const formattedAmount = amount.toFixed(2);
@@ -48,7 +53,7 @@ const TransactionItem: React.FC<TransactionItemProps> = ({
             transaction.isPositive && styles.amountPositive,
           ]}
         >
-          {transaction.isPositive ? "+" : "-"} QAR {formattedAmount}
+          {transaction.isPositive ? "+" : "-"} {currency?.code} {formattedAmount}
         </Text>
         <Ionicons name="chevron-forward" size={20} color="#999" />
       </View>

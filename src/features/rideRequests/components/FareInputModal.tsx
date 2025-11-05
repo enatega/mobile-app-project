@@ -1,5 +1,6 @@
 import Button from '@/src/components/ui/Button /index';
 import { useTheme } from '@/src/context/ThemeContext';
+import { RootState } from '@/src/store/store';
 import { Ionicons } from '@expo/vector-icons';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import React, { useState } from 'react';
@@ -14,6 +15,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 
 interface FareInputModalProps {
   visible: boolean;
@@ -32,6 +34,7 @@ const FareInputModal: React.FC<FareInputModalProps> = ({
   const [fareInput, setFareInput] = useState('');
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight()+ insets.bottom+10;
+const { currency } = useSelector((state: RootState) => state.appConfig);
 
   const handleOffer = () => {
     const fare = parseInt(fareInput);
@@ -59,7 +62,7 @@ const FareInputModal: React.FC<FareInputModalProps> = ({
 
             <View style={styles.content}>
               <View style={styles.fareDisplay}>
-                <Text style={[styles.currency, { color: colors.textSecondary }]}>QAR</Text>
+                <Text style={[styles.currency, { color: colors.textSecondary }]}>{currency?.code}</Text>
                 <TextInput
                   style={[styles.fareInput, { color: colors.text, borderBottomColor: colors.border }]}
                   value={fareInput}
@@ -72,7 +75,7 @@ const FareInputModal: React.FC<FareInputModalProps> = ({
               </View>
 
               <Text style={[styles.passengerOffer, { color: colors.textSecondary }]}>
-                Passenger's offer: QAR{passengerOffer}
+                Passenger's offer: {currency?.code} {passengerOffer}
               </Text>
 
               <Button
