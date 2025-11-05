@@ -1,5 +1,7 @@
+import { RootState } from "@/src/store/store";
 import React from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
+import { useSelector } from "react-redux";
 
 interface AmountInputProps {
   amount: string;
@@ -10,6 +12,10 @@ const AmountInput: React.FC<AmountInputProps> = ({
   amount,
   onAmountChange,
 }) => {
+
+
+  const { currency } = useSelector((state: RootState) => state.appConfig);
+
   const handleTextChange = (text: string) => {
     const numericValue = text.replace(/[^0-9.]/g, "");
     onAmountChange(numericValue);
@@ -21,14 +27,14 @@ const AmountInput: React.FC<AmountInputProps> = ({
         Offer your fare <Text style={styles.required}>*</Text>
       </Text>
       <Text style={styles.helperText}>
-        Enter an amount between QAR 10.00 and QAR 500
+        Enter an amount between {currency?.code} 10.00 and {currency?.code} 500
       </Text>
 
       <TextInput
         style={styles.input}
-        placeholder="QAR  0.00"
+       placeholder={`${currency?.code} 0.00`}
         placeholderTextColor="#9CA3AF"
-        value={amount ? `QAR  ${amount}` : ""}
+        value={amount ? `${currency?.code}  ${amount}` : ""}
         onChangeText={handleTextChange}
         keyboardType="decimal-pad"
       />

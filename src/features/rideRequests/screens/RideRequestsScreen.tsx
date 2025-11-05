@@ -2,6 +2,7 @@ import { GradientBackground, RideRequestsHeader } from '@/src/components/common'
 import { useTheme } from '@/src/context/ThemeContext';
 import { useDriverLocation } from '@/src/hooks/useDriverLocation';
 import { useDriverStatus } from '@/src/hooks/useDriverStatus';
+import { RootState } from '@/src/store/store';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -18,6 +19,7 @@ import {
   View,
 } from 'react-native';
 import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
+import { useSelector } from 'react-redux';
 import { FareInputModal, OfflineScreen, RideCard, RideDetailsModal } from '../components';
 import { useActiveRideRequests, useScheduledRideRequests } from '../hooks/queries';
 import rideRequestsService from '../services';
@@ -30,6 +32,8 @@ const ACTION_GAP = 8;
 export const RideRequestsScreen: React.FC = () => {
   const { requestPermissionAndFetchLocation } = useDriverLocation();
   const { colors } = useTheme();
+  const { currency } = useSelector((state: RootState) => state.appConfig);
+
   const { driverStatus } = useDriverStatus();
   const [countdown, setCountdown] = useState({ hours: 0, minutes: 27, seconds: 48 });
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -328,7 +332,7 @@ export const RideRequestsScreen: React.FC = () => {
                     </Text>
                   </View>
                 </View>
-                <Text style={styles.upcomingRideFare}>QAR {upcomingRide?.agreedPrice}</Text>
+                <Text style={styles.upcomingRideFare}>{currency?.code} {upcomingRide?.agreedPrice}</Text>
               </View>
             </View>
           )}
