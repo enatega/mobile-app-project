@@ -1,5 +1,7 @@
+import { RootState } from "@/src/store/store";
 import React from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
+import { useSelector } from "react-redux";
 
 interface WithdrawAmountInputProps {
   amount: string;
@@ -10,6 +12,9 @@ const WithdrawAmountInput: React.FC<WithdrawAmountInputProps> = ({
   amount,
   onAmountChange,
 }) => {
+
+  const { currency } = useSelector((state: RootState) => state.appConfig);
+
   const handleTextChange = (text: string) => {
     const numericValue = text.replace(/[^0-9.]/g, "");
     onAmountChange(numericValue);
@@ -23,9 +28,9 @@ const WithdrawAmountInput: React.FC<WithdrawAmountInputProps> = ({
 
       <TextInput
         style={styles.input}
-        placeholder="QAR  0.00"
+        placeholder={`${currency?.code} 0.00`}
         placeholderTextColor="#9CA3AF"
-        value={amount ? `QAR  ${amount}` : ""}
+        value={amount ? `${currency?.code}  ${amount}` : ""}
         onChangeText={handleTextChange}
         keyboardType="decimal-pad"
       />

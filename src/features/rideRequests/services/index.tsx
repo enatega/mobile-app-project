@@ -8,7 +8,7 @@ import { DriverStatus, RideRequest, RideRequestResponse, ScheduledRidesResponse 
 
 const BASE_URL = BACKEND_URL.PRODUCTION
 
-const API_BASE = `${BASE_URL}/api/v1`;
+const API_BASE = `${BASE_URL}`;
 
 let _isAcceptingRide = false;
 
@@ -32,7 +32,7 @@ export const rideRequestsService = {
       const longitude = 72.9799404;
 
       const response = await axios.get(
-        `${API_BASE}/ride-vehicles/nearby/${latitude}/${longitude}/${radius}?radius=${radius}`,
+        `${API_BASE}/api/v1/ride-vehicles/nearby/${latitude}/${longitude}/${radius}?radius=${radius}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -95,7 +95,7 @@ export const rideRequestsService = {
       _isAcceptingRide = true;
 
       const response = await axios.get(
-        `${API_BASE}/rides/ongoing/active/driver`,
+        `${API_BASE}/api/v1/rides/ongoing/active/driver`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -154,7 +154,7 @@ export const rideRequestsService = {
 
     try {
       const response = await axios.get(
-        `${API_BASE}/ride-vehicles/rider/get-my-rider-id`,
+        `${API_BASE}/api/v1/ride-vehicles/rider/get-my-rider-id`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -177,7 +177,7 @@ export const rideRequestsService = {
 
     try {
       const response = await axios.patch(
-        `${API_BASE}/rides/${rideId}/start-ride/${rideId}`,
+        `${API_BASE}/api/v1/rides/${rideId}/start-ride/${rideId}`,
         {}, // no body data here (use {} if none)
         {
           headers: {
@@ -200,7 +200,7 @@ export const rideRequestsService = {
 
     try {
       const response = await axios.patch(
-        `${API_BASE}/rides/${rideId}/complete-ride`,
+        `${API_BASE}/api/v1/rides/${rideId}/complete-ride`,
         {}, // no body data here (use {} if none)
         {
           headers: {
@@ -217,14 +217,41 @@ export const rideRequestsService = {
       throw error;
     }
   },
+
+
+  checkCurrency: async () => {
+    const state = store.getState();
+    const token = selectToken(state);
+
+    console.log("📤 checkCurrency called with token:", token);
+
+
+    try {
+      const response = await axios.get(`${API_BASE}/currency`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      console.log("✅ checking my currency:", response.data);
+      return response.data;
+    } catch (error:any) {
+      console.log("❌ Error in getting Currency", error.response);
+      throw error; // allow upper layers (hook) to handle it
+    }
+  },
+
+
+
   giveDriverRating: async (reviewData: { description: string; rating: number; reviewedId: string }) => {
     const state = store.getState();
     const token = selectToken(state);
 
     try {
       const response = await axios.post(
-        `${API_BASE}/reviews`,
-        reviewData, 
+        `${API_BASE}/api/v1/reviews`,
+        reviewData,
         {
           headers: {
             "Content-Type": "application/json",
@@ -240,6 +267,7 @@ export const rideRequestsService = {
       throw error;
     }
   },
+
 
 
 

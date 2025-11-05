@@ -1,5 +1,7 @@
+import { RootState } from "@/src/store/store";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { useSelector } from "react-redux";
 
 interface CurrentBalanceDisplayProps {
   balance: number;
@@ -8,10 +10,14 @@ interface CurrentBalanceDisplayProps {
 const CurrentBalanceDisplay: React.FC<CurrentBalanceDisplayProps> = ({
   balance,
 }) => {
+
+const { currency } = useSelector((state: RootState) => state.appConfig);
+
+
   return (
     <View style={styles.container}>
       <Text style={styles.label}>Current balance</Text>
-      <Text style={styles.balance}>QAR{balance.toFixed(2)}</Text>
+      <Text style={styles.balance}>{currency?.code}{balance.toFixed(2)}</Text>
     </View>
   );
 };

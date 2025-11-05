@@ -1,6 +1,8 @@
+import { RootState } from "@/src/store/store";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useSelector } from "react-redux";
 
 interface WalletBalanceCardProps {
   balance: number;
@@ -11,11 +13,15 @@ const WalletBalanceCard: React.FC<WalletBalanceCardProps> = ({
   balance,
   onAddFunds,
 }) => {
+  const { currency } = useSelector((state: RootState) => state.appConfig);
+
+
+
   return (
     <View style={styles.container}>
       <Text style={styles.label}>Your balance</Text>
       <View style={styles.balanceRow}>
-        <Text style={styles.balanceAmount}>QAR {balance.toFixed(2)}</Text>
+        <Text style={styles.balanceAmount}>{currency?.code} {balance.toFixed(2)}</Text>
         <TouchableOpacity
           style={styles.addFundsButton}
           onPress={onAddFunds}

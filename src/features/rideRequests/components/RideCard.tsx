@@ -1,7 +1,9 @@
 import { useTheme } from '@/src/context/ThemeContext';
+import { RootState } from '@/src/store/store';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useMemo } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import { RideRequest } from '../types';
 
 interface RideCardProps {
@@ -21,6 +23,7 @@ const rideTypeCopy: Record<RideRequest['rideType'], { label: string; background:
   standard: { label: 'Standard', background: '#D9F8EE', text: '#03543F' },
   hourly: { label: 'Hourly', background: '#E0E7FF', text: '#3730A3' },
 };
+
 
 const getBadgeColors = (rideType: RideRequest['rideType']) =>
   rideTypeCopy[rideType] || rideTypeCopy.standard;
@@ -132,6 +135,7 @@ const getTravelTimeLabel = (rideRequest: RideRequest) => {
 
 export const RideCard: React.FC<RideCardProps> = ({ rideRequest, onMenuPress, onPress }) => {
   const { colors } = useTheme();
+  const { currency } = useSelector((state: RootState) => state.appConfig);
   const badge = useMemo(() => getBadgeColors(rideRequest.rideType), [rideRequest.rideType]);
   const avatarSource = useMemo(() => getAvatarSource(rideRequest), [rideRequest]);
   const totalRides = useMemo(() => getPassengerRides(rideRequest), [rideRequest]);
@@ -235,7 +239,7 @@ export const RideCard: React.FC<RideCardProps> = ({ rideRequest, onMenuPress, on
             {rideRequest.estimatedDuration} min
           </Text>
         </View>
-        <Text style={[styles.fare, { color: colors.text }]}>QAR {rideRequest.estimatedFare.toFixed(2)}</Text>
+        <Text style={[styles.fare, { color: colors.text }]}>{currency?.code} {rideRequest.estimatedFare.toFixed(2)}</Text>
       </View>
     </TouchableOpacity>
   );

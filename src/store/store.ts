@@ -7,11 +7,11 @@ import { PersistConfig } from 'redux-persist/es/types';
 import authReducer from './slices/auth.slice';
 import signupReducer from './slices/signup.slice'; // Import signup reducer
 // Slices
+import appConfigReducer from './slices/appConfigSlice';
 import driverLocationReducer from './slices/driverLocation.slice';
 import driverStatusReducer from './slices/driverStatus.slice';
 import rideReducer from './slices/requestedRide';
 import themeReducer from './slices/theme.slice';
-
 
 const rootReducer = combineReducers({
   theme: themeReducer,
@@ -19,6 +19,7 @@ const rootReducer = combineReducers({
   signup: signupReducer, // Add signup reducer
   driverStatus: driverStatusReducer,
   ride: rideReducer,
+  appConfig: appConfigReducer,
 
   driverLocation: driverLocationReducer
 });
