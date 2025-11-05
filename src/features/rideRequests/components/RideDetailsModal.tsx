@@ -3,6 +3,7 @@ import { Colors } from '@/src/constants';
 import { useTheme } from '@/src/context/ThemeContext';
 import { webSocketService } from '@/src/services/socket/webSocketService';
 import { selectUser } from '@/src/store/selectors/authSelectors';
+import { RootState } from '@/src/store/store';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
@@ -48,6 +49,8 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
   const [isOffering, setIsOffering] = useState(false);
   const progress = useRef(new Animated.Value(100)).current;
   const user = useSelector(selectUser);
+  const { currency } = useSelector((state: RootState) => state.appConfig);
+
 
 
 
@@ -59,15 +62,15 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
     longitudeDelta: 0.05,
   });
   const [selectedFare, setSelectedFare] = useState<number | null>(null);
-  const [myRiderId, setMyRiderId]= useState("");
+  const [myRiderId, setMyRiderId] = useState("");
 
 
   const defaultFare = rideRequest?.estimatedFare || 0;
 
   const fareOptions = [
-    { label: `QAR${Math.round(defaultFare * 1.1)}`, value: Math.round(defaultFare * 1.1) },
-    { label: `QAR${Math.round(defaultFare * 1.2)}`, value: Math.round(defaultFare * 1.2) },
-    { label: `QAR${Math.round(defaultFare * 1.3)}`, value: Math.round(defaultFare * 1.3) },
+    { label: `${currency?.code}${Math.round(defaultFare * 1.1)}`, value: Math.round(defaultFare * 1.1) },
+    { label: `${currency?.code}${Math.round(defaultFare * 1.2)}`, value: Math.round(defaultFare * 1.2) },
+    { label: `${currency?.code}${Math.round(defaultFare * 1.3)}`, value: Math.round(defaultFare * 1.3) },
   ];
 
 
@@ -101,7 +104,7 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
 
     onAccept?.(defaultFare);
 
-    router.push("/tripDetail"); 
+    router.push("/tripDetail");
     onClose(); setIsOffering(true);
     // setIsOffering(true);
     // Animated.timing(progress, {
@@ -189,7 +192,7 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
         {/* Header */}
         <View style={[styles.header, { borderBottomColor: colors.border }]}>
           {Platform.OS === 'android' && (
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.backButton}
               onPress={onClose}
               activeOpacity={0.7}
@@ -243,7 +246,7 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
           {/* Action Buttons */}
           <View style={styles.actionSection}>
             <Button
-              title={`Accept for QAR${defaultFare.toFixed(0)}`}
+              title={`Accept for ${currency?.code}${defaultFare.toFixed(0)}`}
               onPress={() => handleAccept(rideRequest)}
               variant="primary"
               fullWidth
@@ -301,7 +304,7 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
               {/* Centered text */}
               <View style={styles.overlayTextContainer}>
                 <Text style={styles.offerTitle}>Offering your fare</Text>
-                <Text style={styles.offerFare}>QAR {selectedFare || defaultFare}</Text>
+                <Text style={styles.offerFare}>{currency?.code} {selectedFare || defaultFare}</Text>
                 <Text style={styles.offerSubtext}>Wait for the reply</Text>
               </View>
 
