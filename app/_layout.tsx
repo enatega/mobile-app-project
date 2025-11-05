@@ -58,10 +58,43 @@ function AppContent() {
       
       // Listen to incoming call events
       if (twilioService.onIncomingCall) {
-        twilioService.onIncomingCall((callData) => {
-          console.log('📞 Incoming call received:', callData);
-          // Handle incoming call UI/navigation here
-        });
+        twilioService.onIncomingCall = (callInvite) => {
+          const callerIdentity = callInvite.getFrom();
+          console.log('📞 Incoming call from:', callerIdentity);
+          Alert.alert(
+            'Incoming Call',
+            `Call from ${callerIdentity}`,
+            [
+              {
+                text: 'Reject',
+                style: 'cancel',
+                onPress: () => {
+                  twilioService.rejectCall();
+                }
+              },
+              {
+                text: 'Accept',
+                onPress: async () => {
+                  try {
+                    await twilioService.acceptCall();
+                    // Navigate to call screen - you'll need to import router
+                    // router.push({
+                    //   pathname: "/(tabs)/(rideRequests)/callScreen",
+                    //   params: {
+                    //     customerId: callerIdentity,
+                    //     customerName: "Customer",
+                    //     profileImage: "https://avatar.iran.liara.run/public/48",
+                    //   },
+                    // });
+                  } catch (error) {
+                    console.error('Failed to accept call:', error);
+                    Alert.alert('Error', 'Failed to accept call');
+                  }
+                }
+              }
+            ]
+          );
+        };
       }
       
     } catch (error) {
