@@ -10,7 +10,7 @@ import { useSelector } from 'react-redux';
 export default function RideRequestsRoute() {
   console.log("🚗 RideRequestsRoute is rendering!");
   const [activeRide, setActiveRide] = useState(false);
-  const {} = useAppConfig();
+  const { } = useAppConfig();
 
   const user = useSelector(selectUser);
 
@@ -55,7 +55,7 @@ export default function RideRequestsRoute() {
     try {
       const data = await rideRequestsService.acceptRideRequest();
       console.log("Active ride data:", data);
-      if (data?.isActiveRide === "true") {
+      if (data?.status === "ASSIGNED" || data?.status === "IN_PROGRESS") {
         router.push("/tripDetail");
       }
 

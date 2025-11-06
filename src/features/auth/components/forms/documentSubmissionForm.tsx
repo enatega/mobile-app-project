@@ -5,6 +5,8 @@ import { selectDocumentSubmission } from "@/src/store/selectors/signup.selectors
 import React, { useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 // import DocumentPicker from "react-native-document-picker";
+import { types as DocumentTypes, pick } from "@react-native-documents/picker";
+
 import ImagePicker from "react-native-image-crop-picker";
 import FileUploadInput, { UploadedFile } from "../common/FileUploadInput";
 
@@ -30,7 +32,7 @@ const DocumentSubmissionForm: React.FC<DocumentSubmissionFormProps> = ({
 }) => {
   // Get saved data from Redux store
   const savedDocuments = useAppSelector(selectDocumentSubmission);
-  
+
   // Use saved data from Redux if available, otherwise use prop initialValues or empty defaults
   const [profilePicture, setProfilePicture] = useState<UploadedFile[]>(
     initialValues?.profilePicture || savedDocuments.profilePicture || []
@@ -53,7 +55,7 @@ const DocumentSubmissionForm: React.FC<DocumentSubmissionFormProps> = ({
   const [vehicleRegistrationBack, setVehicleRegistrationBack] = useState<
     UploadedFile[]
   >(initialValues?.vehicleRegistrationBack || savedDocuments.vehicleRegistrationBack || []);
-  
+
   // ✅ REVERTED: Single company registration field
   const [companyRegistration, setCompanyRegistration] = useState<UploadedFile[]>(
     initialValues?.companyRegistration || savedDocuments.companyRegistration || []
@@ -71,18 +73,18 @@ const DocumentSubmissionForm: React.FC<DocumentSubmissionFormProps> = ({
       name: "",
       type: "",
     };
-    
+
     if (image) {
       obj.uri = image?.sourceURL ? image?.sourceURL : image?.path;
       obj.name = image?.filename
         ? image?.filename
         : image?.path
-        ? image?.path?.split('/')[image?.path?.split('/')?.length - 1]
-        : image?.sourceURL?.split('/')[image?.sourceURL?.split('/')?.length - 1];
+          ? image?.path?.split('/')[image?.path?.split('/')?.length - 1]
+          : image?.sourceURL?.split('/')[image?.sourceURL?.split('/')?.length - 1];
       obj.type = image?.mime || "image/jpeg";
       obj.size = image?.size;
     }
-    
+
     return obj;
   };
 
@@ -92,10 +94,11 @@ const DocumentSubmissionForm: React.FC<DocumentSubmissionFormProps> = ({
     return {
       uri: doc?.uri,
       name: doc?.name || "document.pdf",
-      type: doc?.type || "application/pdf",
-      size: doc?.size,
+      type: doc?.mimeType || doc?.type || "application/pdf", // supports both for backward compatibility
+      size: doc?.size || 0,
     };
   };
+
 
   // Simulate upload progress
   const simulateProgress = (callback: () => void) => {
@@ -154,37 +157,78 @@ const DocumentSubmissionForm: React.FC<DocumentSubmissionFormProps> = ({
   };
 
   // Document Picker Handler (for PDFs and Images)
+  // const handleDocumentPick = async (
+  //   setter: React.Dispatch<React.SetStateAction<UploadedFile[]>>,
+  //   field: string
+  // ) => {
+
+  //   console.log("hitting this");
+  //   // try {
+  //   //   console.log("Opening document picker...");
+  //   //   setUploading(field);
+
+  //   //   const res = await DocumentPicker.pick({
+  //   //     type: [DocumentPicker.types.pdf, DocumentPicker.types.images],
+  //   //   });
+
+  //   //   console.log("Document picked:", res);
+
+  //   //   simulateProgress(() => {
+  //   //     const file = makeDocumentObj(res[0]);
+  //   //     console.log("File object created:", file);
+  //   //     setter([file]);
+  //   //     setErrors((prev) => ({ ...prev, [field]: undefined }));
+  //   //   });
+  //   // } catch (err: any) {
+  //   //   console.error("Document picker error:", err);
+  //   //   setUploading(null);
+  //   //   if (DocumentPicker.isCancel(err)) {
+  //   //     console.log("User canceled the picker");
+  //   //   } else {
+  //   //     Alert.alert("Error", "Failed to pick document. Please try again.");
+  //   //   }
+  //   // }
+  // };
+
+
   const handleDocumentPick = async (
     setter: React.Dispatch<React.SetStateAction<UploadedFile[]>>,
     field: string
   ) => {
-
     console.log("hitting this");
-    // try {
-    //   console.log("Opening document picker...");
-    //   setUploading(field);
+    try {
+      console.log("Opening document picker...");
+      setUploading(field);
 
-    //   const res = await DocumentPicker.pick({
-    //     type: [DocumentPicker.types.pdf, DocumentPicker.types.images],
-    //   });
+      // pick returns an array of selected files (even if you only allow single selection)
+      const results = await pick({
+        type: [DocumentTypes.pdf, DocumentTypes.images],
+        // if you want to restrict it to single selection you may not need extra flag
+        // new API doesn't use pickSingle, just pick()
+        // allowMultiSelection: false // if available in this version
+      });
 
-    //   console.log("Document picked:", res);
+      console.log("Documents picked:", results);
 
-    //   simulateProgress(() => {
-    //     const file = makeDocumentObj(res[0]);
-    //     console.log("File object created:", file);
-    //     setter([file]);
-    //     setErrors((prev) => ({ ...prev, [field]: undefined }));
-    //   });
-    // } catch (err: any) {
-    //   console.error("Document picker error:", err);
-    //   setUploading(null);
-    //   if (DocumentPicker.isCancel(err)) {
-    //     console.log("User canceled the picker");
-    //   } else {
-    //     Alert.alert("Error", "Failed to pick document. Please try again.");
-    //   }
-    // }
+      if (results && results.length > 0) {
+        simulateProgress(() => {
+          const file = makeDocumentObj(results[0]);
+          console.log("File object created:", file);
+          setter([file]);
+          setErrors((prev) => ({ ...prev, [field]: undefined }));
+        });
+      }
+
+    } catch (err: any) {
+      console.error("Document picker error:", err);
+      setUploading(null);
+      // The new package may still throw a cancellation error
+      if (err?.name === "DocumentPickerCanceled" || /* maybe a helper function */ false) {
+        console.log("User canceled the picker");
+      } else {
+        Alert.alert("Error", "Failed to pick document. Please try again.");
+      }
+    }
   };
 
   // Remove File Handler

@@ -1,19 +1,23 @@
 import { Colors } from "@/src/constants";
+import { setOnGoingRideData } from "@/src/store/slices/onGoingRideSlice";
 import { RootState } from "@/src/store/store";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { router } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
+    ActivityIndicator,
     Dimensions,
     Image,
+    Linking,
+    Platform,
     StyleSheet,
     Text,
     TouchableOpacity,
     View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import RatingModal from "../components/RatingModal";
 import RideMap from "../components/RideMap";
 import rideRequestsService from "../services";
@@ -22,51 +26,62 @@ import Shimmer from "../utils/Shimmer";
 const { height } = Dimensions.get("window");
 
 export const TripDetailsScreen: React.FC = () => {
-  const insets = useSafeAreaInsets();
-  const [rideStatus, setRideStatus] = useState("in_progress");
-  const [modalRatingVisible, setModalRatingVisible] = useState(false);
-  const [rideData, setRideData] = useState<any | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [waitingTime, setWaitingTime] = useState(900); // 15 * 60
-  const { currency } = useSelector((state: RootState) => state.appConfig);
+    const insets = useSafeAreaInsets();
+    const [rideStatus, setRideStatus] = useState("started");
+    const [modalRatingVisible, setModalRatingVisible] = useState(false);
+    const [rideData, setRideData] = useState<any | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [waitingTime, setWaitingTime] = useState(900); // 15 * 60
+    const { currency } = useSelector((state: RootState) => state.appConfig);
+    const [loadingRide, setLoadingRide] = useState(false);
+    const dispatch = useDispatch();
 
 
-  // ✅ TODO: Replace with actual IDs from your ride data/auth system
-  const driverId = "ce1dd6a2-8662-495e-ae04-e0b84e0e3e30"; // Hardcoded for testing
-  const customerId = "f5258cbe-d593-440d-9d9c-1203aa003513"; // Hardcoded for testing
-  const customerName = "John Doe"; // Get from ride data
-  const customerAvatar = "https://avatar.iran.liara.run/public/48"; // Get from ride data
+    // ✅ TODO: Replace with actual IDs from your ride data/auth system
+    const driverId = "ce1dd6a2-8662-495e-ae04-e0b84e0e3e30"; // Hardcoded for testing
+    const customerId = "f5258cbe-d593-440d-9d9c-1203aa003513"; // Hardcoded for testing
+    const customerName = "John Doe"; // Get from ride data
+    const customerAvatar = "https://avatar.iran.liara.run/public/48"; // Get from ride data
 
-  const handleChatButtonPress = () => {
-    router.push("/(tabs)/(rideRequests)/chatScreen");
-  };
 
-  const handleCallButtonPress = () => {
-    // ✅ Navigate to call screen with customer details
-    router.push({
-      pathname: "/(tabs)/(rideRequests)/callScreen",
-      params: {
-        customerId: customerId,
-        customerName: customerName,
-        profileImage: customerAvatar,
-      },
-    });
-  };
+    const onGoingRideData = useSelector(
+  (state: RootState) => state.onGoingRide.onGoingRideData
+);
 
- const rideStart = async (rideId: any) => {
+
+    const handleChatButtonPress = () => {
+        router.push("/(tabs)/(rideRequests)/chatScreen");
+    };
+
+    const handleCallButtonPress = () => {
+        // ✅ Navigate to call screen with customer details
+        router.push({
+            pathname: "/(tabs)/(rideRequests)/callScreen",
+            params: {
+                customerId: customerId,
+                customerName: customerName,
+                profileImage: customerAvatar,
+            },
+        });
+    };
+
+    const rideStart = async (rideId: any) => {
         console.log("calling ride start:", rideId)
+        setLoadingRide(true);
 
         try {
             const data = await rideRequestsService.startMyRide(rideId);
             console.log("my ride data", data)
             if (data?.message === 'Ride status updated to IN_PROGRESS successfully') {
                 setRideStatus("completed");
+                setLoadingRide(false);
 
             }
-
+            setLoadingRide(false);
 
         } catch (error: any) {
             console.log("Starting a ride error:", error.response)
+            setLoadingRide(false);
         }
     }
     const rideCompleted = async (rideId: any) => {
@@ -74,16 +89,23 @@ export const TripDetailsScreen: React.FC = () => {
 
         try {
             const data = await rideRequestsService.completeMyRide(rideId);
-            console.log("my ride data", data)
-            if (data?.message === 'Ride completed successfully') {
-                setModalRatingVisible(true);
+            console.log("my ride data", data);
+            setLoadingRide(true)
 
+            if (data?.message === "Ride completed successfully") {
+                router.push("/(tabs)/(rideRequests)");
+                setLoadingRide(false);
+                // Show the rating modal after 10 seconds
+                setTimeout(() => {
+                    setModalRatingVisible(true);
+                }, 10000);
             }
 
-         
+            setLoadingRide(false);
 
         } catch (error: any) {
             console.log("completing a ride error:", error.response)
+            setLoadingRide(false);
         }
     }
 
@@ -93,6 +115,7 @@ export const TripDetailsScreen: React.FC = () => {
             console.log("✅ Ride result:", data);
 
             setRideData(data);
+            dispatch(setOnGoingRideData(data));
 
 
         } catch (err) {
@@ -106,23 +129,44 @@ export const TripDetailsScreen: React.FC = () => {
     const giveRating = async (ratingData: { comment: string; rating: number }) => {
         try {
             console.log("Rating submitted:", ratingData);
+            console.log("id is :", onGoingRideData?.passengerUser?.id)
+            console.log('rating data', ratingData)
+        
 
             const rideId = await rideRequestsService.getMyRiderId();
             console.log("Rider ID response:", rideId);
+                const reviewerId= rideId?.riderId;
 
             const payload = {
                 description: ratingData.comment,
                 rating: ratingData.rating,
-                reviewedId: rideId?.riderId,
+                reviewedId:onGoingRideData?.passengerUser?.id ,
+                rideId: rideId?.riderId,
+                  reviewerId: rideId?.riderId,
             };
 
-            const result = await rideRequestsService.giveDriverRating(payload);
+            const result = await rideRequestsService.giveDriverRating(payload,reviewerId );
             console.log("Server response:", result);
             router.replace("/(tabs)/(rideRequests)/rideRequest")
-
-        } catch (error) {
-            console.log("Error giving rating:", error);
+            setModalRatingVisible(false);
+        } catch (error: any) {
+            console.log("Error giving rating:", error.response);
         }
+    };
+
+    const handleOpenInMaps = (lat: number, lng: number) => {
+        const label = "Destination";
+        const url =
+            Platform.select({
+                ios: `http://maps.apple.com/?ll=${lat},${lng}&q=${label}`,
+                android: `geo:${lat},${lng}?q=${lat},${lng}(${label})`,
+            }) || `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+
+        Linking.openURL(url).catch(() => {
+            // fallback to Google Maps in browser if app not available
+            const fallbackUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+            Linking.openURL(fallbackUrl);
+        });
     };
 
 
@@ -154,7 +198,7 @@ export const TripDetailsScreen: React.FC = () => {
         if (rideStatus === "in_progress") {
             interval = setInterval(() => {
                 setWaitingTime((prev) => prev + 1);
-            }, 1000); // increase every second
+            }, 100); 
         } else {
             if (interval) clearInterval(interval);
         }
@@ -190,7 +234,7 @@ export const TripDetailsScreen: React.FC = () => {
 
 
     return (
-       <View style={{ flex: 1, }}>
+        <View style={{ flex: 1, }}>
 
             <RideMap
                 origin={origin}
@@ -198,34 +242,36 @@ export const TripDetailsScreen: React.FC = () => {
                 rideRequest={rideData} />
 
 
-            <View style={[styles.etaBar, { paddingTop: insets.top }]}>
-                {rideStatus === 'in_progess' ? (
-                    <>
-                        <View style={styles.leftEtaSection}>
-                            <Text style={styles.cancelText}>Cancel</Text>
-                        </View>
-                        <View style={styles.timerWrapper}>
-                            <Text style={styles.etaText}>{formatTime(waitingTime)}</Text>
-                        </View>
-                    </>
-                ) : (
+            {rideStatus === 'in_progess' && (
 
 
-                    <>
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                            <Text style={styles.cancelText}>Waiting time </Text>
-                            <Text style={styles.etaText}>{formatTime(waitingTime)}</Text>
-                        </View>
-                    </>
+                <View style={[styles.etaBar, { paddingTop: insets.top }]}>
 
-                )
 
-                }
-            </View>
+                    <View style={styles.leftEtaSection}>
+                        <Text style={styles.cancelText}>Cancel</Text>
+                    </View>
+                    <View style={styles.timerWrapper}>
+                        <Text style={styles.etaText}>{formatTime(waitingTime)}</Text>
+                    </View>
+
+
+
+
+                    {/* <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                <Text style={styles.cancelText}>Waiting time </Text>
+                                <Text style={styles.etaText}>{formatTime(waitingTime)}</Text>
+                            </View> */}
+
+
+                </View>
+            )
+
+            }
 
 
             {/* Navigate Button */}
-            <TouchableOpacity style={styles.navigateButton}>
+            <TouchableOpacity style={styles.navigateButton} onPress={() => handleOpenInMaps(rideData?.dropoff?.lat, rideData?.dropoff?.lng)}>
                 <Ionicons name="navigate" size={24} color="#fff" />
                 <Text style={{ color: "#fff", marginTop: 4, fontSize: 16, fontWeight: "600" }}>Navigate</Text>
             </TouchableOpacity>
@@ -316,6 +362,7 @@ export const TripDetailsScreen: React.FC = () => {
 
                 <RatingModal
                     visible={modalRatingVisible}
+                    rideData={rideData}
                     onClose={() => setModalRatingVisible(false)}
                     onSubmit={(rating) => {
                         console.log("Rating submitted:", rating);
@@ -336,197 +383,202 @@ export const TripDetailsScreen: React.FC = () => {
             ) : (
                 <TouchableOpacity
                     style={[
-                        styles.button, { marginBottom: insets.bottom + 60 },
+                        styles.button,
+                        { marginBottom: insets.bottom + 60 },
                         rideStatus === "started" || rideStatus === "completed"
                             ? { backgroundColor: Colors.light.primary }
-                            : { backgroundColor: Colors.light.success }
+                            : { backgroundColor: Colors.light.success },
                     ]}
                     onPress={() => {
+                        if (loadingRide) return; // prevent multiple taps
                         if (rideStatus === "in_progress") {
                             setRideStatus("started");
                         } else if (rideStatus === "started") {
                             rideStart(rideData?.rideId);
-
                         } else if (rideStatus === "completed") {
                             rideCompleted(rideData?.rideId);
                         }
                     }}
+                    activeOpacity={0.8}
                 >
-                    {rideStatus === "in_progress" ? (
+                    {loadingRide ? (
+                        <ActivityIndicator color="#fff" size="small" />
+                    ) : rideStatus === "in_progress" ? (
                         <Text style={styles.buttonText}>I’m Here</Text>
                     ) : rideStatus === "started" ? (
-                        <Text style={styles.buttonText}>Start ride</Text>
+                        <Text style={styles.buttonText}>Start Ride</Text>
                     ) : (
                         <Text style={styles.buttonText}>Ride Completed</Text>
                     )}
                 </TouchableOpacity>
+
             )
 
             }
         </View>
-  );
+    );
 };
 
 const styles = StyleSheet.create({
-  etaBar: {
-    position: "absolute",
-    top: 20,
-    alignSelf: "center",
-    width: "90%",
-    backgroundColor: "#fff",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  etaText: {
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  etaSubText: {
-    fontSize: 12,
-    color: "#666",
-  },
-  leftEtaSection: {
-    flexDirection: "column",
-    alignItems: "flex-start",
-    padding: 10,
-  },
-  bottomCardStyle: {
-    backgroundColor: Colors.dark.text,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 5,
-    paddingTop: 20,
-    flexDirection: "row",
-    alignItems: "flex-start",
-    marginBottom: 5,
-  },
-  bottomCard: {
-    position: "absolute",
-    bottom: 0,
-    height: height * 0.4,
-    width: "100%",
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: -2 },
-    shadowRadius: 6,
-    elevation: 6,
-  },
-  section: {
-    marginBottom: 15,
-    flexDirection: "row",
-    gap: 4,
-    width: "80%",
-  },
-  title: {
-    fontSize: 14,
-    color: "#888",
-    marginBottom: 4,
-  },
-  value: {
-    fontSize: 16,
-    flex: 1,
-  },
-  button: {
-    marginHorizontal: 10,
-    backgroundColor: Colors.light.success,
-    paddingVertical: 14,
-    borderRadius: 50,
-    alignItems: "center",
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "500",
-  },
-  leftSection: {
-    alignItems: "center",
-    marginRight: 15,
-    width: 80,
-  },
-  profileImage: {
-    width: 40,
-    height: 40,
-    borderRadius: 30,
-    marginBottom: 6,
-  },
-  iconImage: {
-    width: 15,
-    height: 15,
-    marginTop: 2,
-  },
-  name: {
-    fontSize: 14,
-    fontWeight: "600",
-    textAlign: "center",
-  },
-  rating: {
-    fontSize: 13,
-    color: "#333",
-  },
-  rides: {
-    fontSize: 12,
-    color: "grey",
-  },
-  middleSection: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  rightSection: {
-    justifyContent: "space-around",
-    alignItems: "center",
-  },
-  iconButton: {
-    marginVertical: 6,
-    borderWidth: 1,
-    borderRadius: 20,
-    padding: 5,
-    borderColor: "#1691BF",
-  },
-  icon: {
-    fontSize: 22,
-  },
-  priceTxt: {
-    fontSize: 16,
-    marginLeft: 20,
-    color: Colors.light.danger,
-    fontWeight: "bold",
-  },
-  cancelText: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginBottom: 4,
-  },
-  timerWrapper: {
-    alignItems: "center",
-  },
-  navigateButton: {
-    position: "absolute",
-    display: "flex",
-    flexDirection: "row",
-    alignContent: "center",
-    gap: "2",
-    bottom: height * 0.4 + 10,
-    left: 20,
-    backgroundColor: "#000000",
-    width: 140,
-    height: 50,
-    borderRadius: 25,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 4,
-  },
+    etaBar: {
+        position: "absolute",
+        top: 20,
+        alignSelf: "center",
+        width: "90%",
+        backgroundColor: "#fff",
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        borderRadius: 20,
+        shadowColor: "#000",
+        shadowOpacity: 0.1,
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 4,
+        elevation: 4,
+    },
+    etaText: {
+        fontSize: 20,
+        fontWeight: "bold",
+    },
+    etaSubText: {
+        fontSize: 12,
+        color: "#666",
+    },
+    leftEtaSection: {
+        flexDirection: "column",
+        alignItems: "flex-start",
+        padding: 10,
+    },
+    bottomCardStyle: {
+        backgroundColor: Colors.dark.text,
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 5,
+        paddingTop: 20,
+        flexDirection: "row",
+        alignItems: "flex-start",
+        marginBottom: 5,
+    },
+    bottomCard: {
+        position: "absolute",
+        bottom: 0,
+        height: height * 0.4,
+        width: "100%",
+        backgroundColor: "#fff",
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        padding: 20,
+        shadowColor: "#000",
+        shadowOpacity: 0.1,
+        shadowOffset: { width: 0, height: -2 },
+        shadowRadius: 6,
+        elevation: 6,
+    },
+    section: {
+        marginBottom: 15,
+        flexDirection: "row",
+        gap: 4,
+        width: "80%",
+    },
+    title: {
+        fontSize: 14,
+        color: "#888",
+        marginBottom: 4,
+    },
+    value: {
+        fontSize: 16,
+        flex: 1,
+    },
+    button: {
+        marginHorizontal: 10,
+        backgroundColor: Colors.light.success,
+        paddingVertical: 14,
+        borderRadius: 50,
+        alignItems: "center",
+    },
+    buttonText: {
+        color: "#fff",
+        fontSize: 16,
+        fontWeight: "500",
+    },
+    leftSection: {
+        alignItems: "center",
+        marginRight: 15,
+        width: 80,
+    },
+    profileImage: {
+        width: 40,
+        height: 40,
+        borderRadius: 30,
+        marginBottom: 6,
+    },
+    iconImage: {
+        width: 15,
+        height: 15,
+        marginTop: 2,
+    },
+    name: {
+        fontSize: 14,
+        fontWeight: "600",
+        textAlign: "center",
+    },
+    rating: {
+        fontSize: 13,
+        color: "#333",
+    },
+    rides: {
+        fontSize: 12,
+        color: "grey",
+    },
+    middleSection: {
+        flex: 1,
+        justifyContent: "center",
+    },
+    rightSection: {
+        justifyContent: "space-around",
+        alignItems: "center",
+    },
+    iconButton: {
+        marginVertical: 6,
+        borderWidth: 1,
+        borderRadius: 20,
+        padding: 5,
+        borderColor: "#1691BF",
+    },
+    icon: {
+        fontSize: 22,
+    },
+    priceTxt: {
+        fontSize: 16,
+        marginLeft: 20,
+        color: Colors.light.danger,
+        fontWeight: "bold",
+    },
+    cancelText: {
+        fontSize: 14,
+        fontWeight: "600",
+        marginBottom: 4,
+    },
+    timerWrapper: {
+        alignItems: "center",
+    },
+    navigateButton: {
+        position: "absolute",
+        display: "flex",
+        flexDirection: "row",
+        alignContent: "center",
+        gap: "2",
+        bottom: height * 0.4 + 10,
+        left: 20,
+        backgroundColor: "#000000",
+        width: 140,
+        height: 50,
+        borderRadius: 25,
+        justifyContent: "center",
+        alignItems: "center",
+        shadowColor: "#000",
+        shadowOpacity: 0.1,
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 4,
+        elevation: 4,
+    },
 });

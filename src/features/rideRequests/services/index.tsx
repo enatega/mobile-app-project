@@ -236,7 +236,7 @@ export const rideRequestsService = {
 
       console.log("✅ checking my currency:", response.data);
       return response.data;
-    } catch (error:any) {
+    } catch (error: any) {
       console.log("❌ Error in getting Currency", error.response);
       throw error; // allow upper layers (hook) to handle it
     }
@@ -244,14 +244,20 @@ export const rideRequestsService = {
 
 
 
-  giveDriverRating: async (reviewData: { description: string; rating: number; reviewedId: string }) => {
+  giveDriverRating: async (reviewData: {
+    description: string;
+    rating: number;
+    reviewedId: string;
+    rideId: string;
+    reviewerId: string; // 👈 Add this in body
+  }) => {
     const state = store.getState();
     const token = selectToken(state);
 
     try {
       const response = await axios.post(
-        `${API_BASE}/api/v1/reviews`,
-        reviewData,
+        `${API_BASE}/api/v1/reviews`, // ✅ No reviewerId in URL
+        reviewData, // ✅ Include reviewerId in body
         {
           headers: {
             "Content-Type": "application/json",
@@ -263,11 +269,41 @@ export const rideRequestsService = {
       console.log("✅ Rating submitted:", response.data);
       return response.data;
     } catch (error: any) {
-      console.error("❌ Error giving ride rating:", error.response?.data || error.message);
+      console.error(
+        "❌ Error giving ride rating:",
+        error.response?.data || error.message
+      );
       throw error;
     }
   },
 
+
+
+
+  checkRideAmount: async (rideId: string) => {
+    const state = store.getState();
+    const token = selectToken(state);
+
+    try {
+      const response = await axios.get(
+        `${API_BASE}/api/v1/rides/riders/check/have-enough-amount/for-ride/${rideId}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log("✅ Ride amount check response:", response.data);
+      return response.data;
+    } catch (error: any) {
+      const errData = error.response?.data || error.message;
+      console.error("❌ Error checking ride amount:", errData);
+      // ❌ Don't throw — instead, return a known object shape
+      return { success: false, error: errData };
+    }
+  },
 
 
 

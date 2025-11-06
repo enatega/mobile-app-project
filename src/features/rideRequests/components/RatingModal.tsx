@@ -1,6 +1,8 @@
 import { Colors } from '@/src/constants'
+import { RootState } from '@/src/store/store'
 import React, { useState } from 'react'
 import { Dimensions, Image, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { useSelector } from 'react-redux'
 
 const { height } = Dimensions.get("window")
 
@@ -8,11 +10,15 @@ interface RatingModalProps {
     visible: boolean
     onClose: () => void
     onSubmit: (data: { rating: number; comment: string }) => void
+    rideData:any
 }
 
-const RatingModal: React.FC<RatingModalProps> = ({ visible, onClose, onSubmit }) => {
+const RatingModal: React.FC<RatingModalProps> = ({ visible, onClose, onSubmit , rideData}) => {
     const [rating, setRating] = useState(0)
     const [comment, setComment] = useState("")
+        const onGoingRideData = useSelector(
+  (state: RootState) => state.onGoingRide.onGoingRideData
+);
 
     return (
         <Modal
@@ -23,12 +29,15 @@ const RatingModal: React.FC<RatingModalProps> = ({ visible, onClose, onSubmit })
         >
             <View style={styles.modalOverlay}>
                 <View style={styles.modalCard}>
+                    <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+                        <Text style={styles.closeIcon}>✕</Text>
+                    </TouchableOpacity>
                     {/* Heading */}
                     <Text style={styles.title}>You have arrived</Text>
 
                     {/* Profile Image */}
                     <Image
-                        source={{ uri: "https://i.pravatar.cc/150" }} // Replace with passenger image
+                        source={{ uri:rideData?.passenger_profileImage || onGoingRideData?.passengerUser?.profile_image ||  "https://i.pravatar.cc/150" }} // Replace with passenger image
                         style={styles.profileImage}
                     />
 
@@ -54,8 +63,7 @@ const RatingModal: React.FC<RatingModalProps> = ({ visible, onClose, onSubmit })
                     <TouchableOpacity
                         style={[styles.button, { backgroundColor: Colors.light.success }]}
                         onPress={() => {
-                            onSubmit({ rating, comment })
-                            onClose()
+                            onSubmit({ rating, comment})
                         }}
                     >
                         <Text style={styles.buttonText}>Submit</Text>
@@ -122,4 +130,20 @@ const styles = StyleSheet.create({
         fontWeight: "600",
         fontSize: 16,
     },
+    closeButton: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        zIndex: 10,
+        backgroundColor: 'rgba(0,0,0,0.05)',
+        borderRadius: 20,
+        padding: 6,
+    },
+
+    closeIcon: {
+        fontSize: 18,
+        color: '#333',
+        fontWeight: '600',
+    },
+
 })
