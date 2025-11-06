@@ -1,5 +1,5 @@
 export const API_CONFIG = {
-    BASE_URL: 'http://192.168.18.88:3000',
+    BASE_URL: 'https://api-nestjs-enatega.up.railway.app',
     ENDPOINTS: {
       GET_TOKEN: '/test/twilio/token',
       VOICE_WEBHOOK: '/test/twilio/voice'
