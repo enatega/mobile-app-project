@@ -90,6 +90,7 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
 
 
   const handleAccept = (rideRequest: any) => {
+
     console.log('i am handling accept', user?.id)
     if (!user?.id || !rideRequest?.id || !rideRequest?.passenger?.id) {
       console.warn("🚫 Missing required IDs for placing bid");
