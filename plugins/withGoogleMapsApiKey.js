@@ -8,7 +8,7 @@ module.exports = function withGoogleMapsApiKey(config, apiKey) {
     app['meta-data'].push({
       $: {
         'android:name': 'com.google.android.geo.API_KEY',
-        'android:value': 'AIzaSyCcm7_Wd7uvmC9YnYLu2JHGWPt6z1MaL1E',
+        'android:value': process.env.GOOGLE_API_KEY,
       },
     });
     return config;
