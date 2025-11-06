@@ -90,17 +90,18 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
 
 
   const handleAccept = (rideRequest: any) => {
-    // console.log('i am handling accept', user?.id)
-    // if (!user?.id || !rideRequest?.id || !rideRequest?.passenger?.id) {
-    //   console.warn("🚫 Missing required IDs for placing bid");
-    //   return;
-    // }
-    // webSocketService.placeBid({
-    //   riderId: myRiderId || "1ba44a89-16d1-4280-820c-3f66262bb843",
-    //   rideRequestId: rideRequest?.id,
-    //   price: defaultFare,
-    //   // userId: rideRequest?.passenger?.id,
-    // });
+
+    console.log('i am handling accept', user?.id)
+    if (!user?.id || !rideRequest?.id || !rideRequest?.passenger?.id) {
+      console.warn("🚫 Missing required IDs for placing bid");
+      return;
+    }
+    webSocketService.placeBid({
+      riderId: myRiderId || "1ba44a89-16d1-4280-820c-3f66262bb843",
+      rideRequestId: rideRequest?.id,
+      price: defaultFare,
+      // userId: rideRequest?.passenger?.id,
+    });
 
     onAccept?.(defaultFare);
 
