@@ -1,10 +1,11 @@
 import GradientBackground from "@/src/components/common/GradientBackground";
-import { twilioVoiceManager } from "@/src/services/twilioVoiceManager";
+import twilioService from "@/services/twilio.service";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
     ActivityIndicator,
+    Alert,
     Image,
     StyleSheet,
     Text,
@@ -17,10 +18,9 @@ const DriverCallScreen = () => {
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams();
   const [isMuted, setIsMuted] = useState(false);
-  const [isConnecting, setIsConnecting] = useState(true);
-  const [isCallActive, setIsCallActive] = useState(false);
+  const [callStatus, setCallStatus] = useState('connecting'); // connecting, ringing, connected
+  const [callDuration, setCallDuration] = useState(0);
 
-  const driverId = "ce1dd6a2-8662-495e-ae04-e0b84e0e3e30";
   const customerId =
     (params.customerId as string) || "f5258cbe-d593-440d-9d9c-1203aa003513";
   const profileImage =
@@ -29,47 +29,86 @@ const DriverCallScreen = () => {
   const customerName = (params.customerName as string) || "Customer";
 
   useEffect(() => {
-    const initAndCall = async () => {
-      try {
-        console.log("[CALL SCREEN] Initializing...");
-        await twilioVoiceManager.initialize(driverId);
-        
-        console.log("[CALL SCREEN] Making call to:", customerId);
-        await twilioVoiceManager.makeCall(driverId, customerId);
-        
-        setIsConnecting(false);
-        setIsCallActive(true);
-      } catch (error) {
-        console.error("[CALL SCREEN] Failed:", error);
-        router.back();
-      }
+    let interval: ReturnType<typeof setInterval>;
+
+    // Listen for call events
+    twilioService.onCallRinging = () => {
+      console.log('📲 Call is ringing...');
+      setCallStatus('ringing');
     };
 
-    initAndCall();
+    twilioService.onCallConnected = () => {
+      console.log('✅ Call connected!');
+      setCallStatus('connected');
+      // Start call duration timer
+      interval = setInterval(() => {
+        setCallDuration(prev => prev + 1);
+      }, 1000);
+    };
 
-    const unsubscribe = twilioVoiceManager.subscribe((active, connecting) => {
-      setIsCallActive(active);
-      setIsConnecting(connecting);
-    });
+    twilioService.onCallDisconnected = (call, error) => {
+      console.log('❌ Call ended');
+      if (error) {
+        Alert.alert('Call Ended', error.message);
+      }
+      // Clear timer and go back
+      if (interval) clearInterval(interval);
+      router.back();
+    };
 
-    return () => unsubscribe();
+    twilioService.onCallFailed = (call, error) => {
+      console.error('❌ Call failed:', error);
+      Alert.alert('Call Failed', error.message || 'Failed to connect');
+      router.back();
+    };
+
+    // Cleanup
+    return () => {
+      if (interval) clearInterval(interval);
+      twilioService.onCallRinging = null;
+      twilioService.onCallConnected = null;
+      twilioService.onCallDisconnected = null;
+      twilioService.onCallFailed = null;
+    };
   }, []);
 
-  const handleEndCall = () => {
-    console.log("[CALL SCREEN] Ending call");
-    twilioVoiceManager.endCall();
-    router.back();
+  const handleEndCall = async () => {
+    try {
+      await twilioService.disconnect();
+      router.back();
+    } catch (error) {
+      console.error('Failed to end call:', error);
+      Alert.alert('Error', 'Failed to end call');
+    }
   };
 
-  const handleToggleMute = () => {
-    const muted = twilioVoiceManager.toggleMute();
-    setIsMuted(muted);
+  const handleToggleMute = async () => {
+    try {
+      const newMuteState = await twilioService.toggleMute();
+      setIsMuted(newMuteState);
+    } catch (error) {
+      console.error('Failed to toggle mute:', error);
+      Alert.alert('Error', 'Failed to toggle mute');
+    }
   };
 
   const getCallStatus = () => {
-    if (isConnecting) return "Connecting...";
-    if (isCallActive) return "Connected";
-    return "Calling...";
+    switch (callStatus) {
+      case 'connecting':
+        return 'Connecting...';
+      case 'ringing':
+        return 'Ringing...';
+      case 'connected':
+        return 'Connected';
+      default:
+        return 'In Call';
+    }
+  };
+
+  const formatDuration = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   return (
@@ -85,7 +124,7 @@ const DriverCallScreen = () => {
           <Text style={styles.nameText}>{customerName}</Text>
 
           <View style={styles.statusContainer}>
-            {isConnecting && (
+            {callStatus === 'connecting' && (
               <ActivityIndicator
                 size="small"
                 color="#1691BF"
@@ -95,11 +134,14 @@ const DriverCallScreen = () => {
             <Text
               style={[
                 styles.statusText,
-                isCallActive && styles.statusConnected,
+                callStatus === 'connected' && styles.statusConnected,
               ]}
             >
               {getCallStatus()}
             </Text>
+            {callStatus === 'connected' && (
+              <Text style={styles.durationText}>{formatDuration(callDuration)}</Text>
+            )}
           </View>
         </View>
 
@@ -107,7 +149,7 @@ const DriverCallScreen = () => {
           <TouchableOpacity
             style={[styles.iconButton, isMuted && styles.iconButtonActive]}
             onPress={handleToggleMute}
-            disabled={!isCallActive}
+            disabled={callStatus !== 'connected'}
           >
             <Ionicons
               name={isMuted ? "mic-off" : "mic-off-outline"}
