@@ -217,15 +217,15 @@ export const TripDetailsScreen: React.FC = () => {
     };
     const origin = useMemo(() => {
         return {
-            latitude: rideData?.pickup?.lat ?? 0,
-            longitude: rideData?.pickup?.lng ?? 0,
+            latitude: rideData?.pickup?.lat ?? 31.5204,
+            longitude: rideData?.pickup?.lng ?? 74.3587,
         };
     }, [rideData]);
 
     const destination = useMemo(() => {
         return {
-            latitude: rideData?.dropoff?.lat ?? 0,
-            longitude: rideData?.dropoff?.lng ?? 0,
+            latitude: rideData?.dropoff?.lat ?? 33.6844,
+            longitude: rideData?.dropoff?.lng ?? 73.0479,
         };
     }, [rideData]);
 
@@ -315,7 +315,7 @@ export const TripDetailsScreen: React.FC = () => {
                                 <Shimmer width="90%" height={24} />
                             ) : (
 
-                                <Text numberOfLines={3} style={styles.value}>{rideData?.pickup_location}</Text>
+                                <Text numberOfLines={3} style={styles.value}>{rideData?.pickup_location || "Ramc digitals , E- 11"}</Text>
                             )
 
                             }
@@ -330,7 +330,7 @@ export const TripDetailsScreen: React.FC = () => {
                                 <Shimmer width="90%" height={24} />
                             ) : (
 
-                                <Text numberOfLines={3} style={styles.value}>{rideData?.dropoff_location}</Text>
+                                <Text numberOfLines={3} style={styles.value}>{rideData?.dropoff_location || "H-13 , Islamabad , Pakistan"}</Text>
                             )
 
                             }
@@ -339,7 +339,7 @@ export const TripDetailsScreen: React.FC = () => {
                             <Shimmer width="70%" height={18} />
                         ) : (
 
-                            <Text style={styles.priceTxt}>{currency?.code} {rideData?.agreed_price}</Text>
+                            <Text style={styles.priceTxt}>{currency?.code} {rideData?.agreed_price || "56.6"}</Text>
                         )
 
                         }
