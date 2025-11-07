@@ -5,7 +5,6 @@ import { webSocketService } from '@/src/services/socket/webSocketService';
 import { selectUser } from '@/src/store/selectors/authSelectors';
 import { RootState } from '@/src/store/store';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
@@ -96,28 +95,50 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
       console.warn("🚫 Missing required IDs for placing bid");
       return;
     }
+
+    // const result = await rideRequestsService.checkRideAmount(rideRequest?.id);
+    // console.log("💰 Ride amount check result:", result);
+
+    // // 🧩 Handle failed API safely
+    // if (result?.error) {
+    //   Alert.alert(
+    //     "Ride Amount Check Failed",
+    //     result?.error?.message?.[0] ||
+    //     result?.error?.message ||
+    //     "Could not verify your account balance. Please try again.",
+    //     [{ text: "OK" }]
+    //   );
+    //   return;
+    // }
+
+    // // If backend explicitly says insufficient balance
+    // if (result?.hasEnoughAmount === false) {
+    //   Alert.alert(
+    //     "Insufficient Balance",
+    //     "You don’t have enough amount to accept this ride. Please recharge your account.",
+    //     [{ text: "OK" }]
+    //   );
+    //   return;
+    // }
+
+    // ✅ Proceed if everything is fine
     webSocketService.placeBid({
       riderId: myRiderId || "1ba44a89-16d1-4280-820c-3f66262bb843",
       rideRequestId: rideRequest?.id,
       price: defaultFare,
-      // userId: rideRequest?.passenger?.id,
     });
 
-    onAccept?.(defaultFare);
-
-    router.push("/tripDetail");
-    onClose(); setIsOffering(true);
-    // setIsOffering(true);
-    // Animated.timing(progress, {
-    //   toValue: 0,
-    //   duration: 10000,
-    //   useNativeDriver: false,
-    // }).start(() => {
-    //   setIsOffering(false);
-    //   onClose();
-    // });
-
+    setIsOffering(true);
+    Animated.timing(progress, {
+      toValue: 0,
+      duration: 10000,
+      useNativeDriver: false,
+    }).start(() => {
+      setIsOffering(false);
+      onClose();
+    });
   };
+
 
   const handleOfferFare = (fare: number) => {
     onOfferFare?.(fare);

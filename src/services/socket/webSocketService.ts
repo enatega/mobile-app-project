@@ -1,4 +1,5 @@
 // services/websocketService.ts
+import rideRequestsService from "@/src/features/rideRequests/services";
 import { setNewRideRequest } from "@/src/store/slices/requestedRide";
 import { store } from "@/src/store/store";
 import { router } from "expo-router";
@@ -93,15 +94,20 @@ class WebSocketService {
           store.dispatch(setNewRideRequest(data));
         });
 
-        this.socket.on("bid-accepted", (data) => {
+        this.socket.on("bid-accepted", async (data) => {
           console.log("🎯 Bid accepted event received:", data);
 
           // Example data: { rideRequestId, ride_request_is_now_ride, message }
 
           if (data.message === "Your bid was accepted. Ride started!") {
             console.log("Your bid was accepted. Ride started!");
+            const data = await rideRequestsService.acceptRideRequest();
+            console.log("✅ Ride result:", data);
             // ✅ Navigate and update UI
-            router.push("/tripDetail");
+            if (data) {
+              router.push("/tripDetail");
+            }
+
             // Optional: set offering state if needed
             // setIsOffering(true);
           }

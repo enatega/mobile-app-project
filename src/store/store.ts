@@ -10,8 +10,10 @@ import signupReducer from './slices/signup.slice'; // Import signup reducer
 import appConfigReducer from './slices/appConfigSlice';
 import driverLocationReducer from './slices/driverLocation.slice';
 import driverStatusReducer from './slices/driverStatus.slice';
+import onGoingRideReducer from "./slices/onGoingRideSlice";
 import rideReducer from './slices/requestedRide';
 import themeReducer from './slices/theme.slice';
+
 
 const rootReducer = combineReducers({
   theme: themeReducer,
@@ -21,7 +23,8 @@ const rootReducer = combineReducers({
   ride: rideReducer,
   appConfig: appConfigReducer,
 
-  driverLocation: driverLocationReducer
+  driverLocation: driverLocationReducer,
+  onGoingRide: onGoingRideReducer,
 });
 
 type RootState = ReturnType<typeof rootReducer>;
