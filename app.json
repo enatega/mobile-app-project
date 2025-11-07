@@ -24,6 +24,7 @@
         "NSMicrophoneUsageDescription": "Allow $(PRODUCT_NAME) to access your microphone for voice calls with restaurants and delivery partners",
         "NSPhotoLibraryUsageDescription": "Allow $(PRODUCT_NAME) to access your photos to upload documents.",
         "NSCameraUsageDescription": "Allow $(PRODUCT_NAME) to access your camera to take profile pictures.",
+        
         "UIBackgroundModes": [
           "audio",
           "voip",
@@ -79,6 +80,7 @@
       "expo-web-browser",
       "./plugins/withTwilioVoiceProxy",
       "./plugins/withGoogleMapsApiKey.js",
+     
       [
         "expo-location",
         {

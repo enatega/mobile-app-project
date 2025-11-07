@@ -28,7 +28,7 @@ const { height } = Dimensions.get("window");
 
 export const TripDetailsScreen: React.FC = () => {
     const insets = useSafeAreaInsets();
-    const [rideStatus, setRideStatus] = useState("started");
+    const [rideStatus, setRideStatus] = useState("in_progress");
     const [modalRatingVisible, setModalRatingVisible] = useState(false);
     const [rideData, setRideData] = useState<any | null>(null);
     const [loading, setLoading] = useState(true);
@@ -217,15 +217,15 @@ export const TripDetailsScreen: React.FC = () => {
     };
     const origin = useMemo(() => {
         return {
-            latitude: rideData?.pickup?.lat ?? 31.5204,
-            longitude: rideData?.pickup?.lng ?? 74.3587,
+            latitude: rideData?.pickup?.lat ??  33.7038,
+            longitude: rideData?.pickup?.lng ?? 72.9799731,
         };
     }, [rideData]);
 
     const destination = useMemo(() => {
         return {
-            latitude: rideData?.dropoff?.lat ?? 33.6844,
-            longitude: rideData?.dropoff?.lng ?? 73.0479,
+            latitude: rideData?.dropoff?.lat ?? 33.63614130000001,
+            longitude: rideData?.dropoff?.lng ?? 72.9789334,
         };
     }, [rideData]);
 

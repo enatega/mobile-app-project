@@ -200,6 +200,8 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
     longitude: rideRequest?.dropoffLocation?.longitude ?? 0,
   };
 
+  console.log("my orings and destination ", origin , destination)
+
 
 
 
