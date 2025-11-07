@@ -1,4 +1,3 @@
-import twilioService from "@/services/twilio.service";
 import { Colors } from "@/src/constants";
 import { setOnGoingRideData } from "@/src/store/slices/onGoingRideSlice";
 import { RootState } from "@/src/store/store";
@@ -28,58 +27,44 @@ import Shimmer from "../utils/Shimmer";
 const { height } = Dimensions.get("window");
 
 export const TripDetailsScreen: React.FC = () => {
-  const insets = useSafeAreaInsets();
-  const [rideStatus, setRideStatus] = useState("in_progress");
-  const [modalRatingVisible, setModalRatingVisible] = useState(false);
-  const [loadingRide, setLoadingRide] = useState(false)
-  const [rideData, setRideData] = useState<any | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [waitingTime, setWaitingTime] = useState(900); // 15 * 60
-  const [isCallLoading, setIsCallLoading] = useState(false);
-  const { currency } = useSelector((state: RootState) => state.appConfig);
-  const user = useSelector((state: RootState) => state.auth?.user);
-  const driverId = user?.id; // Get from Redux
-  const customerId = "f5258cbe-d593-440d-9d9c-1203aa003513"; // Hardcoded for testing
-  const dispatch = useDispatch()
+    const insets = useSafeAreaInsets();
+    const [rideStatus, setRideStatus] = useState("started");
+    const [modalRatingVisible, setModalRatingVisible] = useState(false);
+    const [rideData, setRideData] = useState<any | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [waitingTime, setWaitingTime] = useState(900); // 15 * 60
+    const { currency } = useSelector((state: RootState) => state.appConfig);
+    const [loadingRide, setLoadingRide] = useState(false);
+    const dispatch = useDispatch();
+
+
+    // ✅ TODO: Replace with actual IDs from your ride data/auth system
+    const driverId = "ce1dd6a2-8662-495e-ae04-e0b84e0e3e30"; // Hardcoded for testing
+    const customerId = "f5258cbe-d593-440d-9d9c-1203aa003513"; // Hardcoded for testing
+    const customerName = "John Doe"; // Get from ride data
+    const customerAvatar = "https://avatar.iran.liara.run/public/48"; // Get from ride data
 
 
     const onGoingRideData = useSelector(
   (state: RootState) => state.onGoingRide.onGoingRideData
 );
-  
 
 
     const handleChatButtonPress = () => {
         router.push("/(tabs)/(rideRequests)/chatScreen");
     };
 
-    const handleCallButtonPress = async () => {
-    if (!customerId) {
-      Alert.alert('Error', 'Customer ID not available');
-      return;
-    }
-
-    setIsCallLoading(true);
-    try {
-      console.log('📞 Calling customer:', customerId);
-      await twilioService.makeCall(customerId);
-      
-      // Navigate to call screen with customer details
-      router.push({
-        pathname: "/(tabs)/(rideRequests)/callScreen",
-        params: {
-          customerId: customerId,
-          customerName: rideData?.passengerUser?.name || "Customer",
-          profileImage: rideData?.passengerUser?.profile_image || "https://avatar.iran.liara.run/public/48",
-        },
-      });
-    } catch (error) {
-      console.error('Failed to make call:', error);
-      Alert.alert('Call Failed', (error as Error).message);
-    } finally {
-      setIsCallLoading(false);
-    }
-  };
+    const handleCallButtonPress = () => {
+        // ✅ Navigate to call screen with customer details
+        router.push({
+            pathname: "/(tabs)/(rideRequests)/callScreen",
+            params: {
+                customerId: customerId,
+                customerName: customerName,
+                profileImage: customerAvatar,
+            },
+        });
+    };
 
     const rideStart = async (rideId: any) => {
         console.log("calling ride start:", rideId)
@@ -209,7 +194,7 @@ export const TripDetailsScreen: React.FC = () => {
 
 
     useEffect(() => {
-        let interval: ReturnType<typeof setInterval> | null = null;
+        let interval: NodeJS.Timeout | null = null;
 
         if (rideStatus === "in_progress") {
             interval = setInterval(() => {
@@ -364,11 +349,7 @@ export const TripDetailsScreen: React.FC = () => {
 
                     {/* Right Section */}
                     <View style={styles.rightSection}>
-                        <TouchableOpacity 
-                            style={[styles.iconButton, isCallLoading && styles.iconButtonDisabled]} 
-                            onPress={handleCallButtonPress}
-                            disabled={isCallLoading}
-                        >
+                        <TouchableOpacity style={styles.iconButton} onPress={handleCallButtonPress}>
                             <Ionicons name="call-outline" size={18} color="#27272A" />
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.iconButton} onPress={handleChatButtonPress}>
@@ -387,7 +368,10 @@ export const TripDetailsScreen: React.FC = () => {
                     onSubmit={(rating) => {
                         console.log("Rating submitted:", rating);
 
-                        giveRating(rating);
+                        Alert.alert("Your Rating Submitted Successfully")
+
+                        // giveRating(rating);
+                         setModalRatingVisible(false);
 
 
 
@@ -414,9 +398,11 @@ export const TripDetailsScreen: React.FC = () => {
                         if (rideStatus === "in_progress") {
                             setRideStatus("started");
                         } else if (rideStatus === "started") {
-                            rideStart(rideData?.rideId);
+                            // rideStart(rideData?.rideId);
+                            setRideStatus("completed");
                         } else if (rideStatus === "completed") {
-                            rideCompleted(rideData?.rideId);
+                            // rideCompleted(rideData?.rideId);
+                            setModalRatingVisible(true);
                         }
                     }}
                     activeOpacity={0.8}

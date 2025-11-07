@@ -5,6 +5,7 @@ import { webSocketService } from '@/src/services/socket/webSocketService';
 import { selectUser } from '@/src/store/selectors/authSelectors';
 import { RootState } from '@/src/store/store';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
@@ -122,13 +123,16 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
     // }
 
     // ✅ Proceed if everything is fine
-    webSocketService.placeBid({
-      riderId: myRiderId || "1ba44a89-16d1-4280-820c-3f66262bb843",
-      rideRequestId: rideRequest?.id,
-      price: defaultFare,
-    });
+    // webSocketService.placeBid({
+    //   riderId: myRiderId || "1ba44a89-16d1-4280-820c-3f66262bb843",
+    //   rideRequestId: rideRequest?.id,
+    //   price: defaultFare,
+    // });
 
     setIsOffering(true);
+
+    router.push("/(tabs)/(rideRequests)/tripDetail")
+
     Animated.timing(progress, {
       toValue: 0,
       duration: 10000,
