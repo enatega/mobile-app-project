@@ -1,5 +1,6 @@
 import twilioService from "@/services/twilio.service";
 import { Colors } from "@/src/constants";
+import { webSocketService } from "@/src/services/socket/webSocketService";
 import { setOnGoingRideData } from "@/src/store/slices/onGoingRideSlice";
 import { RootState } from "@/src/store/store";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -100,17 +101,22 @@ export const TripDetailsScreen: React.FC = () => {
             setLoadingRide(false);
         }
     }
-    const rideCompleted = async (rideId: any) => {
-        console.log("calling ride start:", rideId)
+    const rideCompleted = async (rideInfo: any) => {
+        console.log("calling ride start:", rideInfo)
 
         try {
-            const data = await rideRequestsService.completeMyRide(rideId);
+            const data = await rideRequestsService.completeMyRide(rideInfo?.rideId);
             console.log("my ride data", data);
             setLoadingRide(true)
 
             if (data?.message === "Ride completed successfully") {
                 router.push("/(tabs)/(rideRequests)");
                 setLoadingRide(false);
+                webSocketService.rideCompleted({
+                      rideId:rideInfo?.rideId ,
+                      genericCustomerUserId: rideInfo?.passengerUser?.id,
+                    });
+                
                 // Show the rating modal after 10 seconds
                 setTimeout(() => {
                     setModalRatingVisible(true);
@@ -416,7 +422,7 @@ export const TripDetailsScreen: React.FC = () => {
                         } else if (rideStatus === "started") {
                             rideStart(rideData?.rideId);
                         } else if (rideStatus === "completed") {
-                            rideCompleted(rideData?.rideId);
+                            rideCompleted(rideData);
                         }
                     }}
                     activeOpacity={0.8}

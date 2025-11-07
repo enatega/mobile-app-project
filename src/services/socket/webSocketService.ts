@@ -93,7 +93,7 @@ class WebSocketService {
           console.log("🔥 Received new ride for driver:", data);
           store.dispatch(setNewRideRequest(data));
         });
-
+      
         this.socket.on("bid-accepted", async (data) => {
           console.log("🎯 Bid accepted event received:", data);
 
@@ -151,6 +151,20 @@ class WebSocketService {
 
     console.log("📤 Emitting place-bid event:", payload);
     this.socket.emit("place-bid", payload);
+  }
+   rideCompleted(payload: {
+    rideId: string;
+    genericCustomerUserId: string;
+    // price: number;
+    // userId: string;
+  }): void {
+    if (!this.socket || !this.isConnected) {
+      console.error("❌ Cannot place bid — WebSocket not connected");
+      return;
+    }
+
+    console.log("📤 Emitting ride completed:", payload);
+    this.socket.emit("ride-completed", payload);
   }
 
   // onBidAccepted(callback: (data: any) => void): () => void {
