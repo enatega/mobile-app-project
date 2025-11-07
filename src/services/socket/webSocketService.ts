@@ -17,6 +17,14 @@ interface IReceivedMessage {
   text: string;
 }
 
+interface IRiderLocation {
+  riderId: string;
+  customerId: string;
+  latitude: number;
+  longitude: number;
+}
+
+
 // WebSocket configuration
 const IS_DEV = __DEV__;
 const WEBSOCKET_URL = IS_DEV
@@ -228,6 +236,34 @@ class WebSocketService {
   //   };
   // }
 
+
+    // Update rider's current location while on a trip
+    updateRiderLocation(location: IRiderLocation): void {
+      if (!this.socket || !this.isConnected) {
+        console.error("❌ WebSocket not connected, cannot update rider location");
+        return;
+      }
+  
+      console.log("📍 Updating rider location via WebSocket:", location);
+  
+      // Use acknowledgement to get server response
+      this.socket.emit(
+        "update-rider-current-location",
+        location,
+        (response: any) => {
+          if (response?.success) {
+            console.log(
+              "✅ Rider location update acknowledged by server:",
+              response
+            );
+          } else {
+            console.error("❌ Server rejected location update:", response);
+          }
+        }
+      );
+    }
+  
+
   // Get connection status
   isSocketConnected(): boolean {
     return this.isConnected && this.socket?.connected === true;
@@ -251,4 +287,5 @@ class WebSocketService {
 export const webSocketService = new WebSocketService();
 
 // Export types
-export type { IReceivedMessage, IsentMessage };
+export type { IReceivedMessage, IRiderLocation, IsentMessage };
+

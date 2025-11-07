@@ -19,16 +19,14 @@
       "config": {
         "googleMapsApiKey": "AIzaSyCcm7_Wd7uvmC9YnYLu2JHGWPt6z1MaL1E"
       },
-      "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "Allow $(PRODUCT_NAME) to use location to determine the delivery address for your orders.",
+     "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "We need your location to show nearby ride requests and navigate to pickup/dropoff locations.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "We need your location to track active rides and update your position for passengers in real-time, even when the app is in the background.",
+        "NSLocationAlwaysUsageDescription": "We need your location even when the app is closed to track active deliveries and provide accurate ETAs.",
         "NSMicrophoneUsageDescription": "Allow $(PRODUCT_NAME) to access your microphone for voice calls with restaurants and delivery partners",
+        "UIBackgroundModes": ["location", "audio", "voip", "remote-notification"],
         "NSPhotoLibraryUsageDescription": "Allow $(PRODUCT_NAME) to access your photos to upload documents.",
         "NSCameraUsageDescription": "Allow $(PRODUCT_NAME) to access your camera to take profile pictures.",
-        "UIBackgroundModes": [
-          "audio",
-          "voip",
-          "remote-notification"
-        ],
         "NSUserTrackingUsageDescription": "Allow this app to collect app-related data that can be used for tracking you or your device.",
         "CFBundleURLTypes": [
           {
@@ -57,14 +55,17 @@
         "android.permission.MODIFY_AUDIO_SETTINGS",
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE"
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "android.permission.FOREGROUND_SERVICE_LOCATION"
       ],
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyCcm7_Wd7uvmC9YnYLu2JHGWPt6z1MaL1E"
-        }
+        },
+        "isAndroidBackgroundLocationEnabled": true
       },
       "package": "com.ninjascode.lumidrive",
       "googleServicesFile": "./google-services.json"
@@ -80,19 +81,25 @@
       "./plugins/withTwilioVoiceProxy",
       "./plugins/withGoogleMapsApiKey.js",
       [
-        "expo-location",
+        "react-native-maps",
         {
-          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
-        }
-      ],
-      [
-       "react-native-maps",
-        {
+          "provider": "google",
           "config": {
             "googleMaps": {
               "apiKey": "AIzaSyCcm7_Wd7uvmC9YnYLu2JHGWPt6z1MaL1E"
             }
           }
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location.",
+          "locationAlwaysPermission": "Allow $(PRODUCT_NAME) to use your location even when the app is in the background.",
+          "locationWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location while using the app.",
+          "isIosBackgroundLocationEnabled": true,
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
         }
       ]
     ],
