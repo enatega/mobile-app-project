@@ -4,7 +4,7 @@ import { useDriverLocation } from '@/src/hooks/useDriverLocation';
 import { useDriverStatus } from '@/src/hooks/useDriverStatus';
 import { RootState } from '@/src/store/store';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Animated,
@@ -70,9 +70,19 @@ export const RideRequestsScreen: React.FC = () => {
   const rightOpenValue = -actionWidth;
 
   // First fetch driver location on mount
-  useEffect(() => {
-    requestPermissionAndFetchLocation();
-  }, [requestPermissionAndFetchLocation]);
+    useFocusEffect(
+    // Callback should be wrapped in `React.useCallback` to avoid running the effect too often.
+    useCallback(() => {
+      // Invoked whenever the route is focused.
+      console.log("Hello, I'm focused!");
+      requestPermissionAndFetchLocation();
+
+      // Return function is invoked whenever the route gets out of focus.
+      return () => {
+        console.log("This route is now unfocused.");
+      };
+    }, [])
+  );
 
   // Countdown timer for upcoming ride
   useEffect(() => {

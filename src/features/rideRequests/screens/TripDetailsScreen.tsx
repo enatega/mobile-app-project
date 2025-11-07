@@ -1,10 +1,11 @@
 import twilioService from "@/services/twilio.service";
 import { Colors } from "@/src/constants";
+import { useDriverLocation } from "@/src/hooks/useDriverLocation";
 import { setOnGoingRideData } from "@/src/store/slices/onGoingRideSlice";
 import { RootState } from "@/src/store/store";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
     ActivityIndicator,
@@ -40,7 +41,9 @@ export const TripDetailsScreen: React.FC = () => {
   const user = useSelector((state: RootState) => state.auth?.user);
   const driverId = user?.id; // Get from Redux
   const customerId = "f5258cbe-d593-440d-9d9c-1203aa003513"; // Hardcoded for testing
-  const dispatch = useDispatch()
+    const dispatch = useDispatch()
+    const { startLocationTracking, stopLocationTracking } = useDriverLocation();
+    
 
 
     const onGoingRideData = useSelector(
@@ -117,6 +120,12 @@ export const TripDetailsScreen: React.FC = () => {
                 }, 10000);
             }
 
+        try {
+            await stopLocationTracking();
+         } catch (error) {
+            console.log("Error stopping location tracking:", error);
+         }
+
             setLoadingRide(false);
 
         } catch (error: any) {
@@ -186,6 +195,19 @@ export const TripDetailsScreen: React.FC = () => {
     };
 
 
+  useFocusEffect(
+    // Callback should be wrapped in `React.useCallback` to avoid running the effect too often.
+    useCallback(() => {
+      // Invoked whenever the route is focused.
+        console.log("Hello, I'm focused!");
+        startLocationTracking();
+
+      // Return function is invoked whenever the route gets out of focus.
+      return () => {
+        console.log('This route is now unfocused.');
+      };
+    }, []),
+   );
 
 
 
