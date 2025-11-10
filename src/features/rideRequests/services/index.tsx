@@ -28,8 +28,8 @@ export const rideRequestsService = {
     try {
       // Todo: need to get latitude and longitude from driver location slice
       // const { latitude, longitude } = state.driverLocation;
-      const latitude = 33.7039556;
-      const longitude = 72.9799404;
+      const latitude = 33.703883138818156;
+      const longitude = 72.9798967259587;
 
       const response = await axios.get(
         `${API_BASE}/api/v1/ride-vehicles/nearby/${latitude}/${longitude}/${radius}?radius=${radius}`,
@@ -42,41 +42,64 @@ export const rideRequestsService = {
       );
       const data = response.data;
 
-      const requests: RideRequest[] = data.map((item: any) => ({
-        id: item.id,
-        profileImg: item?.passenger?.profile,
-        passenger: {
-          id: item.passenger_id,
-          name: item.passenger.name,
-          phoneNumber: "",
-          rating: item.reviews?.averageRating ?? 0,
-          totalRides: item.reviews?.count ?? 0,
-        },
-        passengerId: item?.passenger_id,
-        pickupLocation: {
-          latitude: item.locations?.pickup.lat,
-          longitude: item.locations?.pickup.lng,
-          address: item.locations?.pickup_location || "Pickup Location",
-        },
-        dropoffLocation: {
-          latitude: item.locations?.dropoff.lat,
-          longitude: item.locations?.dropoff.lng,
-          address: item.locations?.dropoff_location || "Dropoff Location",
-        },
-        requestTime: item.createdAt,
-        estimatedFare: parseFloat(item.offered_fair) || 0,
-        distance: item.distance ?? 0,
-        estimatedDuration: 0,
-        status: item.status.toLowerCase(),
-        rideType: item.is_hourly
-          ? "hourly"
-          : item.is_scheduled
-            ? "scheduled"
-            : "standard",
-        paymentMethod: item.payment_via.toLowerCase(),
-        specialInstructions: null,
-        rideTypeId: item?.ride_type_id,
-      }));
+      console.log('Ride request data ', data)
+
+      const requests: RideRequest[] = data.map((item: any) => {
+
+        const stops =
+          Array.isArray(item.stops) && item.stops.length > 0
+            ? item.stops.map((stop: any) => ({
+              latitude: stop.lat ?? stop.dropoff?.lat ?? 0,
+              longitude: stop.lng ?? stop.dropoff?.lng ?? 0,
+              address: stop.address || stop.dropoff_location || "Stop Location",
+            }))
+            : [];
+
+
+
+        return {
+          id: item.id,
+          profileImg: item?.passenger?.profile,
+          passenger: {
+            id: item.passenger_id,
+            name: item.passenger?.name ?? "Unknown Passenger",
+            phoneNumber: item.passenger?.phone ?? "",
+            rating: item.reviews?.averageRating ?? 0,
+            totalRides: item.reviews?.count ?? 0,
+          },
+          passengerId: item?.passenger_id,
+          pickupLocation: {
+            latitude: item.locations?.pickup?.lat ?? item.pickup?.lat ?? 0,
+            longitude: item.locations?.pickup?.lng ?? item.pickup?.lng ?? 0,
+            address:
+              item.locations?.pickup_location ||
+              item.pickup_location ||
+              "Pickup Location",
+          },
+          dropoffLocation: {
+            latitude: item.locations?.dropoff?.lat ?? item.dropoff?.lat ?? 0,
+            longitude: item.locations?.dropoff?.lng ?? item.dropoff?.lng ?? 0,
+            address:
+              item.locations?.dropoff_location ||
+              item.dropoff_location ||
+              "Dropoff Location",
+          },
+          stops, // ✅ Include parsed stops here
+          requestTime: item.createdAt,
+          estimatedFare: parseFloat(item.offered_fair) || 0,
+          distance: item.distance ?? 0,
+          estimatedDuration: 0,
+          status: item.status?.toLowerCase?.() ?? "unknown",
+          rideType: item.is_hourly
+            ? "hourly"
+            : item.is_scheduled
+              ? "scheduled"
+              : "standard",
+          paymentMethod: item.payment_via?.toLowerCase?.() ?? "cash",
+          specialInstructions: null,
+          rideTypeId: item?.ride_type_id,
+        };
+      });
 
       return requests;
     } catch (error: any) {
@@ -170,6 +193,32 @@ export const rideRequestsService = {
       throw error;
     }
   },
+
+
+  getZone: async (lat?: 33.6844, lng?: 73.0479) => {
+    try {
+      console.log('Fetching zone for:', lat, lng);
+
+      const response = await axios.get(
+        `${API_BASE}/api/v1/zones/check`,
+        { params: { lat, lng } }
+      );
+
+      console.log('Zone response:', response.data);
+      return response.data;
+    } catch (error: any) {
+      // Log the error from backend
+      if (error.response?.data?.message) {
+        console.error('Backend error message:', error.response.data.message);
+        // Throw the backend message so hook can catch it
+        throw new Error(error.response.data.message.join(', '));
+      }
+
+      console.error('Failed to fetch zone:', error);
+      throw error;
+    }
+  },
+
 
   startMyRide: async (rideId: any) => {
     const state = store.getState();

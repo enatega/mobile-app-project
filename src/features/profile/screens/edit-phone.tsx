@@ -107,7 +107,7 @@ const editPhone = () => {
           <View style={[globalStyles.containerPadding]}>
             <Heading
               title="Phone"
-              description="This is the phone you would like other people to use when referring you you."
+              description="This is the phone you would like other people to use when referring you."
             />
             <View style={globalStyles.containerPadding}>
               {/* Phone Number Input */}
