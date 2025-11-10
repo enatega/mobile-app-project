@@ -45,9 +45,7 @@ export const useDriverLocation = (): LocationHookResult => {
 
       // Step 2: Request foreground permission FIRST
       console.log("📍 Requesting foreground location permission...");
-      const foregroundStatus =
-        await Location.requestForegroundPermissionsAsync();
-
+      const foregroundStatus = await Location.requestForegroundPermissionsAsync();
       console.log("Foreground permission status:", foregroundStatus);
 
       if (foregroundStatus.status !== "granted") {
@@ -55,28 +53,28 @@ export const useDriverLocation = (): LocationHookResult => {
           "Foreground Location permission was denied. Please enable it in Settings."
         );
         dispatch(setDriverStatus("offline"));
-        console.log(
-          `⚠️ Foreground location permission denied in ${Platform.OS}`
-        );
+        console.log(`⚠️ Foreground location permission denied in ${Platform.OS}`);
         return false;
       }
 
-      console.log("📍 Requesting foreground location permission...");
-      const backgroundStatus =
-        await Location.requestBackgroundPermissionsAsync();
+      // Only request background permission on iOS
+      if (Platform.OS === "ios") {
+        console.log("📍 Requesting background location permission (iOS only)...");
+        const backgroundStatus = await Location.requestBackgroundPermissionsAsync();
+        console.log("Background permission status:", backgroundStatus);
 
-      console.log("Background permission status:", backgroundStatus);
-
-      if (backgroundStatus.status !== "granted") {
-        setErrorMsg(
-          "Background Location permission was denied. Please enable it in Settings."
-        );
-        dispatch(setDriverStatus("offline"));
-        console.log(
-          `⚠️ Background location permission denied in ${Platform.OS}`
-        );
-        return false;
+        if (backgroundStatus.status !== "granted") {
+          setErrorMsg(
+            "Background Location permission was denied. Please enable it in Settings."
+          );
+          dispatch(setDriverStatus("offline"));
+          console.log(`⚠️ Background location permission denied on iOS`);
+          return false;
+        }
+      } else {
+        console.log("ℹ️ Skipping background permission request on Android (use ACCESS_BACKGROUND_LOCATION in app.json)");
       }
+
       // Step 4: Get initial location
       const currentLocation = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.High,

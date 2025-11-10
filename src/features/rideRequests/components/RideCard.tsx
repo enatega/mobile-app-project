@@ -34,7 +34,7 @@ const getAvatarSource = (rideRequest: RideRequest) =>
     : { uri: 'https://avatar.iran.liara.run/public/48' };
 
 const getPassengerRides = (rideRequest: RideRequest) => {
-  
+
   const passenger = rideRequest.passenger as RideRequest['passenger'] & {
     totalRides?: number;
     totalRatings?: number;
@@ -145,12 +145,14 @@ export const RideCard: React.FC<RideCardProps> = ({ rideRequest, onMenuPress, on
   ]);
   const travelTimeLabel = useMemo(() => getTravelTimeLabel(rideRequest), [rideRequest]);
 
+  // console.log("ride request card is :", rideRequest);
+
   return (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={[styles.card, { backgroundColor: colors.card }]}
       onPress={() => onPress?.(rideRequest)}
       activeOpacity={1.0}
-    > 
+    >
       <View style={styles.headerRow}>
         <View style={styles.profileContainer}>
           <Image source={avatarSource} style={styles.avatar} />
@@ -159,7 +161,7 @@ export const RideCard: React.FC<RideCardProps> = ({ rideRequest, onMenuPress, on
               <Text style={[styles.passengerName, { color: colors.text }]} numberOfLines={1}>
                 {rideRequest.passenger.name}
               </Text>
-              <View style={[styles.badge, { backgroundColor: badge.background }]}> 
+              <View style={[styles.badge, { backgroundColor: badge.background }]}>
                 <Text style={[styles.badgeText, { color: badge.text }]}>{badge.label}</Text>
               </View>
             </View>
@@ -185,17 +187,46 @@ export const RideCard: React.FC<RideCardProps> = ({ rideRequest, onMenuPress, on
 
       <View style={styles.routeContainer}>
         <View style={styles.routeIconColumn}>
+          {/* Pickup dot */}
           <View style={[styles.routeDot, styles.routeDotPrimary, { borderColor: colors.primary }]} />
+
+          {/* Dynamic vertical line */}
           <View style={[styles.routeLine, { backgroundColor: colors.border }]} />
+
+          {/* Add extra dots for stops if any */}
+          {rideRequest.stops?.length > 0 && rideRequest.stops.map((_, index) => (
+            <React.Fragment key={`stop-dot-${index}`}>
+              <View style={[styles.routeDot, { borderColor: colors.secondary || colors.primary, marginVertical: 4 }]} />
+              <View style={[styles.routeLine, { backgroundColor: colors.border }]} />
+            </React.Fragment>
+          ))}
+
+          {/* Drop-off dot */}
           <View style={[styles.routeDot, { borderColor: colors.textSecondary }]} />
         </View>
+
         <View style={styles.routeDetails}>
+          {/* Pickup */}
           <View style={styles.routeRow}>
             <Text style={[styles.routeLabel, { color: colors.textSecondary }]}>Pickup</Text>
             <Text style={[styles.routeText, { color: colors.text }]} numberOfLines={1}>
               {rideRequest.pickupLocation.address}
             </Text>
           </View>
+
+          {/* Stops */}
+          {rideRequest?.stops?.length > 0 && rideRequest?.stops.map((stop, index) => (
+            <View style={styles.routeRow} key={`stop-${index}`}>
+              <Text style={[styles.routeLabel, { color: colors.textSecondary }]}>
+                Stop {index + 1}
+              </Text>
+              <Text style={[styles.routeText, { color: colors.text }]} numberOfLines={1}>
+                {stop.address}
+              </Text>
+            </View>
+          ))}
+
+          {/* Drop-off */}
           <View style={styles.routeRow}>
             <Text style={[styles.routeLabel, { color: colors.textSecondary }]}>Drop-off</Text>
             <Text style={[styles.routeText, { color: colors.text }]} numberOfLines={1}>
@@ -204,6 +235,7 @@ export const RideCard: React.FC<RideCardProps> = ({ rideRequest, onMenuPress, on
           </View>
         </View>
       </View>
+
 
       {travelTimeLabel && (
         <View style={[styles.instructionsChip, { backgroundColor: colors.backgroundSecondary }]}>
@@ -214,7 +246,7 @@ export const RideCard: React.FC<RideCardProps> = ({ rideRequest, onMenuPress, on
         </View>
       )}
 
-      <View style={[styles.metaRow, { borderTopColor: colors.border }]}> 
+      <View style={[styles.metaRow, { borderTopColor: colors.border }]}>
         {showRequestTime && (
           <View style={styles.metaItem}>
             <Ionicons name="time-outline" size={16} color={colors.textSecondary} />
@@ -223,7 +255,7 @@ export const RideCard: React.FC<RideCardProps> = ({ rideRequest, onMenuPress, on
         )}
         <View style={styles.metaItem}>
           <Ionicons name="wallet-outline" size={16} color={colors.textSecondary} />
-          <Text style={[styles.metaText, { color: colors.textSecondary }]}> 
+          <Text style={[styles.metaText, { color: colors.textSecondary }]}>
             {paymentMethodCopy[rideRequest.paymentMethod]}
           </Text>
         </View>
