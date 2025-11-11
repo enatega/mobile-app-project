@@ -178,6 +178,7 @@ export const TripDetailsScreen: React.FC = () => {
             console.log("Server response:", result);
             if (result) {
                 // router.replace("/(tabs)/(rideRequests)/rideRequest")
+                Alert.alert("Rated submitted Successfully")
                 setModalRatingVisible(false);
             }
 

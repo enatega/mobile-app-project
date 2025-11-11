@@ -28,8 +28,8 @@ export const rideRequestsService = {
     try {
       // Todo: need to get latitude and longitude from driver location slice
       // const { latitude, longitude } = state.driverLocation;
-      const latitude = 33.703883138818156;
-      const longitude = 72.9798967259587;
+      const latitude = 33.7039508;
+      const longitude = 72.9799375;
 
       const response = await axios.get(
         `${API_BASE}/api/v1/ride-vehicles/nearby/${latitude}/${longitude}/${radius}?radius=${radius}`,
@@ -87,8 +87,8 @@ export const rideRequestsService = {
           stops, // ✅ Include parsed stops here
           requestTime: item.is_scheduled ? item.scheduled_at : item.createdAt,
           estimatedFare: parseFloat(item.offered_fair) || 0,
-          distance: item.distance ?? 0,
-          estimatedDuration: 0,
+          distance: item.distance ?? item?.estimated_distance,
+          estimatedDuration: item?.estimated_time,
           status: item.status?.toLowerCase?.() ?? "unknown",
           rideType: item.is_hourly
             ? "hourly"
@@ -204,7 +204,7 @@ export const rideRequestsService = {
         { params: { lat, lng } }
       );
 
-      console.log('Zone response:', response.data);
+      console.log('Zone response:', response);
       return response.data;
     } catch (error: any) {
       // Log the error from backend

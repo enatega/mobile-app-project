@@ -130,7 +130,7 @@ class WebSocketService {
               console.error("❌ Error fetching ride data after bid accepted:", err);
             }
 
-          } else if (data.message === "Your bid was accepted. Ride scheduled!") {
+          } else if (data.message === "Your bid was accepted. Ride schedule!") {
             // ✅ Show alert when scheduled ride is accepted
             Alert.alert(
               "Ride Scheduled",
@@ -262,30 +262,30 @@ class WebSocketService {
 
 
   // Update rider's current location while on a trip
-  updateRiderLocation(location: IRiderLocation): void {
-    if (!this.socket || !this.isConnected) {
-      console.error("❌ WebSocket not connected, cannot update rider location");
-      return;
-    }
+  // updateRiderLocation(location: IRiderLocation): void {
+  //   if (!this.socket || !this.isConnected) {
+  //     console.error("❌ WebSocket not connected, cannot update rider location");
+  //     return;
+  //   }
 
-    console.log("📍 Updating rider location via WebSocket:", location);
+  //   console.log("📍 Updating rider location via WebSocket:", location);
 
-    // Use acknowledgement to get server response
-    this.socket.emit(
-      "update-rider-current-location",
-      location,
-      (response: any) => {
-        if (response?.success) {
-          console.log(
-            "✅ Rider location update acknowledged by server:",
-            response
-          );
-        } else {
-          console.error("❌ Server rejected location update:", response);
-        }
-      }
-    );
-  }
+  //   // Use acknowledgement to get server response
+  //   this.socket.emit(
+  //     "update-rider-current-location",
+  //     location,
+  //     (response: any) => {
+  //       if (response?.success) {
+  //         console.log(
+  //           "✅ Rider location update acknowledged by server:",
+  //           response
+  //         );
+  //       } else {
+  //         console.error("❌ Server rejected location update:", response);
+  //       }
+  //     }
+  //   );
+  // }
 
 
   // Get connection status
