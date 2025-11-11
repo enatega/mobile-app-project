@@ -154,7 +154,7 @@ export const useDriverLocation = (): LocationHookResult => {
               longitude: newLocation.coords.longitude,
             };
             console.log("Socket connected, now updating rider's location");
-            // webSocketService.updateRiderLocation(riderLocationParams);
+            webSocketService.updateRiderLocation(riderLocationParams);
           } else {
             console.log("Socket not connected, cannot update rider's location");
           }

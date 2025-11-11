@@ -125,7 +125,7 @@ export const TripDetailsScreen: React.FC = () => {
             }
 
             try {
-                await stopLocationTracking();
+                 stopLocationTracking();
             } catch (error) {
                 console.log("Error stopping location tracking:", error);
             }
