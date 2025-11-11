@@ -293,20 +293,17 @@ export const rideRequestsService = {
 
 
 
-  giveDriverRating: async (reviewData: {
-    description: string;
-    rating: number;
-    reviewedId: string;
-    rideId: string;
-    reviewerId: string; // 👈 Add this in body
-  }) => {
+  giveDriverRating: async (
+    payload: { description: string; rating: number; reviewedId: string; rideId: string },
+    reviewerId: string
+  ) => {
     const state = store.getState();
     const token = selectToken(state);
 
     try {
       const response = await axios.post(
-        `${API_BASE}/api/v1/reviews`, // ✅ No reviewerId in URL
-        reviewData, // ✅ Include reviewerId in body
+        `${API_BASE}/api/v1/reviews/${reviewerId}`,
+        payload,
         {
           headers: {
             "Content-Type": "application/json",
@@ -325,6 +322,7 @@ export const rideRequestsService = {
       throw error;
     }
   },
+
 
 
 
@@ -349,7 +347,6 @@ export const rideRequestsService = {
     } catch (error: any) {
       const errData = error.response?.data || error.message;
       console.error("❌ Error checking ride amount:", errData);
-      // ❌ Don't throw — instead, return a known object shape
       return { success: false, error: errData };
     }
   },
