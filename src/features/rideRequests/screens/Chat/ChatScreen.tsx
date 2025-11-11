@@ -22,6 +22,7 @@ import {
 
 import { useAppSelector } from "@/src/store/hooks";
 import { selectUser } from "@/src/store/selectors/authSelectors";
+import { RootState } from "@/src/store/store";
 
 import { useSendMessage } from "../../hooks/mutations/useSendMessage";
 import { useGetMessages } from "../../hooks/queries/useGetMessages";
@@ -40,7 +41,9 @@ const DriverChatScreen = () => {
   const currentUser = useAppSelector(selectUser);
   const driverId = currentUser?.id;
 
-  const customerId = "2bf0c0c2-f44f-445b-99ac-36c72dce52fa";
+  const onGoingRideData = useAppSelector((state: RootState) => state.onGoingRide.onGoingRideData);
+  const customerId = onGoingRideData?.passengerUser?.id || "f5258cbe-d593-440d-9d9c-1203aa003513";
+  console.log('🚖 Ongoing ride customer ID:', customerId);
   const customerName = params.customerName as string || "Customer";
   const profileImage = params.profileImage as string || "https://avatar.iran.liara.run/public/48";
 
