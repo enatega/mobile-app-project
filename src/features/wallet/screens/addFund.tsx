@@ -1,8 +1,9 @@
 // src/features/wallet/screens/addFund.tsx
 import { GradientBackground } from "@/src/components/common";
 import BackButton from "@/src/components/common/BackButton";
-import { store } from "@/src/store/store";
-import { router } from "expo-router";
+import { RootState } from "@/src/store/store";
+
+import { router, useNavigation } from "expo-router";
 import React, { useState } from "react";
 import {
   Keyboard,
@@ -14,6 +15,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
+import { useSelector } from "react-redux";
 import Title from "../../auth/components/common/TitleHeader";
 import AddCardModal from "../components/addFund/AddCardModal";
 import AddFundButton from "../components/addFund/AddFundButton";
@@ -22,18 +24,12 @@ import AmountOptionsList, {
   AmountOption,
 } from "../components/addFund/AmountOptionsList";
 import PaymentMethodModal from "../components/addFund/PaymentMethodModal";
-import SelectedPaymentCard, { PaymentCard } from "../components/addFund/SelectedPaymentCard";
+import SelectedPaymentCard, {
+  PaymentCard,
+} from "../components/addFund/SelectedPaymentCard";
 import { useAddFunds } from "../hooks/mutations/useAddFunds";
 
-const { currency } = store?.getState()?.appConfig;
 
-
-const AMOUNT_OPTIONS: AmountOption[] = [
-  { id: "1", value: 10.0, label: `${currency?.code} 10.00` },
-  { id: "2", value: 20.0, label: `${currency?.code} 20.00` },
-  { id: "3", value: 40.0, label: `${currency?.code} 40.00` },
-  { id: "4", value: 50.0, label: `${currency?.code} 50.00` },
-];
 
 const DUMMY_CARDS: PaymentCard[] = [
   { id: "1", type: "mastercard", lastFour: "1412", selected: true },
@@ -48,6 +44,15 @@ const AddFundMain = () => {
   const [cardNumber, setCardNumber] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
   const [securityCode, setSecurityCode] = useState("");
+    const { currency } = useSelector((state: RootState) => state.appConfig);
+  const navigation = useNavigation();
+
+  const AMOUNT_OPTIONS: AmountOption[] = [
+    { id: "1", value: 10.0, label: `${currency?.code} 10.00` },
+    { id: "2", value: 20.0, label: `${currency?.code} 20.00` },
+    { id: "3", value: 40.0, label: `${currency?.code} 40.00` },
+    { id: "4", value: 50.0, label: `${currency?.code} 50.00` },
+  ];
 
   // Use the add funds mutation hook
   const { mutate: addFunds, isPending: isAddingFunds } = useAddFunds();
@@ -82,13 +87,21 @@ const AddFundMain = () => {
     }
 
     // Call the API to add funds
-    addFunds(numericAmount, {
-      onSuccess: () => {
-        // Reset amount and navigate back
-        setAmount("");
-        router.back();
-      },
+    //handle payment here to add funds in wallet
+
+    //  router.push("/(tabs)/(wallet)/paymentScreen",{amount:numericAmount});
+    router.push({
+      pathname: "/(tabs)/(wallet)/paymentScreen",
+      params: { amount: numericAmount },
     });
+
+    // addFunds(numericAmount, {
+    //   onSuccess: () => {
+    //     // Reset amount and navigate back
+    //     setAmount("");
+    //     router.back();
+    //   },
+    // });
   };
 
   const isButtonDisabled = !amount || parseFloat(amount) < 10;
@@ -222,7 +235,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 5,
     paddingBottom: 60,
-    marginTop: 'auto',
+    marginTop: "auto",
   },
 });
 
