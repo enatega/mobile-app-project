@@ -27,9 +27,9 @@ export const rideRequestsService = {
 
     try {
       // Todo: need to get latitude and longitude from driver location slice
-      // const { latitude, longitude } = state.driverLocation;
-      const latitude = 33.7039508;
-      const longitude = 72.9799375;
+      const { latitude, longitude } = state.driverLocation;
+      // const latitude = 33.7039508;
+      // const longitude = 72.9799375;
 
       const response = await axios.get(
         `${API_BASE}/api/v1/ride-vehicles/nearby/${latitude}/${longitude}/${radius}?radius=${radius}`,
@@ -195,7 +195,7 @@ export const rideRequestsService = {
   },
 
 
-  getZone: async (lat?: 33.6844, lng?: 73.0479) => {
+  getZone: async (lat?: number, lng?: number) => {
     try {
       console.log('Fetching zone for:', lat, lng);
 
