@@ -34,6 +34,7 @@ import {
   SUPPORT_TEAM_ID,
   supportChatApi
 } from "@/src/services/supportChatApi";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const support = () => {
   const router = useRouter();
@@ -63,18 +64,19 @@ const support = () => {
 
 
   const flatListRef = useRef<FlatList>(null);
+  const inests = useSafeAreaInsets();
 
   // ============================================
   // TanStack Query Hooks
   // ============================================
-  
+
   // 1️⃣ Initialize chat - finds existing chat or creates temp
   const {
     data: chatData,
     isLoading: isInitializing,
     error: initError,
     isSuccess: isChatInitialized,
-  } = useInitializeSupportChat(driverId, { 
+  } = useInitializeSupportChat(driverId, {
     enabled: !!driverId  // Always fetch when driverId exists
   });
 
@@ -138,12 +140,12 @@ const support = () => {
   useEffect(() => {
     if (isChatInitialized && chatData?.chatBox) {
       const newChatBoxId = chatData.chatBox.id;
-      
+
       console.log('✅ Support chat initialized');
       console.log('📦 Chat Box ID:', newChatBoxId);
       console.log('📦 Initial messages from init:', chatData.messages?.length || 0);
       console.log('🔍 Is temp chat?', newChatBoxId.startsWith('temp-'));
-      
+
       setChatBoxId(newChatBoxId);
 
       // 🔥 KEY FIX: If this is a REAL chat (not temp), refetch messages
@@ -170,7 +172,7 @@ const support = () => {
     const connectWebSocket = async () => {
       try {
         const isConnected = supportChatApi.isSocketConnected();
-        
+
         if (!isConnected) {
           await supportChatApi.connectToSocket(driverId);
           console.log('✅ WebSocket connected for support chat');
@@ -200,7 +202,7 @@ const support = () => {
             console.log('⚠️ Duplicate message, skipping');
             return prev;
           }
-          
+
           return [...prev, chatMessage];
         });
 
@@ -237,7 +239,7 @@ const support = () => {
               m.senderId === message.senderId &&
               Math.abs(
                 new Date(m.createdAt).getTime() -
-                  new Date(message.createdAt).getTime()
+                new Date(message.createdAt).getTime()
               ) < 1000)
         ) === index
     )
@@ -285,16 +287,16 @@ const support = () => {
   // ============================================
   const messagesWithAutoMessage = allMessages.length === 0 && isChatInitialized
     ? [
-        {
-          id: 'auto-message-1',
-          text: 'How can we help you?\n[Automessage]',
-          senderId: SUPPORT_TEAM_ID,
-          receiverId: driverId,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          chatBoxId: chatBoxId || 'temp',
-        },
-      ]
+      {
+        id: 'auto-message-1',
+        text: 'How can we help you?\n[Automessage]',
+        senderId: SUPPORT_TEAM_ID,
+        receiverId: driverId,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        chatBoxId: chatBoxId || 'temp',
+      },
+    ]
     : allMessages;
 
   // Convert to UI format (ChatMessage interface)
@@ -427,14 +429,14 @@ const support = () => {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
-       <ChatHeader
-  name="Support"
-  showBackButton={true}
-  showPhoneButton={false}
-  showProfileImage={false}
-  onBackPress={handleBackPress}
-  onPhonePress={handlePhonePress}
-/>
+        <ChatHeader
+          name="Support"
+          showBackButton={true}
+          showPhoneButton={false}
+          showProfileImage={false}
+          onBackPress={handleBackPress}
+          onPhonePress={handlePhonePress}
+        />
 
         <ChatMessageList
           messages={messages}
@@ -450,8 +452,8 @@ const support = () => {
               paddingBottom: isKeyboardVisible
                 ? 0
                 : Platform.OS === "ios"
-                ? 85
-                : 60,
+                  ? 85
+                  : 80,
             },
           ]}
         >

@@ -27,9 +27,9 @@ export const rideRequestsService = {
 
     try {
       // Todo: need to get latitude and longitude from driver location slice
-      // const { latitude, longitude } = state.driverLocation;
-      const latitude = 33.703883138818156;
-      const longitude = 72.9798967259587;
+      const { latitude, longitude } = state.driverLocation;
+      // const latitude = 33.7039508;
+      // const longitude = 72.9799375;
 
       const response = await axios.get(
         `${API_BASE}/api/v1/ride-vehicles/nearby/${latitude}/${longitude}/${radius}?radius=${radius}`,
@@ -85,10 +85,10 @@ export const rideRequestsService = {
               "Dropoff Location",
           },
           stops, // ✅ Include parsed stops here
-          requestTime: item.createdAt,
+          requestTime: item.is_scheduled ? item.scheduled_at : item.createdAt,
           estimatedFare: parseFloat(item.offered_fair) || 0,
-          distance: item.distance ?? 0,
-          estimatedDuration: 0,
+          distance: item.distance ?? item?.estimated_distance,
+          estimatedDuration: item?.estimated_time,
           status: item.status?.toLowerCase?.() ?? "unknown",
           rideType: item.is_hourly
             ? "hourly"
@@ -195,7 +195,7 @@ export const rideRequestsService = {
   },
 
 
-  getZone: async (lat?: 33.6844, lng?: 73.0479) => {
+  getZone: async (lat?: number, lng?: number) => {
     try {
       console.log('Fetching zone for:', lat, lng);
 
@@ -204,7 +204,7 @@ export const rideRequestsService = {
         { params: { lat, lng } }
       );
 
-      console.log('Zone response:', response.data);
+      console.log('Zone response:', response);
       return response.data;
     } catch (error: any) {
       // Log the error from backend
@@ -293,23 +293,20 @@ export const rideRequestsService = {
 
 
 
-  giveDriverRating: async (reviewData: {
-    description: string;
-    rating: number;
-    reviewedId: string;
-    rideId: string;
-    reviewerId: string; // 👈 Add this in body
-  }) => {
+  giveDriverRating: async (
+    payload: { description: string; rating: number; reviewedId: string; rideId: string },
+    reviewerId: string
+  ) => {
     const state = store.getState();
     const token = selectToken(state);
 
     try {
       const response = await axios.post(
-        `${API_BASE}/api/v1/reviews`, // ✅ No reviewerId in URL
-        reviewData, // ✅ Include reviewerId in body
+        `${API_BASE}/api/v1/reviews`,
+        payload,
         {
           headers: {
-            "Content-Type": "application/json",
+            // "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
         }
@@ -325,6 +322,7 @@ export const rideRequestsService = {
       throw error;
     }
   },
+
 
 
 
@@ -349,7 +347,6 @@ export const rideRequestsService = {
     } catch (error: any) {
       const errData = error.response?.data || error.message;
       console.error("❌ Error checking ride amount:", errData);
-      // ❌ Don't throw — instead, return a known object shape
       return { success: false, error: errData };
     }
   },

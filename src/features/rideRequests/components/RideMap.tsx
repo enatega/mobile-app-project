@@ -25,7 +25,7 @@ const RideMap: React.FC<RideMapProps> = ({ origin, destination, rideRequest, sho
     (state) => state.driverLocation
   );
 
-  console.log("rideRequest in map is", rideRequest);
+  // console.log("rideRequest in map is", rideRequest);
 
   const fetchRouteOnce = async () => {
     if (hasFetched || !shouldFetchRoute) return;

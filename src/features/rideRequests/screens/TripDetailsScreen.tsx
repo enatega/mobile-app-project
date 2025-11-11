@@ -3,6 +3,7 @@ import { Colors } from "@/src/constants";
 import { useDriverLocation } from "@/src/hooks/useDriverLocation";
 import { setOnGoingRideData } from "@/src/store/slices/onGoingRideSlice";
 import { RootState } from "@/src/store/store";
+import Feather from '@expo/vector-icons/Feather';
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { router, useFocusEffect } from "expo-router";
@@ -14,6 +15,7 @@ import {
     Image,
     Linking,
     Platform,
+    Share,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -50,7 +52,7 @@ export const TripDetailsScreen: React.FC = () => {
     );
 
 
-    const driverId = user?.id; 
+    const driverId = user?.id;
     const customerId = onGoingRideData?.passengerUser?.id || "f5258cbe-d593-440d-9d9c-1203aa003513"; // Hardcoded for testing
 
 
@@ -168,14 +170,18 @@ export const TripDetailsScreen: React.FC = () => {
                 description: ratingData.comment,
                 rating: ratingData.rating,
                 reviewedId: onGoingRideData?.passengerUser?.id,
-                rideId: rideId?.riderId,
-                reviewerId: rideId?.riderId,
+                rideId: onGoingRideData?.riderId,
+                // reviewerId: rideId?.riderId,
             };
 
             const result = await rideRequestsService.giveDriverRating(payload, reviewerId);
             console.log("Server response:", result);
-            router.replace("/(tabs)/(rideRequests)/rideRequest")
-            setModalRatingVisible(false);
+            if (result) {
+                // router.replace("/(tabs)/(rideRequests)/rideRequest")
+                Alert.alert("Rated submitted Successfully")
+                setModalRatingVisible(false);
+            }
+
         } catch (error: any) {
             console.log("Error giving rating:", error.response);
         }
@@ -195,6 +201,34 @@ export const TripDetailsScreen: React.FC = () => {
             Linking.openURL(fallbackUrl);
         });
     };
+
+
+    const handleShareRide = async () => {
+        if (!rideData) return;
+
+        try {
+            const shareMessage = `
+🚗 Ride Details:
+📍 Pickup: ${rideData.pickup_location}
+🏁 Drop-off: ${rideData.dropoff_location}
+💰 Fare: £${rideData.agreed_price}
+💳 Payment: ${rideData.payment_via}
+👤 Passenger: ${rideData.passengerUser?.name}
+
+Track on map:
+Pickup → https://www.google.com/maps?q=${rideData.pickup?.lat},${rideData.pickup?.lng}
+Drop-off → https://www.google.com/maps?q=${rideData.dropoff?.lat},${rideData.dropoff?.lng}
+    `.trim();
+
+            await Share.share({
+                message: shareMessage,
+                title: "Share My Ride",
+            });
+        } catch (error) {
+            console.error("❌ Error sharing ride:", error);
+        }
+    };
+
 
 
     useFocusEffect(
@@ -315,6 +349,9 @@ export const TripDetailsScreen: React.FC = () => {
                 <Ionicons name="navigate" size={24} color="#fff" />
                 <Text style={{ color: "#fff", marginTop: 4, fontSize: 16, fontWeight: "600" }}>Navigate</Text>
             </TouchableOpacity>
+            <TouchableOpacity style={styles.shareButton} onPress={handleShareRide}>
+                <Feather name="share" size={24} color="black" />
+            </TouchableOpacity>
 
             {/* Bottom Card */}
             <View style={styles.bottomCard}>
@@ -428,7 +465,7 @@ export const TripDetailsScreen: React.FC = () => {
                 <TouchableOpacity
                     style={[
                         styles.button,
-                        { marginBottom: insets.bottom + 60 },
+                        { marginBottom: insets.bottom + 80 },
                         rideStatus === "started" || rideStatus === "completed"
                             ? { backgroundColor: Colors.light.primary }
                             : { backgroundColor: Colors.light.success },
@@ -505,7 +542,7 @@ const styles = StyleSheet.create({
     bottomCard: {
         position: "absolute",
         bottom: 0,
-        height: height * 0.4,
+        height: height * 0.42,
         width: "100%",
         backgroundColor: "#fff",
         borderTopLeftRadius: 20,
@@ -611,7 +648,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignContent: "center",
         gap: "2",
-        bottom: height * 0.4 + 10,
+        bottom: height * 0.42 + 10,
         left: 20,
         backgroundColor: "#000000",
         width: 140,
@@ -625,4 +662,23 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 4,
     },
+    shareButton: {
+        position: "absolute",
+        display: "flex",
+        flexDirection: "row",
+        alignContent: "center",
+        gap: "2",
+        bottom: height * 0.42 + 10,
+        right: 20,
+        backgroundColor: "#ffff",
+        padding: 10,
+        borderRadius: 25,
+        justifyContent: "center",
+        alignItems: "center",
+        shadowColor: "#000",
+        shadowOpacity: 0.1,
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 4,
+        elevation: 4,
+    }
 });

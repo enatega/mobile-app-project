@@ -1,8 +1,10 @@
 // services/websocketService.ts
 import rideRequestsService from "@/src/features/rideRequests/services";
+import { setOnGoingRideData } from "@/src/store/slices/onGoingRideSlice";
 import { setNewRideRequest } from "@/src/store/slices/requestedRide";
 import { store } from "@/src/store/store";
 import { router } from "expo-router";
+import { Alert } from "react-native";
 import io, { Socket } from "socket.io-client";
 // Types matching your backend
 interface IsentMessage {
@@ -105,21 +107,42 @@ class WebSocketService {
         this.socket.on("bid-accepted", async (data) => {
           console.log("🎯 Bid accepted event received:", data);
 
-          // Example data: { rideRequestId, ride_request_is_now_ride, message }
-
           if (data.message === "Your bid was accepted. Ride started!") {
-            console.log("Your bid was accepted. Ride started!");
-            const data = await rideRequestsService.acceptRideRequest();
-            console.log("✅ Ride result:", data);
-            // ✅ Navigate and update UI
-            if (data) {
-              router.push("/tripDetail");
+            console.log("✅ Bid accepted! Fetching ride data...");
+
+            try {
+              const rideData = await rideRequestsService.acceptRideRequest();
+
+              if (rideData) {
+                console.log("✅ Ride data fetched successfully:", rideData);
+
+                // ✅ Save to Redux before navigation
+                store.dispatch(setOnGoingRideData(rideData));
+
+                // ✅ Navigate only after ride data is stored
+                setTimeout(() => {
+                  router.push("/tripDetail");
+                }, 300);
+              } else {
+                console.warn("⚠️ No ride data returned from API.");
+              }
+            } catch (err) {
+              console.error("❌ Error fetching ride data after bid accepted:", err);
             }
 
-            // Optional: set offering state if needed
-            // setIsOffering(true);
+          } else if (data.message === "Your bid was accepted. Ride schedule!") {
+            // ✅ Show alert when scheduled ride is accepted
+            Alert.alert(
+              "Ride Scheduled",
+              "Your bid has been accepted and the ride has been scheduled successfully.",
+              [{ text: "OK" }]
+            );
+          } else {
+            console.log("ℹ️ Unhandled bid-accepted message:", data.message);
           }
         });
+
+
 
         // Connection timeout
         setTimeout(() => {
@@ -150,6 +173,7 @@ class WebSocketService {
     riderId: string;
     rideRequestId: string;
     price: number;
+    startType?: any;
     // userId: string;
   }): void {
     if (!this.socket || !this.isConnected) {
@@ -237,32 +261,32 @@ class WebSocketService {
   // }
 
 
-    // Update rider's current location while on a trip
-    updateRiderLocation(location: IRiderLocation): void {
-      if (!this.socket || !this.isConnected) {
-        console.error("❌ WebSocket not connected, cannot update rider location");
-        return;
-      }
-  
-      console.log("📍 Updating rider location via WebSocket:", location);
-  
-      // Use acknowledgement to get server response
-      this.socket.emit(
-        "update-rider-current-location",
-        location,
-        (response: any) => {
-          if (response?.success) {
-            console.log(
-              "✅ Rider location update acknowledged by server:",
-              response
-            );
-          } else {
-            console.error("❌ Server rejected location update:", response);
-          }
-        }
-      );
-    }
-  
+  // Update rider's current location while on a trip
+  // updateRiderLocation(location: IRiderLocation): void {
+  //   if (!this.socket || !this.isConnected) {
+  //     console.error("❌ WebSocket not connected, cannot update rider location");
+  //     return;
+  //   }
+
+  //   console.log("📍 Updating rider location via WebSocket:", location);
+
+  //   // Use acknowledgement to get server response
+  //   this.socket.emit(
+  //     "update-rider-current-location",
+  //     location,
+  //     (response: any) => {
+  //       if (response?.success) {
+  //         console.log(
+  //           "✅ Rider location update acknowledged by server:",
+  //           response
+  //         );
+  //       } else {
+  //         console.error("❌ Server rejected location update:", response);
+  //       }
+  //     }
+  //   );
+  // }
+
 
   // Get connection status
   isSocketConnected(): boolean {
