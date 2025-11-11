@@ -25,7 +25,7 @@ export const OfflineScreen: React.FC<EmptyStateProps> = ({ isOnline, title, desc
   useEffect(() => {
     (async () => {
       const granted = await requestPermissionAndFetchLocation();
-      if (granted) startLocationTracking();
+      // if (granted) startLocationTracking();
     })();
   }, []);
 

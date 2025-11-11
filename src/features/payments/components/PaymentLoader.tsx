@@ -1,11 +1,11 @@
 import { BASE_URL } from "@/environment";
 import { RootState } from "@/src/store/store";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router } from "expo-router";
 import React, { useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { useSelector } from "react-redux";
 import { getAuthHeaders } from "../utils/api";
-
 interface Product {
   id: number;
   name: string;
@@ -22,7 +22,7 @@ interface Props {
 const PaymentLoader: React.FC<Props> = ({ amount, onStartPayment }) => {
   const jwtToken = useSelector((state: any) => state.auth.token);
   const { currency } = useSelector((state: RootState) => state.appConfig);
-  
+
   useEffect(() => {
     handlePayment();
 
@@ -65,6 +65,9 @@ const PaymentLoader: React.FC<Props> = ({ amount, onStartPayment }) => {
           "lastMerchantTxnId",
           "lastTransactionUUID",
         ]);
+        router.replace({
+          pathname: "/(tabs)/(wallet)/wallet-main",
+        });
         return;
       }
 
@@ -85,10 +88,16 @@ const PaymentLoader: React.FC<Props> = ({ amount, onStartPayment }) => {
         });
       } else {
         alert(result.errorMessage || "Payment initiation failed");
+        router.replace({
+          pathname: "/(tabs)/(wallet)/wallet-main",
+        });
       }
     } catch (error) {
       console.error("Payment error:", error);
       alert("Payment initiation failed. Please try again.");
+      router.replace({
+        pathname: "/(tabs)/(wallet)/wallet-main",
+      });
     }
   };
 

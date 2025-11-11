@@ -1,12 +1,12 @@
 import { BASE_URL } from "@/environment";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 import { getAuthHeaders } from "../utils/api";
 import { ITransactionData } from "./PaymentWebView";
-
 interface Props {
   onDone: () => void;
   transactionData: ITransactionData;
@@ -17,7 +17,7 @@ const PaymentCallback: React.FC<Props> = ({ onDone, transactionData }) => {
   const jwtToken = useSelector((state: any) => state.auth.token);
   const [status, setStatus] = useState("verifying");
   const [message, setMessage] = useState("Verifying payment...");
-  
+
   useEffect(() => {
     const verifyPayment = async () => {
       try {
@@ -47,10 +47,18 @@ const PaymentCallback: React.FC<Props> = ({ onDone, transactionData }) => {
         } else {
           setStatus("failed");
           setMessage(result.errorMessage || "Verification failed");
+          alert("Payment verification failed. Please try again.");
+          router.replace({
+            pathname: "/(tabs)/(wallet)/wallet-main",
+          });
         }
       } catch (error) {
         setStatus("error");
         setMessage("Error verifying payment.");
+        alert("Payment verification failed. Please try again.");
+        router.replace({
+          pathname: "/(tabs)/(wallet)/wallet-main",
+        });
       }
     };
 

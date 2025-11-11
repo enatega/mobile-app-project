@@ -42,8 +42,8 @@ const DriverChatScreen = () => {
   const driverId = currentUser?.id;
 
   const onGoingRideData = useAppSelector((state: RootState) => state.onGoingRide.onGoingRideData);
-  const customerId = onGoingRideData?.passengerUser?.id || "f5258cbe-d593-440d-9d9c-1203aa003513";
-  console.log('🚖 Ongoing ride customer ID:', customerId);
+  const customerId = onGoingRideData?.passengerUser?.id;
+  console.log('🚖 Ongoing ride customer ID:', customerId,driverId);
   const customerName = params.customerName as string || "Customer";
   const profileImage = params.profileImage as string || "https://avatar.iran.liara.run/public/48";
 
