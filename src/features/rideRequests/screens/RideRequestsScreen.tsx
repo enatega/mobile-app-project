@@ -130,7 +130,27 @@ export const RideRequestsScreen: React.FC = () => {
 
   const handleComplain = (id: string) => {
     closeRow(id);
-    router.push('/(tabs)/(profile)/support');
+    const rideRequest = safeRideRequests.find(ride => ride.id === id);
+    if (rideRequest) {
+      const rideDetails = {
+        rideId: rideRequest.id,
+        passengerName: rideRequest.passenger.name,
+        passengerPhone: rideRequest.passenger.phoneNumber,
+        pickupAddress: rideRequest.pickupLocation.address,
+        dropoffAddress: rideRequest.dropoffLocation.address,
+        estimatedFare: rideRequest.estimatedFare,
+        distance: rideRequest.distance,
+        requestTime: rideRequest.requestTime,
+        rideType: rideRequest.rideType,
+        paymentMethod: rideRequest.paymentMethod
+      };
+      router.push({
+        pathname: '/(tabs)/(profile)/support',
+        params: { rideComplaint: JSON.stringify(rideDetails) }
+      });
+    } else {
+      router.push('/(tabs)/(profile)/support');
+    }
   };
 
   const handleHide = async (id: string) => {
