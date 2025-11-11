@@ -22,6 +22,8 @@ const profileScreen = () => {
   const { mutate: logout, isPending, isError } = useLogout();
   const theme = useTheme();
 
+  console.log("🚀 Profile data:", data);
+
   const userObject = {
     name: data?.user?.name || "",
     email: data?.user?.email || "",

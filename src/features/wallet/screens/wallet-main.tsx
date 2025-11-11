@@ -1,16 +1,16 @@
 // src/features/wallet/screens/wallet-main.tsx
 import { GradientBackground } from "@/src/components/common";
 import { TransactionFilterType } from "@/src/services/wallet.service";
-import { router } from "expo-router";
-import React, { useState } from "react";
+import { router, useLocalSearchParams } from "expo-router";
+import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    RefreshControl,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  ActivityIndicator,
+  RefreshControl,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 import Title from "../../auth/components/common/TitleHeader";
 import TransactionFilterTabs from "../components/wallet-main/TransactionFilterTabs";
@@ -19,25 +19,29 @@ import WalletBalanceCard from "../components/wallet-main/WalletBalanceCard";
 import { useTransactionHistory } from "../hooks/queries/useTransactionHistory";
 import { useWalletBalance } from "../hooks/queries/useWalletBalance";
 
-
 // Map backend filter types to frontend filter types
-const mapFilterToBackend = (filter: 'all' | 'money-in' | 'money-out'): TransactionFilterType => {
+const mapFilterToBackend = (
+  filter: "all" | "money-in" | "money-out"
+): TransactionFilterType => {
   switch (filter) {
-    case 'money-in':
-      return 'deposit';
-    case 'money-out':
-      return 'withdrawal';
+    case "money-in":
+      return "deposit";
+    case "money-out":
+      return "withdrawal";
     default:
-      return 'all';
+      return "all";
   }
 };
 
 const WalletMain = () => {
-  const [activeFilter, setActiveFilter] = useState<'all' | 'money-in' | 'money-out'>('all');
-
+  const [activeFilter, setActiveFilter] = useState<
+    "all" | "money-in" | "money-out"
+  >("all");
+  const { refresh } = useLocalSearchParams();
+  console.log("WalletMain refresh param:", refresh);
   // Fetch wallet balance
-  const { 
-    data: balanceData, 
+  const {
+    data: balanceData,
     isLoading: isLoadingBalance,
     refetch: refetchBalance,
     isRefetching: isRefetchingBalance,
@@ -45,12 +49,20 @@ const WalletMain = () => {
 
   // Fetch transaction history based on active filter
   const backendFilter = mapFilterToBackend(activeFilter);
-  const { 
-    data: historyData, 
+  const {
+    data: historyData,
     isLoading: isLoadingHistory,
     refetch: refetchHistory,
     isRefetching: isRefetchingHistory,
   } = useTransactionHistory(backendFilter, 0, 20);
+
+  useEffect(() => {
+    console.log("WalletMain useEffect triggered with refresh:", refresh);
+    if (refresh) {
+      handleRefresh();
+    }
+    return () => {};
+  }, [refresh]);
 
   // Handle pull-to-refresh
   const handleRefresh = async () => {
@@ -69,46 +81,47 @@ const WalletMain = () => {
   };
 
   // Format transactions for the UI
-  const formattedTransactions = historyData?.transactions.map((tx) => {
-    // Determine icon and isPositive based on transaction type
-    let icon = "💳";
-    let isPositive = false;
-    let title: string = tx.type; // Explicitly type as string
+  const formattedTransactions =
+    historyData?.transactions.map((tx) => {
+      // Determine icon and isPositive based on transaction type
+      let icon = "💳";
+      let isPositive = false;
+      let title: string = tx.type; // Explicitly type as string
 
-    if (tx.type === "Deposit") {
-      icon = "💳";
-      isPositive = true;
-      title = "Wallet Top up";
-    } else if (tx.type === "Withdrawal") {
-      icon = "💸";
-      isPositive = false;
-      title = "Withdrawal";
-    } else if (tx.type === "Credit") {
-      icon = "🚗";
-      isPositive = false;
-      title = "Ride Payment";
-    }
+      if (tx.type === "Deposit") {
+        icon = "💳";
+        isPositive = true;
+        title = "Wallet Top up";
+      } else if (tx.type === "Withdrawal") {
+        icon = "💸";
+        isPositive = false;
+        title = "Withdrawal";
+      } else if (tx.type === "Credit") {
+        icon = "🚗";
+        isPositive = false;
+        title = "Ride Payment";
+      }
 
-    // Format date
-    const date = new Date(tx.createdAt);
-    const formattedDate = date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true,
-    });
+      // Format date
+      const date = new Date(tx.createdAt);
+      const formattedDate = date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
 
-    return {
-      id: tx.createdAt, // Use createdAt as unique ID
-      type: tx.type.toLowerCase(),
-      title,
-      date: formattedDate,
-      amount: Number(tx.amount),
-      isPositive,
-      icon,
-    };
-  }) || [];
+      return {
+        id: tx.createdAt, // Use createdAt as unique ID
+        type: tx.type.toLowerCase(),
+        title,
+        date: formattedDate,
+        amount: Number(tx.amount),
+        isPositive,
+        icon,
+      };
+    }) || [];
 
   return (
     <GradientBackground>
@@ -116,8 +129,7 @@ const WalletMain = () => {
         {/* Fixed Header Section */}
         <View style={styles.fixedHeader}>
           {/* Top-left back button */}
-          <View style={styles.backButtonWrapper}>
-          </View>
+          <View style={styles.backButtonWrapper}></View>
 
           {/* Title Section */}
           <View style={styles.titleWrapper}>
@@ -147,9 +159,9 @@ const WalletMain = () => {
               <ActivityIndicator size="large" color="#3853A4" />
             </View>
           ) : (
-            <WalletBalanceCard 
-              balance={Number(balanceData?.totalBalanceInWallet) || 0} 
-              onAddFunds={handleAddFunds} 
+            <WalletBalanceCard
+              balance={Number(balanceData?.totalBalanceInWallet) || 0}
+              onAddFunds={handleAddFunds}
             />
           )}
 
