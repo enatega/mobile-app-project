@@ -120,10 +120,13 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
     // }
 
     // ✅ Proceed if everything is fine
+
+    console.log("placing bid request data:", rideRequest)
     webSocketService.placeBid({
       riderId: myRiderId || "1ba44a89-16d1-4280-820c-3f66262bb843",
       rideRequestId: rideRequest?.id,
       price: defaultFare,
+      startType:rideRequest?.rideType
     });
 
     setIsOffering(true);
@@ -150,6 +153,7 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
 
       rideRequestId: rideRequest?.id,
       price: fare,
+       startType:rideRequest?.rideType
       // userId: rideRequest?.passenger?.id,
     });
     setIsOffering(true);
@@ -203,7 +207,7 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
   };
 
 
-console.log("ride request in detail screen :", rideRequest)
+  // console.log("ride request in detail screen :", rideRequest)
 
 
   if (!rideRequest) return null;

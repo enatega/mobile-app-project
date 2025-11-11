@@ -22,6 +22,8 @@ export interface Passenger {
 }
 
 export interface RideRequest {
+  is_scheduled: any;
+  is_hourly: any;
   profileImg: any;
   id: string;
   passenger: Passenger;

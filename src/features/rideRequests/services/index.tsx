@@ -85,7 +85,7 @@ export const rideRequestsService = {
               "Dropoff Location",
           },
           stops, // ✅ Include parsed stops here
-          requestTime: item.createdAt,
+          requestTime: item.is_scheduled ? item.scheduled_at : item.createdAt,
           estimatedFare: parseFloat(item.offered_fair) || 0,
           distance: item.distance ?? 0,
           estimatedDuration: 0,
@@ -302,11 +302,11 @@ export const rideRequestsService = {
 
     try {
       const response = await axios.post(
-        `${API_BASE}/api/v1/reviews/${reviewerId}`,
+        `${API_BASE}/api/v1/reviews`,
         payload,
         {
           headers: {
-            "Content-Type": "application/json",
+            // "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
         }
