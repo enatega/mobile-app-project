@@ -35,6 +35,7 @@ export interface RideRequest {
   paymentMethod: 'cash' | 'card' | 'wallet';
   specialInstructions?: string;
   rideType: 'scheduled' | 'standard' | 'hourly';
+  
 }
 
 export interface DriverProfile {

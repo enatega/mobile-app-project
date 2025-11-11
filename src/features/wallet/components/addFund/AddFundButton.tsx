@@ -1,5 +1,6 @@
 import React from "react";
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface AddFundButtonProps {
   onPress: () => void;
@@ -12,9 +13,12 @@ const AddFundButton: React.FC<AddFundButtonProps> = ({
   disabled = false,
   isLoading = false,
 }) => {
+
+const insets = useSafeAreaInsets();
+
   return (
     <TouchableOpacity
-      style={[styles.button, disabled && styles.buttonDisabled]}
+      style={[styles.button, disabled && styles.buttonDisabled, {marginBottom:insets.bottom+10}]}
       onPress={onPress}
       activeOpacity={0.8}
       disabled={disabled || isLoading}

@@ -33,7 +33,6 @@ export const RideRequestsScreen: React.FC = () => {
   const { requestPermissionAndFetchLocation } = useDriverLocation();
   const { colors } = useTheme();
   const { currency } = useSelector((state: RootState) => state.appConfig);
-
   const { driverStatus } = useDriverStatus();
   const [countdown, setCountdown] = useState({ hours: 0, minutes: 27, seconds: 48 });
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -42,6 +41,8 @@ export const RideRequestsScreen: React.FC = () => {
   const [fareInputVisible, setFareInputVisible] = useState(false);
   const [openSwipeableId, setOpenSwipeableId] = useState<string | null>(null);
   const swipeableRefs = useRef<Map<string, Swipeable>>(new Map());
+
+
 
   const { width: windowWidth } = useWindowDimensions();
   const cardRailWidth = useMemo(

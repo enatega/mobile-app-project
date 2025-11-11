@@ -53,7 +53,6 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
 
 
 
-
   const [region, setRegion] = useState({
     latitude: 33.6844,
     longitude: 73.0479,
@@ -65,7 +64,6 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
 
 
   const defaultFare = rideRequest?.estimatedFare || 0;
-
   const fareOptions = [
     { label: `${currency?.code}${Math.round(defaultFare * 1.1)}`, value: Math.round(defaultFare * 1.1) },
     { label: `${currency?.code}${Math.round(defaultFare * 1.2)}`, value: Math.round(defaultFare * 1.2) },
@@ -148,15 +146,23 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
       return;
     }
     webSocketService.placeBid({
-      riderId: "1ba44a89-16d1-4280-820c-3f66262bb843",
+      riderId: myRiderId || "1ba44a89-16d1-4280-820c-3f66262bb843",
 
       rideRequestId: rideRequest?.id,
       price: fare,
       // userId: rideRequest?.passenger?.id,
     });
+    setIsOffering(true);
+    Animated.timing(progress, {
+      toValue: 0,
+      duration: 10000,
+      useNativeDriver: false,
+    }).start(() => {
+      setIsOffering(false);
+      onClose();
+    });
 
-
-    onClose();
+    // onClose();
   };
 
 
@@ -197,6 +203,7 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
   };
 
 
+console.log("ride request in detail screen :", rideRequest)
 
 
   if (!rideRequest) return null;
@@ -280,9 +287,9 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
             </Text>
 
             <View style={styles.fareOptions}>
-              {fareOptions.map((option) => (
+              {fareOptions.map((option, index) => (
                 <TouchableOpacity
-                  key={option.value}
+                  key={`${option.value}-${index}`} // ensures uniqueness even if value is 0
                   style={[
                     styles.fareOption,
                     {
@@ -291,17 +298,13 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
                     }
                   ]}
                   onPress={() => {
-                    console.log('first otp', option)
                     setSelectedFare(option.value);
                     handleOfferFare(option.value, rideRequest);
-
                   }}
                 >
                   <Text style={[
                     styles.fareOptionText,
-                    {
-                      color: selectedFare === option.value ? '#FFF' : colors.text
-                    }
+                    { color: selectedFare === option.value ? '#FFF' : colors.text }
                   ]}>
                     {option.label}
                   </Text>

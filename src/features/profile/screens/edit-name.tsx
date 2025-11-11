@@ -93,7 +93,7 @@ const editName = () => {
           <View style={[globalStyles.containerPadding]}>
             <Heading
               title="Name"
-              description="This is the name you would like other people to use when referring you you."
+              description="This is the name you would like other people to use when referring you."
             />
             <View style={globalStyles.containerPadding}>
               <ProfileFormTextField

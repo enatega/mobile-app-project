@@ -29,27 +29,29 @@ import Shimmer from "../utils/Shimmer";
 const { height } = Dimensions.get("window");
 
 export const TripDetailsScreen: React.FC = () => {
-  const insets = useSafeAreaInsets();
-  const [rideStatus, setRideStatus] = useState("in_progress");
-  const [modalRatingVisible, setModalRatingVisible] = useState(false);
-  const [loadingRide, setLoadingRide] = useState(false)
-  const [rideData, setRideData] = useState<any | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [waitingTime, setWaitingTime] = useState(900); // 15 * 60
-  const [isCallLoading, setIsCallLoading] = useState(false);
-  const { currency } = useSelector((state: RootState) => state.appConfig);
-  const user = useSelector((state: RootState) => state.auth?.user);
-  const driverId = user?.id; // Get from Redux
-  const customerId = "f5258cbe-d593-440d-9d9c-1203aa003513"; // Hardcoded for testing
+    const insets = useSafeAreaInsets();
+    const [rideStatus, setRideStatus] = useState("in_progress");
+    const [modalRatingVisible, setModalRatingVisible] = useState(false);
+    const [loadingRide, setLoadingRide] = useState(false)
+    const [rideData, setRideData] = useState<any | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [waitingTime, setWaitingTime] = useState(900); // 15 * 60
+    const [isCallLoading, setIsCallLoading] = useState(false);
+    const { currency } = useSelector((state: RootState) => state.appConfig);
+    const user = useSelector((state: RootState) => state.auth?.user);
+
     const dispatch = useDispatch()
     const { startLocationTracking, stopLocationTracking } = useDriverLocation();
-    
+
 
 
     const onGoingRideData = useSelector(
-  (state: RootState) => state.onGoingRide.onGoingRideData
-);
-  
+        (state: RootState) => state.onGoingRide.onGoingRideData
+    );
+
+
+    const driverId = user?.id; 
+    const customerId = onGoingRideData?.passengerUser?.id || "f5258cbe-d593-440d-9d9c-1203aa003513"; // Hardcoded for testing
 
 
     const handleChatButtonPress = () => {
@@ -57,32 +59,32 @@ export const TripDetailsScreen: React.FC = () => {
     };
 
     const handleCallButtonPress = async () => {
-    if (!customerId) {
-      Alert.alert('Error', 'Customer ID not available');
-      return;
-    }
+        if (!customerId) {
+            Alert.alert('Error', 'Customer ID not available');
+            return;
+        }
 
-    setIsCallLoading(true);
-    try {
-      console.log('📞 Calling customer:', customerId);
-      await twilioService.makeCall(customerId);
-      
-      // Navigate to call screen with customer details
-      router.push({
-        pathname: "/(tabs)/(rideRequests)/callScreen",
-        params: {
-          customerId: customerId,
-          customerName: rideData?.passengerUser?.name || "Customer",
-          profileImage: rideData?.passengerUser?.profile_image || "https://avatar.iran.liara.run/public/48",
-        },
-      });
-    } catch (error) {
-      console.error('Failed to make call:', error);
-      Alert.alert('Call Failed', (error as Error).message);
-    } finally {
-      setIsCallLoading(false);
-    }
-  };
+        setIsCallLoading(true);
+        try {
+            console.log('📞 Calling customer:', customerId);
+            await twilioService.makeCall(customerId);
+
+            // Navigate to call screen with customer details
+            router.push({
+                pathname: "/(tabs)/(rideRequests)/callScreen",
+                params: {
+                    customerId: customerId,
+                    customerName: rideData?.passengerUser?.name || "Customer",
+                    profileImage: rideData?.passengerUser?.profile_image || "https://avatar.iran.liara.run/public/48",
+                },
+            });
+        } catch (error) {
+            console.error('Failed to make call:', error);
+            Alert.alert('Call Failed', (error as Error).message);
+        } finally {
+            setIsCallLoading(false);
+        }
+    };
 
     const rideStart = async (rideId: any) => {
         console.log("calling ride start:", rideId)
@@ -120,11 +122,11 @@ export const TripDetailsScreen: React.FC = () => {
                 }, 10000);
             }
 
-        try {
-            await stopLocationTracking();
-         } catch (error) {
-            console.log("Error stopping location tracking:", error);
-         }
+            try {
+                await stopLocationTracking();
+            } catch (error) {
+                console.log("Error stopping location tracking:", error);
+            }
 
             setLoadingRide(false);
 
@@ -156,21 +158,21 @@ export const TripDetailsScreen: React.FC = () => {
             console.log("Rating submitted:", ratingData);
             console.log("id is :", onGoingRideData?.passengerUser?.id)
             console.log('rating data', ratingData)
-        
+
 
             const rideId = await rideRequestsService.getMyRiderId();
             console.log("Rider ID response:", rideId);
-                const reviewerId= rideId?.riderId;
+            const reviewerId = rideId?.riderId;
 
             const payload = {
                 description: ratingData.comment,
                 rating: ratingData.rating,
-                reviewedId:onGoingRideData?.passengerUser?.id ,
+                reviewedId: onGoingRideData?.passengerUser?.id,
                 rideId: rideId?.riderId,
-                  reviewerId: rideId?.riderId,
+                reviewerId: rideId?.riderId,
             };
 
-            const result = await rideRequestsService.giveDriverRating(payload,reviewerId );
+            const result = await rideRequestsService.giveDriverRating(payload, reviewerId);
             console.log("Server response:", result);
             router.replace("/(tabs)/(rideRequests)/rideRequest")
             setModalRatingVisible(false);
@@ -195,19 +197,19 @@ export const TripDetailsScreen: React.FC = () => {
     };
 
 
-  useFocusEffect(
-    // Callback should be wrapped in `React.useCallback` to avoid running the effect too often.
-    useCallback(() => {
-      // Invoked whenever the route is focused.
-        console.log("Hello, I'm focused!");
-        startLocationTracking();
+    useFocusEffect(
+        // Callback should be wrapped in `React.useCallback` to avoid running the effect too often.
+        useCallback(() => {
+            // Invoked whenever the route is focused.
+            console.log("Hello, I'm focused!");
+            startLocationTracking();
 
-      // Return function is invoked whenever the route gets out of focus.
-      return () => {
-        console.log('This route is now unfocused.');
-      };
-    }, []),
-   );
+            // Return function is invoked whenever the route gets out of focus.
+            return () => {
+                console.log('This route is now unfocused.');
+            };
+        }, []),
+    );
 
 
 
@@ -236,7 +238,7 @@ export const TripDetailsScreen: React.FC = () => {
         if (rideStatus === "in_progress") {
             interval = setInterval(() => {
                 setWaitingTime((prev) => prev + 1);
-            }, 100); 
+            }, 100);
         } else {
             if (interval) clearInterval(interval);
         }
@@ -386,8 +388,8 @@ export const TripDetailsScreen: React.FC = () => {
 
                     {/* Right Section */}
                     <View style={styles.rightSection}>
-                        <TouchableOpacity 
-                            style={[styles.iconButton, isCallLoading && styles.iconButtonDisabled]} 
+                        <TouchableOpacity
+                            style={[styles.iconButton, isCallLoading && styles.iconButtonDisabled]}
                             onPress={handleCallButtonPress}
                             disabled={isCallLoading}
                         >
