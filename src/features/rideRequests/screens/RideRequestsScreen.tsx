@@ -2,6 +2,7 @@ import { GradientBackground, RideRequestsHeader } from '@/src/components/common'
 import { useTheme } from '@/src/context/ThemeContext';
 import { useDriverLocation } from '@/src/hooks/useDriverLocation';
 import { useDriverStatus } from '@/src/hooks/useDriverStatus';
+import { useHiddenRides } from '@/src/hooks/useHiddenRides';
 import { RootState } from '@/src/store/store';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
@@ -34,6 +35,7 @@ export const RideRequestsScreen: React.FC = () => {
   const { colors } = useTheme();
   const { currency } = useSelector((state: RootState) => state.appConfig);
   const { driverStatus } = useDriverStatus();
+  const { hideRide, isRideHidden } = useHiddenRides();
   const [countdown, setCountdown] = useState({ hours: 0, minutes: 27, seconds: 48 });
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedRide, setSelectedRide] = useState<RideRequest | null>(null);
@@ -65,8 +67,10 @@ export const RideRequestsScreen: React.FC = () => {
 
   const upcomingRide = scheduledRideRequests?.data[0] ?? null;
 
-  // Ensure rideRequests is always an array for FlatList
-  const safeRideRequests: RideRequest[] = Array.isArray(rideRequests) ? rideRequests : [];
+  // Ensure rideRequests is always an array for FlatList and filter out hidden rides
+  const safeRideRequests: RideRequest[] = Array.isArray(rideRequests) 
+    ? rideRequests.filter(ride => !isRideHidden(ride.id)) 
+    : [];
 
   const rightOpenValue = -actionWidth;
 
@@ -126,12 +130,32 @@ export const RideRequestsScreen: React.FC = () => {
 
   const handleComplain = (id: string) => {
     closeRow(id);
-    console.log('Complain about ride:', id);
+    const rideRequest = safeRideRequests.find(ride => ride.id === id);
+    if (rideRequest) {
+      const rideDetails = {
+        rideId: rideRequest.id,
+        passengerName: rideRequest.passenger.name,
+        passengerPhone: rideRequest.passenger.phoneNumber,
+        pickupAddress: rideRequest.pickupLocation.address,
+        dropoffAddress: rideRequest.dropoffLocation.address,
+        estimatedFare: rideRequest.estimatedFare,
+        distance: rideRequest.distance,
+        requestTime: rideRequest.requestTime,
+        rideType: rideRequest.rideType,
+        paymentMethod: rideRequest.paymentMethod
+      };
+      router.push({
+        pathname: '/(tabs)/(profile)/support',
+        params: { rideComplaint: JSON.stringify(rideDetails) }
+      });
+    } else {
+      router.push('/(tabs)/(profile)/support');
+    }
   };
 
-  const handleHide = (id: string) => {
+  const handleHide = async (id: string) => {
     closeRow(id);
-    console.log('Hide ride:', id);
+    await hideRide(id);
   };
 
   const handleChooseOnMap = (id: string) => {

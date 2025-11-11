@@ -7,7 +7,7 @@ import ChatMessageList, { ChatMessage } from "@/src/components/common/Chat /Chat
 import GradientBackground from "@/src/components/common/GradientBackground";
 import Button from "@/src/components/ui/Button ";
 import CustomText from "@/src/components/ui/Text";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -38,10 +38,21 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const support = () => {
   const router = useRouter();
-
+  const { rideComplaint } = useLocalSearchParams();
+  
   // Get driver ID from Redux store
   const currentUser = useAppSelector(selectUser);
   const driverId = currentUser?.id;
+  
+  // Parse ride complaint details if provided
+  const rideComplaintDetails = rideComplaint ? JSON.parse(rideComplaint as string) : null;
+  
+  // Reset auto-send flag when ride complaint changes
+  useEffect(() => {
+    if (rideComplaintDetails) {
+      setHasAutoSentRideDetails(false);
+    }
+  }, [rideComplaint]);
 
   // ============================================
   // STATE
@@ -49,6 +60,9 @@ const support = () => {
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const [realtimeMessages, setRealtimeMessages] = useState<any[]>([]);
   const [chatBoxId, setChatBoxId] = useState<string | null>(null);
+  const [hasAutoSentRideDetails, setHasAutoSentRideDetails] = useState(false);
+
+
   const flatListRef = useRef<FlatList>(null);
   const inests = useSafeAreaInsets();
 
@@ -87,12 +101,18 @@ const support = () => {
     isPending: isSendingMessage,
   } = useSendSupportMessage();
 
-  const quickReplies = [
-    { id: "1", text: "My driver hasn't arrived yet" },
-    { id: "2", text: "I need help with my delivery" },
-    { id: "3", text: "I want a refund" },
-    { id: "4", text: "I was overcharged" },
-    { id: "5", text: "I can't contact my driver" },
+  const quickReplies = rideComplaintDetails ? [
+    { id: "1", text: "Passenger was rude or inappropriate" },
+    { id: "2", text: "Passenger didn't show up" },
+    { id: "3", text: "Wrong pickup/dropoff location" },
+    { id: "4", text: "Payment issue with this ride" },
+    { id: "5", text: "Safety concern during ride" },
+  ] : [
+    { id: "1", text: "I need help with a ride" },
+    { id: "2", text: "Payment or fare issue" },
+    { id: "3", text: "Technical problem with app" },
+    { id: "4", text: "Account or profile issue" },
+    { id: "5", text: "General inquiry" },
   ];
 
   // ============================================
@@ -234,6 +254,33 @@ const support = () => {
     fromRealtime: realtimeMessages.length,
     total: allMessages.length,
   });
+
+  // ============================================
+  // Auto-send ride complaint details when chat initializes
+  // ============================================
+  useEffect(() => {
+    if (rideComplaintDetails && isChatInitialized && driverId && !hasAutoSentRideDetails) {
+      const rideDetailsMessage = `RIDE COMPLAINT REFERENCE\n\n` +
+        `Ride Reference: ${rideComplaintDetails.rideId}\n` +
+        `Passenger Name: ${rideComplaintDetails.passengerName}\n` +
+        `Contact Number: ${rideComplaintDetails.passengerPhone}\n\n` +
+        `TRIP DETAILS:\n` +
+        `Pickup Location: ${rideComplaintDetails.pickupAddress}\n` +
+        `Destination: ${rideComplaintDetails.dropoffAddress}\n` +
+        `Distance: ${rideComplaintDetails.distance} km\n` +
+        `Estimated Fare: $${rideComplaintDetails.estimatedFare}\n\n` +
+        `SERVICE INFORMATION:\n` +
+        `Request Time: ${new Date(rideComplaintDetails.requestTime).toLocaleString()}\n` +
+        `Service Type: ${rideComplaintDetails.rideType.charAt(0).toUpperCase() + rideComplaintDetails.rideType.slice(1)}\n` +
+        `Payment Method: ${rideComplaintDetails.paymentMethod.charAt(0).toUpperCase() + rideComplaintDetails.paymentMethod.slice(1)}\n\n` +
+        `I would like to file a complaint regarding this ride request. Please assist me with this matter.`;
+      
+      setTimeout(() => {
+        handleSendMessage(rideDetailsMessage);
+        setHasAutoSentRideDetails(true);
+      }, 1000);
+    }
+  }, [rideComplaintDetails, isChatInitialized, driverId, hasAutoSentRideDetails]);
 
   // ============================================
   // Add auto-message if no messages exist
@@ -416,6 +463,8 @@ const support = () => {
             placeholder="Enter your concern..."
           />
         </View>
+
+
       </KeyboardAvoidingView>
     </GradientBackground>
   );
@@ -443,4 +492,5 @@ const styles = StyleSheet.create({
   inputWrapper: {
     // Dynamic paddingBottom based on keyboard visibility
   },
+
 });
