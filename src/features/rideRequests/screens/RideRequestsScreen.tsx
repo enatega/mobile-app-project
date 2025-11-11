@@ -126,7 +126,7 @@ export const RideRequestsScreen: React.FC = () => {
 
   const handleComplain = (id: string) => {
     closeRow(id);
-    console.log('Complain about ride:', id);
+    router.push('/(tabs)/(profile)/support');
   };
 
   const handleHide = (id: string) => {
