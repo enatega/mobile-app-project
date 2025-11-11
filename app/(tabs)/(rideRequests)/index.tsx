@@ -5,11 +5,12 @@ import { webSocketService } from '@/src/services/socket/webSocketService';
 import { selectUser } from '@/src/store/selectors/authSelectors';
 import { router } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, View } from 'react-native';
 import { useSelector } from 'react-redux';
 
 export default function RideRequestsRoute() {
   console.log("🚗 RideRequestsRoute is rendering!");
-  const [activeRide, setActiveRide] = useState(false);
+  const [activeRide, setActiveRide] = useState<boolean | null>(null);
   const { } = useAppConfig();
 
   const user = useSelector(selectUser);
@@ -52,21 +53,28 @@ export default function RideRequestsRoute() {
   }, [user?.id]);
 
   const fetchActiveRide = useCallback(async () => {
-    try {
-      const data = await rideRequestsService.acceptRideRequest();
-      console.log("Active ride data:", data);
-      if (data?.status === "ASSIGNED" || data?.status === "IN_PROGRESS") {
-        router.push("/tripDetail");
-      }
+    if (!user?.id) return;
 
-      setActiveRide(false);
+    try {
+      console.log("🔍 Checking for active ride...");
+      const data = await rideRequestsService.acceptRideRequest();
+      // 👆 Make sure your service has getMyActiveRide() endpoint, not acceptRideRequest()
+
+      console.log("Active ride data:", data);
+
+      if (data?.status === "ASSIGNED" || data?.status === "IN_PROGRESS") {
+        setActiveRide(true);
+        router.push("/tripDetail"); // Navigate automatically
+      } else {
+        setActiveRide(false);
+      }
     } catch (err) {
       console.error("❌ Error fetching active ride:", err);
       setActiveRide(false);
     } finally {
-      console.log("finally data loaded");
+      console.log("✅ Active ride check completed");
     }
-  }, [activeRide]);
+  }, [user?.id]);
 
   useEffect(() => {
     fetchActiveRide();
@@ -92,10 +100,13 @@ export default function RideRequestsRoute() {
   //     unsubscribe(); // Cleanup listener on unmount
   //   };
   // }, []);
-
-  if (activeRide) {
-    return <TripDetailsScreen />;
+  if (activeRide === null) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#000" />
+      </View>
+    );
   }
+  return activeRide ? <TripDetailsScreen /> : <RideRequestsScreen />;
 
-  return <RideRequestsScreen />;
 }

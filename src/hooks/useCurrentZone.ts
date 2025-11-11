@@ -30,7 +30,8 @@ const useCurrentZone = () => {
 
         try {
             const data = await rideRequestsService.getZone(lat, lng);
-            setZone(data?.zoneName ?? 'Unknown zone');
+            console.log("my zone data :", data)
+            setZone(data?.id ?? 'Unknown zone');
         } catch (error: any) {
             // Set zone to the backend error message
             setZone(error.message || 'Unknown zone');

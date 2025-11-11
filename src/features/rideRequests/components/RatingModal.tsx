@@ -1,7 +1,7 @@
 import { Colors } from '@/src/constants'
 import { RootState } from '@/src/store/store'
 import React, { useState } from 'react'
-import { Dimensions, Image, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { Dimensions, Image, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { useSelector } from 'react-redux'
 
 const { height } = Dimensions.get("window")
@@ -10,15 +10,20 @@ interface RatingModalProps {
     visible: boolean
     onClose: () => void
     onSubmit: (data: { rating: number; comment: string }) => void
-    rideData:any
+    rideData: any
 }
 
-const RatingModal: React.FC<RatingModalProps> = ({ visible, onClose, onSubmit , rideData}) => {
-    const [rating, setRating] = useState(0)
-    const [comment, setComment] = useState("")
-        const onGoingRideData = useSelector(
-  (state: RootState) => state.onGoingRide.onGoingRideData
-);
+const RatingModal: React.FC<RatingModalProps> = ({
+    visible,
+    onClose,
+    onSubmit,
+    rideData,
+}) => {
+    const [rating, setRating] = useState(0);
+    const [comment, setComment] = useState("");
+    const onGoingRideData = useSelector(
+        (state: RootState) => state.onGoingRide.onGoingRideData
+    );
 
     return (
         <Modal
@@ -28,53 +33,64 @@ const RatingModal: React.FC<RatingModalProps> = ({ visible, onClose, onSubmit , 
             onRequestClose={onClose}
         >
             <View style={styles.modalOverlay}>
-                <View style={styles.modalCard}>
-                    <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-                        <Text style={styles.closeIcon}>✕</Text>
-                    </TouchableOpacity>
-                    {/* Heading */}
-                    <Text style={styles.title}>You have arrived</Text>
-
-                    {/* Profile Image */}
-                    <Image
-                        source={{ uri:rideData?.passenger_profileImage || onGoingRideData?.passengerUser?.profile_image ||  "https://i.pravatar.cc/150" }} // Replace with passenger image
-                        style={styles.profileImage}
-                    />
-
-                    {/* Stars */}
-                    <View style={styles.starRow}>
-                        {[1, 2, 3, 4, 5].map((star) => (
-                            <TouchableOpacity key={star} onPress={() => setRating(star)}>
-                                <Text style={styles.star}>{star <= rating ? "⭐" : "☆"}</Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-
-                    {/* Comment Box */}
-                    <TextInput
-                        style={styles.commentBox}
-                        placeholder="Leave a comment..."
-                        value={comment}
-                        onChangeText={setComment}
-                        multiline
-                    />
-
-                    {/* Submit Button */}
-                    <TouchableOpacity
-                        style={[styles.button, { backgroundColor: Colors.light.success }]}
-                        onPress={() => {
-                            onSubmit({ rating, comment})
-                        }}
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === "ios" ? "padding" : "height"}
+                    style={{ flex: 1, justifyContent: "flex-end" }}
+                >
+                    <ScrollView
+                        contentContainerStyle={{ flexGrow: 1, justifyContent: "flex-end" }}
+                        keyboardShouldPersistTaps="handled"
                     >
-                        <Text style={styles.buttonText}>Submit</Text>
-                    </TouchableOpacity>
-                </View>
+                        <View style={styles.modalCard}>
+                            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+                                <Text style={styles.closeIcon}>✕</Text>
+                            </TouchableOpacity>
+
+                            <Text style={styles.title}>You have arrived</Text>
+
+                            <Image
+                                source={{
+                                    uri:
+                                        rideData?.passenger_profileImage ||
+                                        onGoingRideData?.passengerUser?.profile_image ||
+                                        "https://i.pravatar.cc/150",
+                                }}
+                                style={styles.profileImage}
+                            />
+
+                            <View style={styles.starRow}>
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                    <TouchableOpacity key={star} onPress={() => setRating(star)}>
+                                        <Text style={styles.star}>
+                                            {star <= rating ? "⭐" : "☆"}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+
+                            <TextInput
+                                style={styles.commentBox}
+                                placeholder="Leave a comment..."
+                                value={comment}
+                                onChangeText={setComment}
+                                multiline
+                            />
+
+                            <TouchableOpacity
+                                style={[styles.button, { backgroundColor: Colors.light.success }]}
+                                onPress={() => onSubmit({ rating, comment })}
+                            >
+                                <Text style={styles.buttonText}>Submit</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </ScrollView>
+                </KeyboardAvoidingView>
             </View>
         </Modal>
-    )
-}
+    );
+};
 
-export default RatingModal
+export default RatingModal;
 
 const styles = StyleSheet.create({
     modalOverlay: {
@@ -83,7 +99,7 @@ const styles = StyleSheet.create({
         backgroundColor: "rgba(0,0,0,0.5)",
     },
     modalCard: {
-        height: height * 0.5, // Half screen height
+        minHeight: height * 0.5,
         backgroundColor: "#fff",
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
@@ -131,19 +147,17 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     closeButton: {
-        position: 'absolute',
+        position: "absolute",
         top: 10,
         right: 10,
         zIndex: 10,
-        backgroundColor: 'rgba(0,0,0,0.05)',
+        backgroundColor: "rgba(0,0,0,0.05)",
         borderRadius: 20,
         padding: 6,
     },
-
     closeIcon: {
         fontSize: 18,
-        color: '#333',
-        fontWeight: '600',
+        color: "#333",
+        fontWeight: "600",
     },
-
-})
+});
