@@ -1,14 +1,24 @@
-import { GradientBackground, RideRequestsHeader } from '@/src/components/common';
-import { useTheme } from '@/src/context/ThemeContext';
-import { useDriverLocation } from '@/src/hooks/useDriverLocation';
-import { useDriverStatus } from '@/src/hooks/useDriverStatus';
-import { useHiddenRides } from '@/src/hooks/useHiddenRides';
-import { RootState } from '@/src/store/store';
-import { Ionicons } from '@expo/vector-icons';
-import { router, useFocusEffect } from 'expo-router';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  GradientBackground,
+  RideRequestsHeader,
+} from "@/src/components/common";
+import { useTheme } from "@/src/context/ThemeContext";
+import { useDriverLocation } from "@/src/hooks/useDriverLocation";
+import { useDriverStatus } from "@/src/hooks/useDriverStatus";
+import { useHiddenRides } from "@/src/hooks/useHiddenRides";
+import { RootState } from "@/src/store/store";
+import { Ionicons } from "@expo/vector-icons";
+import { router, useFocusEffect } from "expo-router";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   Animated,
+  AppState,
   FlatList,
   Image,
   RefreshControl,
@@ -18,13 +28,24 @@ import {
   TouchableOpacity,
   useWindowDimensions,
   View,
-} from 'react-native';
-import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
-import { useSelector } from 'react-redux';
-import { FareInputModal, OfflineScreen, RideCard, RideDetailsModal } from '../components';
-import { useActiveRideRequests, useScheduledRideRequests } from '../hooks/queries';
-import rideRequestsService from '../services';
-import { RideRequest } from '../types';
+} from "react-native";
+import {
+  GestureHandlerRootView,
+  Swipeable,
+} from "react-native-gesture-handler";
+import { useSelector } from "react-redux";
+import {
+  FareInputModal,
+  OfflineScreen,
+  RideCard,
+  RideDetailsModal,
+} from "../components";
+import {
+  useActiveRideRequests,
+  useScheduledRideRequests,
+} from "../hooks/queries";
+import rideRequestsService from "../services";
+import { RideRequest } from "../types";
 
 const LIST_HORIZONTAL_PADDING = 16;
 const ACTION_RAIL_MAX_WIDTH = 320;
@@ -36,15 +57,18 @@ export const RideRequestsScreen: React.FC = () => {
   const { currency } = useSelector((state: RootState) => state.appConfig);
   const { driverStatus } = useDriverStatus();
   const { hideRide, isRideHidden } = useHiddenRides();
-  const [countdown, setCountdown] = useState({ hours: 0, minutes: 27, seconds: 48 });
+  const [countdown, setCountdown] = useState({
+    hours: 0,
+    minutes: 27,
+    seconds: 48,
+  });
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedRide, setSelectedRide] = useState<RideRequest | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [fareInputVisible, setFareInputVisible] = useState(false);
   const [openSwipeableId, setOpenSwipeableId] = useState<string | null>(null);
   const swipeableRefs = useRef<Map<string, Swipeable>>(new Map());
-
-
+  const appState = useRef(AppState.currentState);
 
   const { width: windowWidth } = useWindowDimensions();
   const cardRailWidth = useMemo(
@@ -57,7 +81,11 @@ export const RideRequestsScreen: React.FC = () => {
   );
 
   // Fetch ride requests from API
-  const { data: rideRequests = [], isRefetching, refetch } = useActiveRideRequests();
+  const {
+    data: rideRequests = [],
+    isRefetching,
+    refetch,
+  } = useActiveRideRequests();
 
   // Fetch scheduled ride requests
   const {
@@ -68,14 +96,14 @@ export const RideRequestsScreen: React.FC = () => {
   const upcomingRide = scheduledRideRequests?.data[0] ?? null;
 
   // Ensure rideRequests is always an array for FlatList and filter out hidden rides
-  const safeRideRequests: RideRequest[] = Array.isArray(rideRequests) 
-    ? rideRequests.filter(ride => !isRideHidden(ride.id)) 
+  const safeRideRequests: RideRequest[] = Array.isArray(rideRequests)
+    ? rideRequests.filter((ride) => !isRideHidden(ride.id))
     : [];
 
   const rightOpenValue = -actionWidth;
 
   // First fetch driver location on mount
-    useFocusEffect(
+  useFocusEffect(
     // Callback should be wrapped in `React.useCallback` to avoid running the effect too often.
     useCallback(() => {
       // Invoked whenever the route is focused.
@@ -88,6 +116,33 @@ export const RideRequestsScreen: React.FC = () => {
       };
     }, [])
   );
+
+  useEffect(() => {
+  
+
+    const subscription = AppState.addEventListener(
+      "change",
+      async (nextAppState) => {
+        if (
+          appState.current.match(/inactive|background/) &&
+          nextAppState === "active"
+        ) {
+          console.log(
+            "🔄 App came to foreground — checking location permission..."
+          );
+
+          // ✅ Check if permissions are granted without requesting again
+          await requestPermissionAndFetchLocation({ checkOnly: true });
+        }
+
+        appState.current = nextAppState;
+      }
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   // Countdown timer for upcoming ride
   useEffect(() => {
@@ -112,13 +167,14 @@ export const RideRequestsScreen: React.FC = () => {
     try {
       await refetch();
     } catch (error) {
-      console.error('Error refreshing ride requests:', error);
+      console.error("Error refreshing ride requests:", error);
     } finally {
       setIsRefreshing(false);
     }
   };
 
-  const activeRequests: RideRequest[] = driverStatus === 'online' ? safeRideRequests : [];
+  const activeRequests: RideRequest[] =
+    driverStatus === "online" ? safeRideRequests : [];
 
   const closeRow = (id: string) => {
     const swipeable = swipeableRefs.current.get(id);
@@ -130,7 +186,7 @@ export const RideRequestsScreen: React.FC = () => {
 
   const handleComplain = (id: string) => {
     closeRow(id);
-    const rideRequest = safeRideRequests.find(ride => ride.id === id);
+    const rideRequest = safeRideRequests.find((ride) => ride.id === id);
     if (rideRequest) {
       const rideDetails = {
         rideId: rideRequest.id,
@@ -142,14 +198,14 @@ export const RideRequestsScreen: React.FC = () => {
         distance: rideRequest.distance,
         requestTime: rideRequest.requestTime,
         rideType: rideRequest.rideType,
-        paymentMethod: rideRequest.paymentMethod
+        paymentMethod: rideRequest.paymentMethod,
       };
       router.push({
-        pathname: '/(tabs)/(profile)/support',
-        params: { rideComplaint: JSON.stringify(rideDetails) }
+        pathname: "/(tabs)/(profile)/support",
+        params: { rideComplaint: JSON.stringify(rideDetails) },
       });
     } else {
-      router.push('/(tabs)/(profile)/support');
+      router.push("/(tabs)/(profile)/support");
     }
   };
 
@@ -160,7 +216,7 @@ export const RideRequestsScreen: React.FC = () => {
 
   const handleChooseOnMap = (id: string) => {
     closeRow(id);
-    console.log('Choose on map for ride:', id);
+    console.log("Choose on map for ride:", id);
   };
 
   const handleRideCardPress = (rideRequest: RideRequest) => {
@@ -173,12 +229,12 @@ export const RideRequestsScreen: React.FC = () => {
   };
 
   const handleAcceptRide = (fare: number) => {
-    console.log('Accept ride with fare:', fare);
+    console.log("Accept ride with fare:", fare);
     // Handle ride acceptance logic
   };
 
   const handleOfferFare = (fare: number) => {
-    console.log('Offer fare:', fare);
+    console.log("Offer fare:", fare);
     // Handle fare offer logic
   };
 
@@ -188,7 +244,7 @@ export const RideRequestsScreen: React.FC = () => {
   };
 
   const handleCustomFareOffer = (fare: number) => {
-    console.log('Custom fare offer:', fare);
+    console.log("Custom fare offer:", fare);
     setFareInputVisible(false);
     setTimeout(() => setModalVisible(true), 100);
   };
@@ -205,11 +261,10 @@ export const RideRequestsScreen: React.FC = () => {
     try {
       const data = await rideRequestsService.acceptRideRequest();
       console.log("✅ Ride result:", data);
-      console.log("ride is ::" , data?.isActiveRide)
-      if (data?.isActiveRide === 'true') {
-        router.push('/tripDetail');
+      console.log("ride is ::", data?.isActiveRide);
+      if (data?.isActiveRide === "true") {
+        router.push("/tripDetail");
       }
-
     } catch (err) {
       console.error("❌ Error fetching active ride:", err);
     }
@@ -226,23 +281,23 @@ export const RideRequestsScreen: React.FC = () => {
   ) => {
     const actions = [
       {
-        key: 'complain',
-        label: 'Complain',
-        icon: 'warning-outline' as const,
+        key: "complain",
+        label: "Complain",
+        icon: "warning-outline" as const,
         accent: colors.danger,
         handler: () => handleComplain(item.id),
       },
       {
-        key: 'hide',
-        label: 'Hide Ride',
-        icon: 'eye-off-outline' as const,
+        key: "hide",
+        label: "Hide Ride",
+        icon: "eye-off-outline" as const,
         accent: colors.textSecondary,
         handler: () => handleHide(item.id),
       },
       {
-        key: 'map',
-        label: 'Choose on Map',
-        icon: 'location-outline' as const,
+        key: "map",
+        label: "Choose on Map",
+        icon: "location-outline" as const,
         accent: colors.primary,
         handler: () => handleChooseOnMap(item.id),
       },
@@ -267,7 +322,7 @@ export const RideRequestsScreen: React.FC = () => {
           const trans = progress.interpolate({
             inputRange: [0, 1],
             outputRange: [actionWidth, 0],
-            extrapolate: 'clamp',
+            extrapolate: "clamp",
           });
 
           return (
@@ -314,7 +369,9 @@ export const RideRequestsScreen: React.FC = () => {
           swipeableRefs.current.delete(item.id);
         }
       }}
-      renderRightActions={(progress, dragX) => renderRightActions(progress, dragX, item)}
+      renderRightActions={(progress, dragX) =>
+        renderRightActions(progress, dragX, item)
+      }
       overshootRight={false}
       rightThreshold={40}
       onSwipeableWillOpen={() => handleSwipeableWillOpen(item.id)}
@@ -322,7 +379,9 @@ export const RideRequestsScreen: React.FC = () => {
     >
       <RideCard
         rideRequest={item}
-        onMenuPress={(rideRequest) => console.log('Menu pressed for ride:', rideRequest.id)}
+        onMenuPress={(rideRequest) =>
+          console.log("Menu pressed for ride:", rideRequest.id)
+        }
         onPress={() => handleRideCardPress(item)}
       />
     </Swipeable>
@@ -336,41 +395,57 @@ export const RideRequestsScreen: React.FC = () => {
           <RideRequestsHeader />
 
           {/* Upcoming Ride Card */}
-          {!isRefetchingScheduledRideRequests && driverStatus === 'online' && upcomingRide && (
-            <View style={[styles.upcomingRideCard, { backgroundColor: colors.primaryGradient }]}>
-              <View style={styles.upcomingRideHeader}>
-                <Text style={styles.upcomingRideTitle}>Upcoming ride</Text>
-                <View style={styles.timerContainer}>
-                  <Text style={styles.timerText}>
-                    {String(countdown.hours).padStart(2, '0')} : {String(countdown.minutes).padStart(2, '0')} : {String(countdown.seconds).padStart(2, '0')}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.upcomingRideContent}>
-                <View style={styles.carIconContainer}>
-                  <Image
-                    source={{ uri: upcomingRide?.rider?.rideType?.image }}
-                    width={50}
-                    height={50}
-                    resizeMode='contain'
-                  />
-                </View>
-                <View style={styles.upcomingRideInfo}>
-                  <Text style={styles.upcomingRideLabel}>
-                    {upcomingRide?.rider?.rideType?.name.replace(/_/g, ' ') ?? 'Ride'}
-                  </Text>
-                  <View style={styles.upcomingRideLocation}>
-                    <Ionicons name="location" size={14} color="#FFF" />
-                    <Text style={styles.upcomingRideAddress} numberOfLines={1}>
-                      {upcomingRide?.dropoff?.location ?? 'No address available'}
+          {!isRefetchingScheduledRideRequests &&
+            driverStatus === "online" &&
+            upcomingRide && (
+              <View
+                style={[
+                  styles.upcomingRideCard,
+                  { backgroundColor: colors.primaryGradient },
+                ]}
+              >
+                <View style={styles.upcomingRideHeader}>
+                  <Text style={styles.upcomingRideTitle}>Upcoming ride</Text>
+                  <View style={styles.timerContainer}>
+                    <Text style={styles.timerText}>
+                      {String(countdown.hours).padStart(2, "0")} :{" "}
+                      {String(countdown.minutes).padStart(2, "0")} :{" "}
+                      {String(countdown.seconds).padStart(2, "0")}
                     </Text>
                   </View>
                 </View>
-                <Text style={styles.upcomingRideFare}>{currency?.code} {upcomingRide?.agreedPrice}</Text>
+
+                <View style={styles.upcomingRideContent}>
+                  <View style={styles.carIconContainer}>
+                    <Image
+                      source={{ uri: upcomingRide?.rider?.rideType?.image }}
+                      width={50}
+                      height={50}
+                      resizeMode="contain"
+                    />
+                  </View>
+                  <View style={styles.upcomingRideInfo}>
+                    <Text style={styles.upcomingRideLabel}>
+                      {upcomingRide?.rider?.rideType?.name.replace(/_/g, " ") ??
+                        "Ride"}
+                    </Text>
+                    <View style={styles.upcomingRideLocation}>
+                      <Ionicons name="location" size={14} color="#FFF" />
+                      <Text
+                        style={styles.upcomingRideAddress}
+                        numberOfLines={1}
+                      >
+                        {upcomingRide?.dropoff?.location ??
+                          "No address available"}
+                      </Text>
+                    </View>
+                  </View>
+                  <Text style={styles.upcomingRideFare}>
+                    {currency?.code} {upcomingRide?.agreedPrice}
+                  </Text>
+                </View>
               </View>
-            </View>
-          )}
+            )}
 
           {/* Ride Requests List */}
           <FlatList
@@ -385,7 +460,9 @@ export const RideRequestsScreen: React.FC = () => {
                 onRefresh={handleRefresh}
               />
             }
-            ListEmptyComponent={<OfflineScreen isOnline={driverStatus === 'online'} />}
+            ListEmptyComponent={
+              <OfflineScreen isOnline={driverStatus === "online"} />
+            }
           />
 
           <RideDetailsModal
@@ -422,71 +499,71 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderRadius: 16,
     padding: 16,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
   },
   upcomingRideHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 16,
     paddingBottom: 20,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.3)',
+    borderBottomColor: "rgba(255,255,255,0.3)",
   },
   upcomingRideTitle: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   timerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   timerText: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   upcomingRideContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   carIconContainer: {
     width: 60,
     height: 60,
     borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(255,255,255,0.2)",
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 12,
   },
   upcomingRideInfo: {
     flex: 1,
   },
   upcomingRideLabel: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 4,
   },
   upcomingRideLocation: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   upcomingRideAddress: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 12,
     marginLeft: 4,
     flex: 1,
   },
   upcomingRideFare: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   listContent: {
     paddingHorizontal: LIST_HORIZONTAL_PADDING,
@@ -497,15 +574,15 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   hiddenActions: {
-    flexDirection: 'column',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
+    flexDirection: "column",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
     paddingVertical: 22,
     gap: 4,
   },
   actionButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 8,
     paddingHorizontal: 6,
     borderRadius: 12,
@@ -513,25 +590,25 @@ const styles = StyleSheet.create({
   },
   actionText: {
     fontSize: 9,
-    fontWeight: '500',
-    textAlign: 'center',
+    fontWeight: "500",
+    textAlign: "center",
     marginTop: 2,
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingVertical: 60,
   },
   emptyText: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     marginTop: 16,
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    textAlign: 'center',
+    textAlign: "center",
   },
 });
 

@@ -4,7 +4,7 @@ import useCurrentZone from '@/src/hooks/useCurrentZone';
 import { useDriverLocation } from '@/src/hooks/useDriverLocation';
 import { useAppSelector } from '@/src/store/hooks';
 import { Ionicons } from '@expo/vector-icons';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Image, Linking, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface EmptyStateProps {
@@ -15,22 +15,22 @@ interface EmptyStateProps {
 
 export const OfflineScreen: React.FC<EmptyStateProps> = ({ isOnline, title, description }) => {
   const { colors } = useTheme();
-  const { latitude, longitude } = useAppSelector((state) => state.driverLocation);
+  const { latitude, longitude ,hasLocation} = useAppSelector((state) => state.driverLocation);
   const { zone, loading } = useCurrentZone();
   //   const latitude = 31.5204;
   // const longitude = 74.3587;
 
   const { requestPermissionAndFetchLocation, startLocationTracking } = useDriverLocation();
 
-  useEffect(() => {
-    (async () => {
-      const granted = await requestPermissionAndFetchLocation();
-      // if (granted) startLocationTracking();
-    })();
-  }, []);
+  // useEffect(() => {
+  //   (async () => {
+  //     const granted = await requestPermissionAndFetchLocation();
+  //     // if (granted) startLocationTracking();
+  //   })();
+  // }, []);
 
   const checkingStatus = isOnline && !!latitude && !!longitude;
-  const hasLocation = !!latitude && !!longitude;
+  // const hasLocation = !!latitude && !!longitude;
 
 
   // console.log("checkingStatus", checkingStatus)
@@ -47,6 +47,8 @@ export const OfflineScreen: React.FC<EmptyStateProps> = ({ isOnline, title, desc
       Linking.openSettings();
     }
   };
+
+  
 
   if (!hasLocation) {
     return (
