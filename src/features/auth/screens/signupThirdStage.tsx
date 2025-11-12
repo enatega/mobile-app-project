@@ -63,7 +63,7 @@ const SignupThirdScreen: React.FC = () => {
     ];
 
     const missingDocs = requiredDocs.filter(doc => !doc.data || doc.data.length === 0);
-    
+
     if (missingDocs.length > 0) {
       console.error('❌ Missing documents:', missingDocs.map(d => d.name));
       alert(`Please upload all required documents: ${missingDocs.map(d => d.name).join(', ')}`);
@@ -79,12 +79,12 @@ const SignupThirdScreen: React.FC = () => {
       national_id_passport_back: prepareFile(documents.nationalIdBack) as any,
       vehicle_registration_front: prepareFile(documents.vehicleRegistrationFront) as any,
       vehicle_registration_back: prepareFile(documents.vehicleRegistrationBack) as any,
-      
+
       // ✅ REVERTED: Optional company registration - single field
-      company_commercial_registration: documents.companyRegistration?.length > 0 
-        ? prepareFile(documents.companyRegistration) as any 
+      company_commercial_registration: documents.companyRegistration?.length > 0
+        ? prepareFile(documents.companyRegistration) as any
         : undefined,
-      
+
       // Vehicle requirements
       model_year_limit: parseInt(values.modelYearLimit),
       is_four_wheeler: values.fourDoorCar === 'yes',
@@ -92,6 +92,9 @@ const SignupThirdScreen: React.FC = () => {
       no_cosmetic_damage: values.noCosmeticDamage === 'yes',
       licenseNumber: '',
       ride_type_id: personalInfo.vehicleType,
+      vehicle_name: values.vehicleName,
+      vehicle_colour: values.vehicleColor,
+      vehicle_no: values.vehicleColor
     });
   };
 
@@ -133,7 +136,7 @@ const SignupThirdScreen: React.FC = () => {
           />
         </View>
 
-        <VehicleRequirementsForm 
+        <VehicleRequirementsForm
           onSubmit={handleVehicleRequirementsSubmit}
           onBack={handleBack}
           isSubmitting={completeOnboardingMutation.isPending}

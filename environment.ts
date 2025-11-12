@@ -7,6 +7,6 @@ export enum BACKEND_URL{
 
 }
 
-const isDev = false;
+const isDev = true;
 
 export const BASE_URL = isDev ? BACKEND_URL.LOCAL_HOST : BACKEND_URL.PRODUCTION;

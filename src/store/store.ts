@@ -13,6 +13,8 @@ import driverStatusReducer from './slices/driverStatus.slice';
 import onGoingRideReducer from "./slices/onGoingRideSlice";
 import rideReducer from './slices/requestedRide';
 import themeReducer from './slices/theme.slice';
+import zoneReducer from "./slices/zoneSlice";
+
 
 
 const rootReducer = combineReducers({
@@ -25,6 +27,7 @@ const rootReducer = combineReducers({
 
   driverLocation: driverLocationReducer,
   onGoingRide: onGoingRideReducer,
+   zone: zoneReducer,
 });
 
 type RootState = ReturnType<typeof rootReducer>;

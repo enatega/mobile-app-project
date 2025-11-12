@@ -7,6 +7,7 @@ import { RootState } from '@/src/store/store';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  Alert,
   Animated,
   Dimensions,
   Modal,
@@ -49,9 +50,9 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
   const progress = useRef(new Animated.Value(100)).current;
   const user = useSelector(selectUser);
   const { currency } = useSelector((state: RootState) => state.appConfig);
+  const [loadingRequest, setLoadingRequest] = useState(false);
 
-
-
+  const zoneId = useSelector((state: RootState) => state.zone);
 
   const [region, setRegion] = useState({
     latitude: 33.6844,
@@ -86,87 +87,129 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
   }, []);
 
 
-  const handleAccept = (rideRequest: any) => {
+  const handleAccept = async (rideRequest: any) => {
+
+    setLoadingRequest(true)
 
     console.log('i am handling accept', user?.id)
     if (!user?.id || !rideRequest?.id || !rideRequest?.passenger?.id) {
       console.warn("🚫 Missing required IDs for placing bid");
+      setLoadingRequest(false)
+      return;
+    }
+    const result = await rideRequestsService.checkRideAmount(
+      rideRequest?.id,
+      zoneId.zoneId
+    );
+
+
+    if (result?.haveEnoughAmountInWallet === true) {
+      setLoadingRequest(false)
+      webSocketService.placeBid({
+        riderId: myRiderId || "1ba44a89-16d1-4280-820c-3f66262bb843",
+        rideRequestId: rideRequest?.id,
+        price: defaultFare,
+        startType: rideRequest?.rideType
+      });
+
+      setIsOffering(true);
+      Animated.timing(progress, {
+        toValue: 0,
+        duration: 10000,
+        useNativeDriver: false,
+      }).start(() => {
+        setIsOffering(false);
+        onClose();
+      });
+    }
+
+
+    // 🧩 Handle failed API safely
+    if (result?.error) {
+      setLoadingRequest(false)
+      Alert.alert(
+        "Ride Amount Check Failed",
+        result?.error?.message?.[0] ||
+        result?.error?.message ||
+        "Could not verify your account balance. Please try again.",
+        [{ text: "OK" }]
+      );
       return;
     }
 
-    // const result = await rideRequestsService.checkRideAmount(rideRequest?.id);
-    // console.log("💰 Ride amount check result:", result);
+    // ✅ Handle insufficient wallet balance (corrected key)
+    if (result?.haveEnoughAmountInWallet === false) {
+      setLoadingRequest(false)
+      Alert.alert(
+        "Insufficient Balance",
+        "You don’t have enough balance in your wallet to accept this ride. Please recharge your account.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
 
-    // // 🧩 Handle failed API safely
-    // if (result?.error) {
-    //   Alert.alert(
-    //     "Ride Amount Check Failed",
-    //     result?.error?.message?.[0] ||
-    //     result?.error?.message ||
-    //     "Could not verify your account balance. Please try again.",
-    //     [{ text: "OK" }]
-    //   );
-    //   return;
-    // }
 
-    // // If backend explicitly says insufficient balance
-    // if (result?.hasEnoughAmount === false) {
-    //   Alert.alert(
-    //     "Insufficient Balance",
-    //     "You don’t have enough amount to accept this ride. Please recharge your account.",
-    //     [{ text: "OK" }]
-    //   );
-    //   return;
-    // }
-
-    // ✅ Proceed if everything is fine
-
-    console.log("placing bid request data:", rideRequest)
-    webSocketService.placeBid({
-      riderId: myRiderId || "1ba44a89-16d1-4280-820c-3f66262bb843",
-      rideRequestId: rideRequest?.id,
-      price: defaultFare,
-      startType:rideRequest?.rideType
-    });
-
-    setIsOffering(true);
-    Animated.timing(progress, {
-      toValue: 0,
-      duration: 10000,
-      useNativeDriver: false,
-    }).start(() => {
-      setIsOffering(false);
-      onClose();
-    });
   };
 
 
-  const handleOfferFare = (fare: number) => {
+  const handleOfferFare = async (fare: number) => {
     onOfferFare?.(fare);
     console.log('i am handling accept', user?.id)
     if (!user?.id || !rideRequest?.id || !rideRequest?.passenger?.id) {
       console.warn("🚫 Missing required IDs for placing bid");
       return;
     }
-    webSocketService.placeBid({
-      riderId: myRiderId || "1ba44a89-16d1-4280-820c-3f66262bb843",
 
-      rideRequestId: rideRequest?.id,
-      price: fare,
-       startType:rideRequest?.rideType
-      // userId: rideRequest?.passenger?.id,
-    });
-    setIsOffering(true);
-    Animated.timing(progress, {
-      toValue: 0,
-      duration: 10000,
-      useNativeDriver: false,
-    }).start(() => {
-      setIsOffering(false);
-      onClose();
-    });
+    const result = await rideRequestsService.checkRideAmount(
+      rideRequest?.id,
+      zoneId.zoneId
+    );
 
-    // onClose();
+
+    if (result?.haveEnoughAmountInWallet === true) {
+      webSocketService.placeBid({
+        riderId: myRiderId || "1ba44a89-16d1-4280-820c-3f66262bb843",
+
+        rideRequestId: rideRequest?.id,
+        price: fare,
+        startType: rideRequest?.rideType
+        // userId: rideRequest?.passenger?.id,
+      });
+      setIsOffering(true);
+      Animated.timing(progress, {
+        toValue: 0,
+        duration: 10000,
+        useNativeDriver: false,
+      }).start(() => {
+        setIsOffering(false);
+        onClose();
+      });
+
+    }
+    // 🧩 Handle failed API safely
+    if (result?.error) {
+      setLoadingRequest(false)
+      Alert.alert(
+        "Ride Amount Check Failed",
+        result?.error?.message?.[0] ||
+        result?.error?.message ||
+        "Could not verify your account balance. Please try again.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
+    // ✅ Handle insufficient wallet balance (corrected key)
+    if (result?.haveEnoughAmountInWallet === false) {
+      setLoadingRequest(false)
+      Alert.alert(
+        "Insufficient Balance",
+        "You don’t have enough balance in your wallet to accept this ride. Please recharge your account.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
   };
 
 
@@ -282,6 +325,7 @@ const RideDetailsModal: React.FC<RideDetailsModalProps> = ({
               title={`Accept for ${currency?.code}${defaultFare.toFixed(0)}`}
               onPress={() => handleAccept(rideRequest)}
               variant="primary"
+              loading={loadingRequest}
               fullWidth
               style={[styles.acceptButton, { backgroundColor: colors.primary }]}
             />

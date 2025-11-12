@@ -203,8 +203,6 @@ export const rideRequestsService = {
         `${API_BASE}/api/v1/zones/check`,
         { params: { lat, lng } }
       );
-
-      console.log('Zone response:', response);
       return response.data;
     } catch (error: any) {
       // Log the error from backend
@@ -327,13 +325,13 @@ export const rideRequestsService = {
 
 
 
-  checkRideAmount: async (rideId: string) => {
+  checkRideAmount: async (rideId: string,zoneId : any) => {
     const state = store.getState();
     const token = selectToken(state);
 
     try {
       const response = await axios.get(
-        `${API_BASE}/api/v1/rides/riders/check/have-enough-amount/for-ride/${rideId}`,
+        `${API_BASE}/api/v1/rides/riders/check/have-enough-amount/for-ride/${rideId}/${zoneId}`,
         {
           headers: {
             "Content-Type": "application/json",
