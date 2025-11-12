@@ -21,6 +21,7 @@ import OTPInput from "../components/verifyScreens/OTPInput";
 import { useVerifySignupOtp } from '@/src/features/auth/hooks';
 import { useAppSelector } from '@/src/store/hooks';
 import { selectPersonalInfo } from '@/src/store/selectors/signup.selectors';
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const VerifyOtpSignUpScreen: React.FC = () => {
   const otpInputRef = useRef<any>(null);
@@ -28,6 +29,7 @@ const VerifyOtpSignUpScreen: React.FC = () => {
   const [hasError, setHasError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const personalInfo = useAppSelector(selectPersonalInfo);
+  const inest = useSafeAreaInsets();
 
   const verifyOtpMutation = useVerifySignupOtp();
 
@@ -64,7 +66,7 @@ const VerifyOtpSignUpScreen: React.FC = () => {
 
   const handleOtpChange = (value: string) => {
     setOtp(value);
-    
+
     // Clear error when user types
     if (hasError) {
       setHasError(false);
@@ -83,7 +85,7 @@ const VerifyOtpSignUpScreen: React.FC = () => {
 
   const handleVerifyWithOtp = (otpValue: string) => {
     console.log('📤 Auto-verifying OTP:', '****');
-    
+
     verifyOtpMutation.mutate({
       phone: personalInfo.phoneNumber,
       sentOtp: otpValue,
@@ -121,7 +123,7 @@ const VerifyOtpSignUpScreen: React.FC = () => {
     setErrorMessage("");
     setCanResend(false);
     setResendTimer(30);
-    otpInputRef.current?.reset();
+    otpInputRef.current?.clear?.();
   };
 
   return (
@@ -137,7 +139,7 @@ const VerifyOtpSignUpScreen: React.FC = () => {
             keyboardShouldPersistTaps="handled"
           >
             {/* Top-left back button */}
-            <View style={styles.backButtonWrapper}>
+            <View style={[styles.backButtonWrapper, { paddingTop: inest.top + 2 }]}>
               <BackButton
                 size={48}
                 iconSize={20}

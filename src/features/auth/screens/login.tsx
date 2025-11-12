@@ -14,6 +14,7 @@ const LoginScreen: React.FC = () => {
   const router = useRouter();
   const [phoneNumber, setPhoneNumber] = useState<string>("");
   const [selectedCountry, setSelectedCountry] = useState<ICountry | null>(null);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
 
   // Format phone number to international format (e.g., +923355183960)
   const formatPhoneNumber = (): string => {
@@ -21,7 +22,7 @@ const LoginScreen: React.FC = () => {
 
     // Remove all spaces and special characters except digits
     const cleanedNumber = phoneNumber.replace(/\s+/g, "").replace(/\D/g, "");
-    
+
     // Get calling code and ensure it starts with +
     const callingCode = selectedCountry.callingCode.startsWith("+")
       ? selectedCountry.callingCode
@@ -36,7 +37,11 @@ const LoginScreen: React.FC = () => {
   const handleRequestOTP = () => {
     const formattedPhoneNumber = formatPhoneNumber();
     console.log("📞 Requesting OTP for:", formattedPhoneNumber);
-    
+    if (!phoneNumber || !selectedCountry || formattedPhoneNumber.length < 5) {
+      setPhoneError("Please enter a valid phone number before continuing.");
+      return;
+    }
+
     // Pass the formatted phone number to the next screen
     router.push({
       pathname: "/(auth)/verificationmethodLogin",
@@ -72,7 +77,7 @@ const LoginScreen: React.FC = () => {
           <View style={styles.content}>
             {/* Sign in text */}
             <Text style={styles.signInText}>
-              Sign in easily by your phone number !
+              Sign in easily by your phone number!
             </Text>
 
             {/* Phone Number Input */}
@@ -106,6 +111,7 @@ const LoginScreen: React.FC = () => {
                 }}
               />
             </View>
+            {phoneError && <Text style={styles.errorText}>{phoneError}</Text>}
 
             {/* Info text */}
             <Text style={styles.infoText}>A code will be sent to your number</Text>
@@ -202,6 +208,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "400",
     color: "#6B7280",
+    marginTop: 4,
+  },
+  errorText: {
+    fontSize: 14,
+    fontWeight: "400",
+    color: "red",
     marginTop: 4,
   },
   buttonContainer: {

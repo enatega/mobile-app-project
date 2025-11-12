@@ -18,7 +18,7 @@ interface SignupState {
     city: string;
     vehicleType: string;
   };
-  
+
   // Stage 2: Document Submission
   documentSubmission: {
     profilePicture: UploadedFile[];
@@ -30,7 +30,7 @@ interface SignupState {
     vehicleRegistrationBack: UploadedFile[];
     companyRegistration: UploadedFile[]; // ✅ Single field
   };
-  
+
   // Stage 3: Vehicle Requirements
   vehicleRequirements: {
     modelYearLimit: string;
@@ -38,8 +38,11 @@ interface SignupState {
     airConditioning: string;
     noCosmeticDamage: string;
     agreedToTerms: boolean;
+    vehicleName: string;
+    vehicleColor: string;
+    vehicleNumber: string;
   };
-  
+
   // Track completion only
   isComplete: boolean;
 }
@@ -67,7 +70,10 @@ const initialState: SignupState = {
     fourDoorCar: '',
     airConditioning: '',
     noCosmeticDamage: '',
+    vehicleName: '',
     agreedToTerms: false,
+    vehicleColor: '',
+    vehicleNumber: '',
   },
   isComplete: false,
 };
@@ -81,18 +87,18 @@ const signupSlice = createSlice({
     setPersonalInfo: (state, action: PayloadAction<SignupState['personalInfo']>) => {
       state.personalInfo = action.payload;
     },
-    
+
     // Save Stage 2: Document Submission
     setDocumentSubmission: (state, action: PayloadAction<SignupState['documentSubmission']>) => {
       state.documentSubmission = action.payload;
     },
-    
+
     // Save Stage 3: Vehicle Requirements
     setVehicleRequirements: (state, action: PayloadAction<SignupState['vehicleRequirements']>) => {
       state.vehicleRequirements = action.payload;
       state.isComplete = true;
     },
-    
+
     // Reset all signup data (useful after successful submission or logout)
     resetSignup: (state) => {
       state.personalInfo = initialState.personalInfo;

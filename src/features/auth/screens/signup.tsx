@@ -5,6 +5,7 @@ import { setPersonalInfo } from "@/src/store/slices/signup.slice";
 import { router } from "expo-router";
 import React from "react";
 import { SafeAreaView, StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Title from "../components/common/TitleHeader";
 import Stepper from "../components/common/stepper";
 import PersonalInfoForm from "../components/forms/personalInfoForm";
@@ -12,6 +13,7 @@ import { PersonalInfoFormValues } from "../types";
 
 const SignupScreen: React.FC = () => {
   const dispatch = useAppDispatch();
+  const inest = useSafeAreaInsets();
 
   const handlePersonalInfoSubmit = (values: PersonalInfoFormValues) => {
     console.log("Personal Info Values:", values);
@@ -31,7 +33,7 @@ const SignupScreen: React.FC = () => {
         {/* Fixed Header Section */}
         <View style={styles.fixedHeader}>
           {/* Top-left back button */}
-          <View style={styles.backButtonWrapper}>
+          <View style={[styles.backButtonWrapper, {paddingTop:inest.top}]}>
             <BackButton
               size={48}
               iconSize={20}
@@ -88,7 +90,7 @@ const styles = StyleSheet.create({
   },
   titleContainer: {},
   stepperWrapper: {
-    paddingHorizontal: 0,
+    paddingHorizontal: 3,
     paddingVertical: 8,
   },
 });

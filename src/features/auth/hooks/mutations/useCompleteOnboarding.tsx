@@ -23,6 +23,9 @@ export interface CompleteOnboardingRequest {
   no_cosmetic_damage: boolean;
   licenseNumber: string;
   ride_type_id: string;
+  vehicle_name: string;
+  vehicle_colour: string;
+  vehicle_no: string;
 }
 
 interface CompleteOnboardingResponse {
@@ -55,7 +58,7 @@ export const useCompleteOnboarding = () => {
   return useMutation({
     mutationFn: async (data: CompleteOnboardingRequest) => {
       console.log('📤 Uploading onboarding documents...');
-      
+
       // Create FormData for file upload
       const formData = new FormData();
 
@@ -66,7 +69,7 @@ export const useCompleteOnboarding = () => {
       formData.append('national_id_passport_back', data.national_id_passport_back);
       formData.append('vehicle_registration_front', data.vehicle_registration_front);
       formData.append('vehicle_registration_back', data.vehicle_registration_back);
-      
+
       if (data.company_commercial_registration) {
         formData.append('company_commercial_registration', data.company_commercial_registration);
       }
@@ -78,13 +81,16 @@ export const useCompleteOnboarding = () => {
       formData.append('no_cosmetic_damage', String(data.no_cosmetic_damage));
       formData.append('licenseNumber', data.licenseNumber);
       formData.append('ride_type_id', data.ride_type_id);
+      formData.append('vehicleName', data.vehicle_name);
+      formData.append('vehicleColor', data.vehicle_colour);
+      formData.append('vehicleNumber', data.vehicle_no);
 
       // Use multipart client for file upload (token added automatically!)
       const response = await multipartClient.patch<CompleteOnboardingResponse>(
         API_ENDPOINTS.LUMI_RIDER_AUTH.ONBOARDING,
         formData
       );
-      
+      console.log("my form data", formData)
       return response.data;
     },
     onSuccess: (data) => {

@@ -22,12 +22,63 @@ interface PersonalInfoFormProps {
 } 
 
 const cities = [
-  { label: "Berlin", value: "Berlin" },
-  { label: "Munich", value: "Munich" },
-  { label: "Hamburg", value: "Hamburg" },
-  { label: "Frankfurt", value: "Frankfurt" },
-  { label: "Cologne", value: "Cologne" },
+  { label: "Doha", value: "Doha" },
+  { label: "Al Rayyan", value: "Al Rayyan" },
+  { label: "Al Wakrah", value: "Al Wakrah" },
+  { label: "Al Khor", value: "Al Khor" },
+  { label: "Umm Salal Ali", value: "Umm Salal Ali" },
+  { label: "Umm Salal Mohammed", value: "Umm Salal Mohammed" },
+  { label: "Al Daayen", value: "Al Daayen" },
+  { label: "Al Shahaniya", value: "Al Shahaniya" },
+  { label: "Al Shamal", value: "Al Shamal" },
+  { label: "Lusail", value: "Lusail" },
+  { label: "Dukhan", value: "Dukhan" },
+  { label: "Mesaieed", value: "Mesaieed" },
+  { label: "Al Kharaitiyat", value: "Al Kharaitiyat" },
+  { label: "Al Thumama", value: "Al Thumama" },
+    { label: "Al Wukair", value: "Al Wukair" },
+  { label: "Al Sadd", value: "Al Sadd" },
+  { label: "Al Kheesa", value: "Al Kheesa" },
+  { label: "Simaisma", value: "Simaisma" },
+  { label: "Rawdat Al Khail", value: "Rawdat Al Khail" },
+  { label: "Al Masrouhiya", value: "Al Masrouhiya" },
+  { label: "Al Kharayej", value: "Al Kharayej" },
+  { label: "Abu Dhalouf", value: "Abu Dhalouf" },
+  { label: "Abu Samra", value: "Abu Samra" },
+  { label: "Ain Khaled", value: "Ain Khaled" },
+  { label: "Ain Sinan", value: "Ain Sinan" },
+  { label: "Al Aziziya", value: "Al Aziziya" },
+  { label: "Baaya", value: "Baaya" },
+  { label: "Bani Hajer", value: "Bani Hajer" },
+  { label: "Fereej Bin Mahmoud", value: "Fereej Bin Mahmoud" },
+  { label: "Fereej Al Asiri", value: "Fereej Al Asiri" },
+  { label: "Al Ghuwariyah", value: "Al Ghuwariyah" },
+  { label: "Leabaib", value: "Leabaib" },
+  { label: "Lebday", value: "Lebday" },
+  { label: "Lejbailat", value: "Lejbailat" },
+  { label: "Lekhwair", value: "Lekhwair" },
+  { label: "Madinat ash Shamal", value: "Madinat ash Shamal" },
+  { label: "Madinat Al Kaaban", value: "Madinat Al Kaaban" },
+  { label: "Mesaimeer", value: "Mesaimeer" },
+  { label: "Al Messila", value: "Al Messila" },
+  { label: "Muaither", value: "Muaither" },
+  { label: "Mushayrib", value: "Mushayrib" },
+  { label: "Najma", value: "Najma" },
+  { label: "Old Airport", value: "Old Airport" },
+  { label: "Onaiza", value: "Onaiza" },
+  { label: "The Pearl", value: "The Pearl" },
+  { label: "Ras Abu Aboud", value: "Ras Abu Aboud" },
+  { label: "Ras Lafan", value: "Ras Lafan" },
+  { label: "Shagra", value: "Shagra" },
+  { label: "Al Thakhira", value: "Al Thakhira" },
+  { label: "Umm Bab", value: "Umm Bab" },
+  { label: "Umm Qarn", value: "Umm Qarn" },
+  { label: "Al Waab", value: "Al Waab" },
+  { label: "Al Wajba", value: "Al Wajba" },
+  { label: "Al Zubarah", value: "Al Zubarah" }
 ];
+
+
 
 const vehicleTypes = [
   { 
@@ -121,7 +172,7 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
             {/* Full Name Input */}
             <CustomInput
               label="Full Name"
-              placeholder="Muhammad Umair"
+              placeholder="Full Name"
               value={values.fullName}
               onChangeText={handleChange("fullName")}
               onBlur={() => setFieldTouched("fullName", true)}

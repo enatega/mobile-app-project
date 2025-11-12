@@ -21,11 +21,15 @@ export const VehicleRequirementsSchema = Yup.object().shape({
     modelYearLimit: Yup.string()
       .min(2, "Please enter a valid model year limit")
       .required("Model year limit is required"),
+       vehicleName: Yup.string().required("Please enter vehicle Name"),
+       vehicleColor: Yup.string().required("Please enter vehicle Color"),
+      //  vehicleNo: Yup.string().required("Please enter vehicle Number"),
     fourDoorCar: Yup.string().required("Please select yes or no"),
     airConditioning: Yup.string().required("Please select yes or no"),
     noCosmeticDamage: Yup.string().required("Please select yes or no"),
     agreedToTerms: Yup.boolean()
       .oneOf([true], "You must agree to terms and privacy policy")
       .required("You must agree to terms and privacy policy"),
+     
   });
   

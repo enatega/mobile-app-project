@@ -293,7 +293,7 @@ const DocumentSubmissionForm: React.FC<DocumentSubmissionFormProps> = ({
         {/* Profile Picture */}
         <FileUploadInput
           label="Profile Picture"
-          placeholder="Muhammad Umair.jpeg"
+          placeholder="image.jpeg"
           files={profilePicture}
           onUpload={() => handleImagePick(setProfilePicture, "profilePicture")}
           onRemove={(index: number) => handleRemoveFile(setProfilePicture, index)}
