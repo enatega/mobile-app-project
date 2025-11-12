@@ -21,6 +21,9 @@ export interface VehicleRequirementsFormValues {
   airConditioning: string;
   noCosmeticDamage: string;
   agreedToTerms: boolean;
+  vehicleName: string;
+  vehicleColor: string;
+  vehicleNumber: string;
 }
 
 interface VehicleRequirementsFormProps {
@@ -51,6 +54,9 @@ const VehicleRequirementsForm: React.FC<VehicleRequirementsFormProps> = ({
     airConditioning: "",
     noCosmeticDamage: "",
     agreedToTerms: false,
+    vehicleName: "",
+    vehicleColor: "",
+    vehicleNumber: "",
   };
 
   // ✅ FIXED: Added missing < after useState
@@ -114,6 +120,46 @@ const VehicleRequirementsForm: React.FC<VehicleRequirementsFormProps> = ({
                   onChangeText={handleChange("modelYearLimit")}
                   onBlur={() => setFieldTouched("modelYearLimit", true)}
                   error={touched.modelYearLimit ? errors.modelYearLimit : undefined}
+                  variant="outline"
+                  size="large"
+                  containerStyle={styles.inputField}
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Vehicle Name</Text>
+                <CustomInput
+                  placeholder="Honda Civic"
+                  value={values.vehicleName}
+                  onChangeText={handleChange("vehicleName")}
+                  onBlur={() => setFieldTouched("vehicleName", true)}
+                  error={touched.vehicleName ? errors.vehicleName : undefined}
+                  variant="outline"
+                  size="large"
+                  containerStyle={styles.inputField}
+                />
+              </View>
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Vehicle Color</Text>
+                <CustomInput
+                  placeholder="Black"
+                  value={values.vehicleColor}
+                  onChangeText={handleChange("vehicleColor")}
+                  onBlur={() => setFieldTouched("vehicleColor", true)}
+                  error={touched.vehicleColor ? errors.vehicleColor : undefined}
+                  variant="outline"
+                  size="large"
+                  containerStyle={styles.inputField}
+                />
+              </View>
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Vehicle Number</Text>
+                <CustomInput
+                  placeholder="AEW 721"
+                  value={values.vehicleNumber}
+                  onChangeText={handleChange("vehicleNumber")}
+                  onBlur={() => setFieldTouched("vehicleNumber", true)}
+                  error={touched.vehicleNumber ? errors.vehicleNumber : undefined}
                   variant="outline"
                   size="large"
                   containerStyle={styles.inputField}

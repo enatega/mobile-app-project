@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import rideRequestsService from '../features/rideRequests/services';
+import { setZoneId } from '../store/slices/zoneSlice';
 import { RootState } from '../store/store';
 
 
@@ -12,6 +13,7 @@ const useCurrentZone = () => {
     const [loading, setLoading] = useState(false);
     const lastCoordsRef = useRef<{ lat: number; lng: number } | null>(null);
     const cancelTokenRef = useRef<AbortController | null>(null);
+    const dispatch = useDispatch();
 
     const fetchZone = useCallback(async (lat: number, lng: number) => {
         if (
@@ -30,8 +32,8 @@ const useCurrentZone = () => {
 
         try {
             const data = await rideRequestsService.getZone(lat, lng);
-            console.log("my zone data :", data)
             setZone(data?.id ?? 'Unknown zone');
+            dispatch(setZoneId(data?.id))
         } catch (error: any) {
             // Set zone to the backend error message
             setZone(error.message || 'Unknown zone');
