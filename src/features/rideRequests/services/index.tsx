@@ -274,7 +274,7 @@ export const rideRequestsService = {
 
 
     try {
-      const response = await axios.get(`${API_BASE}/currency`, {
+      const response = await axios.get(`${API_BASE}/api/v1/currency`, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,

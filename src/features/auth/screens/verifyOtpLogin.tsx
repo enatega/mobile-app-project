@@ -16,12 +16,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Title from "../components/common/TitleHeader";
 import OTPInput from "../components/verifyScreens/OTPInput";
 
 import { useSendLoginOtp, useVerifyLoginOtp } from '@/src/features/auth/hooks';
 
 const VerifyOTPLoginScreen: React.FC = () => {
+  const insets = useSafeAreaInsets();
   const params = useLocalSearchParams();
   const userId = params.userId as string;
   const phone = params.phone as string;
@@ -145,7 +147,7 @@ const VerifyOTPLoginScreen: React.FC = () => {
 
   return (
     <GradientBackground>
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView style={[styles.safeArea, { paddingTop: insets.top}]}>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.keyboardAvoidingView}

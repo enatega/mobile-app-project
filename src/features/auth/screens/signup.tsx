@@ -12,8 +12,8 @@ import PersonalInfoForm from "../components/forms/personalInfoForm";
 import { PersonalInfoFormValues } from "../types";
 
 const SignupScreen: React.FC = () => {
+  const insets = useSafeAreaInsets();
   const dispatch = useAppDispatch();
-  const inest = useSafeAreaInsets();
 
   const handlePersonalInfoSubmit = (values: PersonalInfoFormValues) => {
     console.log("Personal Info Values:", values);
@@ -29,28 +29,25 @@ const SignupScreen: React.FC = () => {
 
   return (
     <GradientBackground>
-      <SafeAreaView style={styles.safeArea}>
-        {/* Fixed Header Section */}
-        <View style={styles.fixedHeader}>
-          {/* Top-left back button */}
-          <View style={[styles.backButtonWrapper, {paddingTop:inest.top}]}>
-            <BackButton
-              size={48}
-              iconSize={20}
-              borderColor="#D1D5DB"
-              iconColor="#000000"
-              backgroundColor="rgba(255,255,255,0.1)"
-            />
-          </View>
+      <SafeAreaView style={[styles.safeArea, { paddingTop: insets.top }]}>
+        {/* Top-left back button */}
+        <View style={[styles.backButtonWrapper, { top: insets.top + 10 }]}>
+          <BackButton
+            size={48}
+            iconSize={20}
+            borderColor="#D1D5DB"
+            iconColor="#000000"
+            backgroundColor="rgba(255,255,255,0.1)"
+          />
+        </View>
 
-          {/* Title Section */}
-          <View style={styles.titleWrapper}>
-            <Title
-              heading="Sign up"
-              subheading="Hello, Welcome to your account."
-              containerStyle={styles.titleContainer}
-            />
-          </View>
+        {/* Title Section */}
+        <View style={styles.titleWrapper}>
+          <Title
+            heading="Sign up"
+            subheading="Hello, Welcome to your account."
+            containerStyle={styles.titleContainer}
+          />
         </View>
 
         {/* Fixed Stepper - Always showing step 1 */}
@@ -77,16 +74,16 @@ export default SignupScreen;
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-  },
-  fixedHeader: {
-    paddingTop: 10,
-    paddingHorizontal: 20,
+    position: "relative",
   },
   backButtonWrapper: {
-    marginBottom: 20,
+    position: "absolute",
+    left: 20,
+    zIndex: 10,
   },
   titleWrapper: {
-    marginBottom: 10,
+    marginTop: 80,
+    paddingHorizontal: 20,
   },
   titleContainer: {},
   stepperWrapper: {

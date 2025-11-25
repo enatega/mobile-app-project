@@ -5,10 +5,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
 import { Image, SafeAreaView, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Title from "../components/common/TitleHeader";
 import { useSendLoginOtp } from "../hooks";
 
 const VerificationMethodLoginScreen: React.FC = () => {
+  const insets = useSafeAreaInsets();
   const { phoneNumber: phone } = useLocalSearchParams<{ phoneNumber: string }>();
 
   const sendOtpMutation = useSendLoginOtp();
@@ -60,7 +62,7 @@ const VerificationMethodLoginScreen: React.FC = () => {
 
   return (
     <GradientBackground>
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView style={[styles.safeArea, { paddingTop: insets.top }]}>
         {/* Top-left back button */}
         <View style={styles.backButtonWrapper}>
           <BackButton
